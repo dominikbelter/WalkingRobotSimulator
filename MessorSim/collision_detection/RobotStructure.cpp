@@ -1363,7 +1363,6 @@ void CRobotStructure::GLDrawRobot(float *pos, float * rot, float Q1,  float Q2, 
 			   float Q13, float Q14, float Q15, float Q16, float Q17, float Q18)
 {
 	//CoordinateSystem_World();
-
 	float GLmat[16]={rot[0], rot[4], rot[8], 0, rot[1], rot[5], rot[9], 0, rot[2], rot[6], rot[10], 0, pos[0], pos[1], pos[2], 1}; //macierz do przeksztalcen
 
 		glPushMatrix();
