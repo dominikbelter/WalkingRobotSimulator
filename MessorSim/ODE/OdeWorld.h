@@ -2,7 +2,6 @@
 //#include "stdlib.h"
 //#include <gl\glut.h> // glut.h includes gl.h and glu.h
 #include <ode/ode.h>    // ode library header
-#include "../math/matrix.h"
 #include "Ground.h"
 #include "OdeGeom.h"
 #include "ODErobot.h"

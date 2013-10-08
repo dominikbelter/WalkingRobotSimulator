@@ -23,12 +23,12 @@ class OBJECT
                 void MoveX(float x); 
                 void MoveY(float y); 
                 void MoveZ(float z); 
-                VECTOR GetXUnit();                
-                VECTOR GetYUnit();                
-                VECTOR GetZUnit();                
+                CVector GetXUnit();                
+                CVector GetYUnit();                
+                CVector GetZUnit();                
 
 				CQuaternion Orientation;
-                VECTOR Position;
+                CVector Position;
                 float Delta_x;   //Rotation deltas  
                 float Delta_y;
                 float Delta_z;

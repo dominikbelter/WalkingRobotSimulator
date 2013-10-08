@@ -2,7 +2,6 @@
 #include "stdlib.h"
 #include <gl\glut.h> // glut.h includes gl.h and glu.h
 #include <ode/ode.h>
-#include "../math/matrix.h"
 #include "../math/punctum.h"//biblioteka obslugujaca macierze 4x4;
 #define PI 3.14159265
 
@@ -24,5 +23,7 @@ public:
 	void COdeGeom::DrawCoordinateSystem();
 	///rysuje walec
 	void COdeGeom::DrawCylinder(const float * pos, const float *R, float base, float top, float length);
-	MATRIX GeomMatrix; //macierz do przeksztalcen
+
+	CPunctum GeomMatrix; //macierz do przeksztalcen
+	float glMat[16];
 };

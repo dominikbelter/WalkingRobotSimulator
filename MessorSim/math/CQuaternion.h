@@ -7,6 +7,8 @@ class CQuaternion
     public:
         CQuaternion();
         virtual ~CQuaternion();
+
+		///quaternion vector
         union{
             float quat[4];
             struct {

@@ -13,7 +13,7 @@ LIGHT::~LIGHT()
 void LIGHT::Reset()
 {
     Orientation.Reset();
-    Position.Set(2.0, 2.0, 3.0);
+    Position.set(2.0, 2.0, 3.0);
     Delta_x = 0.0;
     Delta_y = 0.0;
     Delta_z = 0.0;

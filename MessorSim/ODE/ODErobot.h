@@ -1,5 +1,6 @@
 #pragma once
 #include "../math/punctum.h"
+#include "../math/vector.h"
 #include <ode/ode.h>
 #include "../functions.h"
 #include "IMU.h"

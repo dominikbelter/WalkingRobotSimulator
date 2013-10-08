@@ -1,7 +1,5 @@
 #include "ODErobot.h"
 #include <math.h>
-#include "../math/matrix.h"
-
 
 CODERobot::CODERobot(void)
 {
@@ -165,7 +163,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dReal sides[3];
     dMass m;
     dMatrix3 R; // macierz rotacji
-    VECTOR tempVect(0.0, 0.0, 0.0);
+    CVector tempVect(0.0, 0.0, 0.0);
 	double mass=mass_corp;
 	double leg_ref[3]={45*PI/180,(24)*PI/180,0};
 	leg_ref[2]=-(-114*PI/180)-leg_ref[1];//-(pi/2-leg_ref[1]);

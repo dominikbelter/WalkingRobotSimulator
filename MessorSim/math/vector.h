@@ -1,168 +1,120 @@
-// Vector Class    by Alan Baylis 2001
-
 #ifndef _Vector_H
 #define _Vector_H
 
 #include <math.h>
 
-// A floating point number
-typedef float SCALAR;
-
-class VECTOR
+class CVector
 {
     public:
-           VECTOR(float sx = 0, float sy = 0, float sz = 0);
-          ~VECTOR();
+           CVector(float sx = 0, float sy = 0, float sz = 0);
+          ~CVector();
 
-        float GetMagnitude();
-        void Normalize();
-        void Reset();
-          void Set(float sx, float sy, float sz) {x = sx, y = sy, z = sz;}
-        void CrossVector(VECTOR vect);
-        float DotProduct(VECTOR vect);
+        //vector
+		union {
+			struct {
+				float x, y, z;
+			};
+			float v[3];
+		};
 
-        //equal within an error ‘e’
-        const bool nearlyEquals( const VECTOR& v, const SCALAR e ) const
-        {
-            return fabs(x-v.x)<e && fabs(y-v.y)<e && fabs(z-v.z)<e;
+		/// returns magnitude
+        float getMagnitude();
+		/// set default values
+        inline void reset() {
+			x = 0;    y = 0;    z = 0;
+		}
+		/// set values
+        void set(float sx, float sy, float sz) {x = sx, y = sy, z = sz;}
+		/// cross product
+        void crossVector(CVector vect);
+		/// dot product
+        float dotProduct(CVector vect);
+        /// equal within an error ‘e’
+        inline const bool nearlyEquals( const CVector& v, const float e ) const {
+            return ((fabs(x-v.x)<e) && (fabs(y-v.y)<e) && (fabs(z-v.z)<e));
         }
-
-        //cross product
-        const VECTOR cross( const VECTOR& v ) const
-        {
-            //Davis, Snider, "Introduction to Vector Analysis", p. 44
-            return VECTOR( y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x );
+        /// cross product
+        inline const CVector cross( const CVector& v ) const {
+            return CVector( y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x );
         }
-
-        //scalar dot product
-        const SCALAR dot( const VECTOR& v ) const
-        {
+        /// scalar dot product
+        inline const float dot( const CVector& v ) const {
             return x*v.x + y*v.y + z*v.z;
         }
-
-        //length
-        const SCALAR length() const
-        {
-            return (SCALAR)sqrt( (double)this->dot(*this) );
+        /// length
+        inline const float length() const {
+            return (float)sqrt( (double)this->dot(*this) );
         }
-
-        //unit vector
-        const VECTOR unit() const
-        {
+        /// unit vector
+        inline const CVector unit() const {
             return (*this) / length();
         }
-
-        //make this a unit vector
-        void normalize()
-        {
+        /// make this a unit vector
+        inline void normalize() {
             (*this) /= length();
         }
-
-        //Members
-          float x;
-        float y;
-        float z;
-
-        //index a component
-        //NOTE: returning a reference allows
-        //you to assign the indexed element
-        SCALAR& operator [] ( const long i )
-        {
+        /// index a component
+        float& operator [] ( const long i ) {
             return *((&x) + i);
         }
-
-        //compare
-        const bool operator == ( const VECTOR& v ) const
-        {
+        /// compare
+        const bool operator == ( const CVector& v ) const {
             return (v.x==x && v.y==y && v.z==z);
         }
-
-        const bool operator != ( const VECTOR& v ) const
-        {
+		/// not equal
+        const bool operator != ( const CVector& v ) const {
             return !(v == *this);
         }
-
-        //negate
-        const VECTOR operator - () const
-        {
-            return VECTOR( -x, -y, -z );
+        /// negate
+        const CVector operator - () const {
+            return CVector( -x, -y, -z );
         }
-
-        //assign
-        const VECTOR& operator = ( const VECTOR& v )
-        {
-            x = v.x;
-            y = v.y;
-            z = v.z;
+        /// assign
+        const CVector& operator = ( const CVector& v ) {
+            x = v.x; y = v.y; z = v.z;
             return *this;
         }
-
-        //increment
-        const VECTOR& operator += ( const VECTOR& v )
-        {
-            x+=v.x;
-            y+=v.y;
-            z+=v.z;
+        /// increment
+        const CVector& operator += ( const CVector& v ) {
+            x+=v.x; y+=v.y; z+=v.z;
             return *this;
         }
-
-        //decrement
-        const VECTOR& operator -= ( const VECTOR& v )
-        {
-            x-=v.x;
-            y-=v.y;
-            z-=v.z;
+        /// decrement
+        const CVector& operator -= ( const CVector& v ) {
+            x-=v.x; y-=v.y; z-=v.z;
             return *this;
         }
-
-        //self-multiply
-        const VECTOR& operator *= ( const SCALAR& s )
-        {
-            x*=s;
-            y*=s;
-            z*=s;
+        /// self-multiply
+        const CVector& operator *= ( const float& s ) {
+            x*=s; y*=s; z*=s;
             return *this;
         }
-
-        //self-divide
-        const VECTOR& operator /= ( const SCALAR& s )
-        {
-            const SCALAR r = 1 / s;
-            x *= r;
-            y *= r;
-            z *= r;
+        /// self-divide
+        const CVector& operator /= ( const float& s ) {
+            const float r = 1 / s;
+            x *= r; y *= r; z *= r;
             return *this;
         }
-
-        //add
-        const VECTOR operator + ( const VECTOR& v ) const
-        {
-            return VECTOR(x + v.x, y + v.y, z + v.z);
+        /// add
+        const CVector operator + ( const CVector& v ) const {
+            return CVector(x + v.x, y + v.y, z + v.z);
         }
-
-        //subtract
-        const VECTOR operator - ( const VECTOR& v ) const
-        {
-            return VECTOR(x - v.x, y - v.y, z - v.z);
+        /// subtract
+        const CVector operator - ( const CVector& v ) const {
+            return CVector(x - v.x, y - v.y, z - v.z);
         }
-
-        //post-multiply by a scalar
-        const VECTOR operator * ( const SCALAR& s ) const
-        {
-            return VECTOR( x*s, y*s, z*s );
+        /// post-multiply by a float
+        const CVector operator * ( const float& s ) const {
+            return CVector( x*s, y*s, z*s );
         }
-
-        //pre-multiply by a scalar
-        friend inline const VECTOR operator * ( const SCALAR& s, const VECTOR& v )
-        {
+        /// pre-multiply by a float
+        friend inline const CVector operator * ( const float& s, const CVector& v ) {
             return v * s;
         }
-
-        //divide
-        const VECTOR operator / (SCALAR s) const
-        {
+        /// divide
+        const CVector operator / (float s) const {
             s = 1/s;
-            return VECTOR( s*x, s*y, s*z );
+            return CVector( s*x, s*y, s*z );
         }
 };
 

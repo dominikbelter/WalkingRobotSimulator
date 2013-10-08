@@ -278,7 +278,7 @@ double CGround::getReliability(int x, int y)
 		return reliability_map[x][y][2];
 }
 
-//zwraca maksymaln¹ wysokoœæ
+//zwraca maksymaln¹ wysokoœænorma
 double CGround::getMaxHeight()
 {
 	return max_height;
@@ -288,8 +288,8 @@ double CGround::getMaxHeight()
 void CGround::loadDatData(FILE * file, double *** data_structure)
 {
 	float temp;
-	for (size_t i=0;i<mesh_x_size;i++) {
-		for (size_t j=0;j<mesh_y_size;j++) {
+	for (int i=0;i<mesh_x_size;i++) {
+		for (int j=0;j<mesh_y_size;j++) {
 			data_structure[i][j][0]=(mesh_x_length/(mesh_x_size-1))*i-(mesh_x_length/2);// wspolrzedna x
 			data_structure[i][j][1]=(mesh_y_length/(mesh_y_size-1))*j-(mesh_y_length/2);// wspolrzedna y
 			fscanf(file,"%f ",&temp);

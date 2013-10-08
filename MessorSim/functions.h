@@ -70,3 +70,7 @@ double stopTimeMeasure(void);
 inline double dmax(double value1, double value2){
     return (value1>value2) ? value1 : value2;
 }
+/// return bigger value
+inline double fmax(float value1, float value2){
+    return (value1>value2) ? value1 : value2;
+}

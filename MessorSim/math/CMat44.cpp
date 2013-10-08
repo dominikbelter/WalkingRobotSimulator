@@ -84,9 +84,9 @@ void CMat44::createTRMatrix(float alpha, float beta, float gamma, float trans_x,
 	rotZ.setElement(cos(gamma),2,2);
 
 	*this=rotX*rotY*rotZ;
-	this->setElement(trans_x,1,4);
-	this->setElement(trans_y,2,4);
-	this->setElement(trans_z,3,4);
+	setElement(trans_x,1,4);
+	setElement(trans_y,2,4);
+	setElement(trans_z,3,4);
 
 	orientation[0]=alpha; orientation[1]=beta; orientation[2]=gamma;
 }

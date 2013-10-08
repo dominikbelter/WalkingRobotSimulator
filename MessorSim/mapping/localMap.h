@@ -21,11 +21,6 @@
 #include "mapStruct.h"
 #include "MapFilter/gridMap_filter.h"
 #include "laser_rangefinder.h"
-//#include "../Config/config.h"
-#include "../math/Eigen/Core"
-// import most common Eigen types 
-USING_PART_OF_NAMESPACE_EIGEN
-//#include "../Client_camera/RPCCallerCamera.h"
 #include <iostream>
 #include <fstream>
 //#include "cxcore.h"
@@ -109,7 +104,7 @@ class CLocalMap : private CPureScan, public CGridMap_filter
                 float CalculateRobotHight(float *s_f, float kat_X, float kat_Y);
 
 		// makes 4x4 transform matrix
-                Matrix4f makeTransformMatrix(const char * type, float value);
+        CPunctum makeTransformMatrix(const char * type, float value);
 		
 		//get max height from the square
 		double getMaxSquareHeight(int x, int y, int size);

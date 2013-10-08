@@ -13,6 +13,7 @@ CQuaternion::~CQuaternion()
     //dtor
 }
 
+/// copy sign to value
 float CQuaternion::copySign(float value, float sign){
     if (sign>0) return fabs(value);
     else if (sign<0) return -fabs(value);
@@ -22,42 +23,42 @@ float CQuaternion::copySign(float value, float sign){
 /// axis and angle to quaternion
 void CQuaternion::axisAngleToQuat(const float *axis, float theta)
 {
-        float halfTheta = theta * 0.5;
-        float cosHalfTheta = cos(halfTheta);
-        float sinHalfTheta = sin(halfTheta);
-        x = axis[0] * sinHalfTheta;
-        y = axis[1] * sinHalfTheta;
-        z = axis[2] * sinHalfTheta;
-        w = cosHalfTheta;
+	float halfTheta = theta * 0.5;
+	float cosHalfTheta = cos(halfTheta);
+	float sinHalfTheta = sin(halfTheta);
+	x = axis[0] * sinHalfTheta;
+	y = axis[1] * sinHalfTheta;
+	z = axis[2] * sinHalfTheta;
+	w = cosHalfTheta;
 }
 
 /// Euler angles to quaternion
 void CQuaternion::EulerToQuat(float roll, float pitch, float yaw)
 {
-        float cr, cp, cy, sr, sp, sy, cpcy, spsy;  // calculate trig identities
-        cr = cos(roll/2);
-        cp = cos(pitch/2);
-        cy = cos(yaw/2);
-        sr = sin(roll/2);
-        sp = sin(pitch/2);
-        sy = sin(yaw/2);
-        cpcy = cp * cy;
-        spsy = sp * sy;
-        w = cr * cpcy + sr * spsy;
-        x = sr * cpcy - cr * spsy;
-        y = cr * sp * cy + sr * cp * sy;
-        z = cr * cp * sy - sr * sp * cy;
+	float cr, cp, cy, sr, sp, sy, cpcy, spsy;  // calculate trig identities
+	cr = cos(roll/2);
+	cp = cos(pitch/2);
+	cy = cos(yaw/2);
+    sr = sin(roll/2);
+    sp = sin(pitch/2);
+    sy = sin(yaw/2);
+    cpcy = cp * cy;
+    spsy = sp * sy;
+    w = cr * cpcy + sr * spsy;
+    x = sr * cpcy - cr * spsy;
+    y = cr * sp * cy + sr * cp * sy;
+    z = cr * cp * sy - sr * sp * cy;
 }
 
 /// normalise quaternion
 void CQuaternion::normaliseQuat()
 {
-      float Mag;
-      Mag = magnitudeQuat();
-      w = w/Mag;
-      x = x/Mag;
-      y = y/Mag;
-      z = z/Mag;
+	float Mag;
+	Mag = magnitudeQuat();
+	w = w/Mag;
+	x = x/Mag;
+	y = y/Mag;
+	z = z/Mag;
 }
 
 /// compute magnitude
@@ -66,6 +67,7 @@ float CQuaternion::magnitudeQuat()
     return( sqrt(w*w+x*x+y*y+z*z));
 }
 
+/// multiply quaternions
 void CQuaternion::multQuat(CQuaternion q)
 {
 	CQuaternion q3;
@@ -94,7 +96,6 @@ void CQuaternion::multQuat(CQuaternion q)
 void CQuaternion::showQuat(void){
     printf("w=%f, x=%f, y=%f, z=%f\n",w, x, y, z);
 }
-
 
 ///export quaternion to file
 void CQuaternion::quat2file(FILE * file){

@@ -1,5 +1,6 @@
-#pragma once
-//#include "matrix_robot.h"
+#ifndef _CPUNCTUM_H
+#define _CPUNCTUM_H
+
 #include "CMat44.h"
 #include "CQuaternion.h"
 
@@ -10,21 +11,22 @@ public:
 	~CPunctum(void);
 
 	CPunctum operator= (CMat44 param);
-	/*CPunctum operator * (CPunctum);
-	CPunctum operator + (CPunctum);
-	CPunctum operator - (CPunctum);
-	CPunctum inv(CPunctum param);*/
 	/// convert matrix to quaternion
     void mat2quat(void);
     /// convert quaternion to matrix
 	void quat2mat(void);
     /// create matrix according to given quaternion and translation vectors
     void createMatrixQuatPos(double* _quat, double * _pos);
-	// ustaw jako punkt podparcia
+	// set point as a foothold
 	void setFoothold(bool is_foothold);
-	// czy jest punktem podparcia
+	// is foothold?
 	bool isFoothold(void);
+	/// ODE to OpenGL conversion
+	void ODEtoOGL(const float* p, const float* R, float * matGL);
+
 private:
-	/// czy punkt jest punktem podparcia
+	/// foothold
 	bool foothold;
 };
+
+#endif

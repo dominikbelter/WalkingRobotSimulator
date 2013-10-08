@@ -117,11 +117,11 @@ void CFootPlanner::ComputeKcoef(int size, int x, int y, float foot_x, float foot
 		}
 	}
 
-	VECTOR styczne[9];
-	VECTOR normalne[9];
-	VECTOR ruch;//wektor zwiazany z ruchem stopy
-	ruch.Set(foot_x, foot_y, foot_z);//ruch stopy w ukladzie globalnym
-	VECTOR suma;
+	CVector styczne[9];
+	CVector normalne[9];
+	CVector ruch;//wektor zwiazany z ruchem stopy
+	ruch.set(foot_x, foot_y, foot_z);//ruch stopy w ukladzie globalnym
+	CVector suma;
 	for (int i=-size;i<=size;i++) {
 		for (int j=-size;j<=size;j++) {
 			for (int n=-1;n<=1;n++) {
@@ -129,15 +129,15 @@ void CFootPlanner::ComputeKcoef(int size, int x, int y, float foot_x, float foot
 					if (!((n==0)&&(m==0)))
 						height = map->getHeight(x+i+m,y+j+n);
 						height1 = map->getHeight(x+i,y+j);
-						styczne[(n+1)*3+m+1].Set(m*scale_factor_x,-n*scale_factor_y,height-height1);
+						styczne[(n+1)*3+m+1].set(m*scale_factor_x,-n*scale_factor_y,height-height1);
 				}
 			}
 			for (int n=0;n<9;n++)
 				normalne[n]=styczne[n];
 
-			normalne[0].CrossVector(styczne[1]); normalne[3].CrossVector(styczne[0]); normalne[6].CrossVector(styczne[3]);
-			normalne[7].CrossVector(styczne[6]); normalne[8].CrossVector(styczne[7]); normalne[5].CrossVector(styczne[8]);
-			normalne[2].CrossVector(styczne[5]); normalne[1].CrossVector(styczne[2]);
+			normalne[0].crossVector(styczne[1]); normalne[3].crossVector(styczne[0]); normalne[6].crossVector(styczne[3]);
+			normalne[7].crossVector(styczne[6]); normalne[8].crossVector(styczne[7]); normalne[5].crossVector(styczne[8]);
+			normalne[2].crossVector(styczne[5]); normalne[1].crossVector(styczne[2]);
 			
 			if (ruch.x>0&&ruch.y==0) suma = normalne[0]+normalne[3]+normalne[6]+normalne[7];
 			else if (ruch.x>0&&ruch.y>0) suma = normalne[3]+normalne[6]+normalne[7]+normalne[8];
@@ -150,7 +150,7 @@ void CFootPlanner::ComputeKcoef(int size, int x, int y, float foot_x, float foot
 			else suma = normalne[0]+normalne[3]+normalne[6]+normalne[7];//jezeli ruch do gory wybieramy dowolne wektory
 			suma.normalize();
 			ruch.normalize();
-			K4[i+size][j+size]=acos(suma.DotProduct(ruch));//kat pomiedzy wektorem normalnym do powierzchni i  wektorem 
+			K4[i+size][j+size]=acos(suma.dotProduct(ruch));//kat pomiedzy wektorem normalnym do powierzchni i  wektorem 
 			//okreslajacym ruch stopy w ukladzie globalnym - im wiekszy tym lepiej (stopa znajduje odpowiedni punkt podparcia)
 		}
 	}

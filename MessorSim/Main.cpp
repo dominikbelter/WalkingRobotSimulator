@@ -58,7 +58,7 @@ void* controller(void*)
 
 	///------DEMO
 	//motion in neutral position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
-	/*rpccaller->movePlatform(0.1,0,0,0,0,0,0.15,1);
+	rpccaller->movePlatform(0.1,0,0,0,0,0,0.15,1);
 	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.15,1);
 	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.15,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
@@ -84,7 +84,7 @@ void* controller(void*)
 	rpccaller->tripodStepPrepare(0.1,0.0,0,0,0,0,0.1);
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
-	rpccaller->tripodStepFinish(0.1,0.0,0,0,0,0,0.1);*/
+	rpccaller->tripodStepFinish(0.1,0.0,0,0,0,0,0.1);
 
 	float pos_end[3] = {0.0,0.7,0.13};
 	float rot_end[3] = {0.0,0,0.0};

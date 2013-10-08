@@ -26,7 +26,7 @@ public:
         float Diffuse[4];
         float Specular[4];
         bool SpotLight;
-        VECTOR SpotDirection;
+        CVector SpotDirection;
         float SpotExponent;
         float SpotCutoff;
         float Constant;

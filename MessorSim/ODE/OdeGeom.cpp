@@ -33,8 +33,8 @@ void COdeGeom::DrawBox(dReal * sides, const float * pos, const float * R)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
             
     glPushMatrix();
-    GeomMatrix.ODEtoOGL(pos1, R);
-    glMultMatrixf(GeomMatrix.Element);
+    GeomMatrix.ODEtoOGL(pos1, R, glMat);
+    glMultMatrixf(glMat);
 
 	
 
@@ -136,8 +136,8 @@ void COdeGeom::DrawSphere(float radius, const float *pos, const float *R)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
     glPushMatrix();
-    GeomMatrix.ODEtoOGL(pos1, R);
-    glMultMatrixf(GeomMatrix.Element);
+    GeomMatrix.ODEtoOGL(pos1, R, glMat);
+    glMultMatrixf(glMat);
 	    //DrawCoordinateSystem();
     gluSphere(sphere, radius*10, 32, 32);
     glPopMatrix();
@@ -165,8 +165,8 @@ void COdeGeom::DrawCappedCylinder(const float * pos, const float *R, float radiu
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
      glPushMatrix();
-    GeomMatrix.ODEtoOGL(pos1, R);
-    glMultMatrixf(GeomMatrix.Element);
+    GeomMatrix.ODEtoOGL(pos1, R, glMat);
+    glMultMatrixf(glMat);
 	
 	//DrawCoordinateSystem();
 
@@ -194,8 +194,8 @@ void COdeGeom::DrawKorpus(dReal * sides, const float * pos, const float * R)
 glPushMatrix();
 	glDisable(GL_TEXTURE_2D);
 	glColor3d(body_color[0],body_color[1],body_color[2]);
-	GeomMatrix.ODEtoOGL(pos1, R);
-	glMultMatrixf(GeomMatrix.Element);
+	GeomMatrix.ODEtoOGL(pos1, R, glMat);
+	glMultMatrixf(glMat);
 
 	//GLUquadric *korpus;
 	//korpus=gluNewQuadric();
@@ -264,8 +264,8 @@ void COdeGeom::DrawCylinder(const float * pos, const float *R, float base, float
 	glPushMatrix();
 	glDisable(GL_TEXTURE_2D);
 	glColor3d(body_color[0],body_color[1],body_color[2]);
-	GeomMatrix.ODEtoOGL(pos1, R);
-	glMultMatrixf(GeomMatrix.Element);
+	GeomMatrix.ODEtoOGL(pos1, R, glMat);
+	glMultMatrixf(glMat);
 
 	gluCylinder( sphere, top*10, base*10, length*10/2, 16, 16);
 	glPopMatrix();
@@ -372,8 +372,8 @@ void COdeGeom::DrawCCylinderBox(float radius,float dlugosc, const float* pos, co
 	glPushMatrix();
 	glDisable(GL_TEXTURE_2D);
 	glColor3d(leg_color[0],leg_color[1],leg_color[2]);
-	GeomMatrix.ODEtoOGL(pos1, R);
-	glMultMatrixf(GeomMatrix.Element);
+	GeomMatrix.ODEtoOGL(pos1, R, glMat);
+	glMultMatrixf(glMat);
 
 	glRotatef(90,0,1,0);
 
@@ -409,20 +409,18 @@ void COdeGeom::DrawCCylinderBox(float radius,float dlugosc, const float* pos, co
 void COdeGeom::DrawCCylinder(float radius,float dlugosc, const float* pos, const float* R)
 {
 	float pos1[3];
-	for (int i=0;i<3;i++) {
+	for (unsigned int i=0;i<3;i++)
 		pos1[i]=pos[i]*10;
-	}
 
 	glPushMatrix();
 	glDisable(GL_TEXTURE_2D);
 	glColor3d(leg_color[0],leg_color[1],leg_color[2]);
-	GeomMatrix.ODEtoOGL(pos1, R);
-	glMultMatrixf(GeomMatrix.Element);
+	GeomMatrix.ODEtoOGL(pos1, R, glMat);
+	glMultMatrixf(glMat);
 	drawCapsule(10.0f*dlugosc,10.0f*radius,3);
 	glPopMatrix();
-
-	
 }
+
 /*sterowanie chodem robota*/
 //rysuje uklad wspolrzednych
 void COdeGeom::DrawCoordinateSystem(float rotx,float roty,float rotz,float posx, float posy, float posz)

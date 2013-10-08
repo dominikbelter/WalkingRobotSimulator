@@ -22,7 +22,7 @@ OBJECT::~OBJECT()
 void OBJECT::Reset()
 {
     Orientation.Reset();
-    Position.Reset();
+    Position.reset();
         Delta_x = 0.0;
         Delta_y = 0.0;
         Delta_z = 0.0;
@@ -205,7 +205,7 @@ void OBJECT::MoveZ(float z)
     Position.z += DirZ * z;
 }
 
-VECTOR OBJECT::GetXUnit()
+CVector OBJECT::GetXUnit()
 {
     float DirX;
     float DirY;
@@ -226,14 +226,14 @@ VECTOR OBJECT::GetXUnit()
     DirX = 2.0 * ( X * Z - W * Y );
     DirY = 2.0 * ( Y * Z + W * X );
     DirZ = 1.0 - 2.0 * ( X * X + Y * Y );
-    VECTOR Unit;
+    CVector Unit;
     Unit.x += DirX * 1;
     Unit.y += DirY * 1;
     Unit.z += DirZ * 1;
     return Unit;
 }
 
-VECTOR OBJECT::GetYUnit()
+CVector OBJECT::GetYUnit()
 {
     float DirX;
     float DirY;
@@ -254,14 +254,14 @@ VECTOR OBJECT::GetYUnit()
     DirX = 2.0 * ( X * Z - W * Y );
     DirY = 2.0 * ( Y * Z + W * X );
     DirZ = 1.0 - 2.0 * ( X * X + Y * Y );
-    VECTOR Unit;
+    CVector Unit;
     Unit.x += DirX * 1;
     Unit.y += DirY * 1;
     Unit.z += DirZ * 1;
     return Unit;
 }
 
-VECTOR OBJECT::GetZUnit()
+CVector OBJECT::GetZUnit()
 {
     float DirX;
     float DirY;
@@ -273,7 +273,7 @@ VECTOR OBJECT::GetZUnit()
     DirX = 2.0 * ( X * Z - W * Y );
     DirY = 2.0 * ( Y * Z + W * X );
     DirZ = 1.0 - 2.0 * ( X * X + Y * Y );
-    VECTOR Unit;
+    CVector Unit;
     Unit.x += DirX * 1;
     Unit.y += DirY * 1;
     Unit.z += DirZ * 1;

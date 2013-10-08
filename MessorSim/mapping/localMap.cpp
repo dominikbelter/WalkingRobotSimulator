@@ -207,18 +207,22 @@ void CLocalMap::RotateMap(float kat_X, float kat_Y, float kat_Z){
 
 	// w pierwszej kolejnosci przesuniecie mapy
 
-        Matrix4f dg_s = Matrix4f::Zero();
-        dg_s(1,3)=scanner_y;
-        dg_s(2.3)=scanner_z; 
+        CPunctum dg_s;
+		dg_s.setZero();
+        dg_s.pos[1]=scanner_y;
+        dg_s.pos[2]=scanner_z; 
 	
-        Matrix4f Tg_s = makeTransformMatrix("alpha",kat_X) * makeTransformMatrix("beta",kat_Y);
-        Matrix4f RotZ = makeTransformMatrix("gamma", kat_Z);
+        CPunctum Tg_s;
+		Tg_s = makeTransformMatrix("alpha",kat_X) * makeTransformMatrix("beta",kat_Y);
+        CPunctum RotZ;
+		RotZ = makeTransformMatrix("gamma", kat_Z);
       
-        Matrix4f dg_s2 = Tg_s * RotZ * dg_s;
+        CPunctum dg_s2;
+		dg_s2 = Tg_s * RotZ * dg_s;
 
       
-	float dx = dg_s2(0, 3);
-	float dy = (dg_s2(1, 3) - dg_s(1,3));
+	float dx = dg_s2.pos[0];
+	float dy = (dg_s2.pos[1] - dg_s.pos[1]);
 	MoveMap( dx, dy, 0 );
 
 	// obrot
@@ -358,11 +362,13 @@ void CLocalMap::Calculate3DMap(int no, float kat_X, float kat_Y, float kat_Z, fl
 // Wyznacza współrzędne globalne, tórjwymiarowe; zwaraca wartosc globalna pochylanie skanera "gamma"
 float CLocalMap::CalculateGlobalCoordinates(float* punkty, float kat_Y, float kat_X, float Alfa){
 
-         Matrix4f Tg_c = makeTransformMatrix("alpha", kat_X)*makeTransformMatrix("beta",kat_Y)*makeTransformMatrix("alpha",Alfa)*makeTransformMatrix("beta",deg2rad(scanner_beta)); //na radiany
-         Matrix4f X1 = Matrix4f::Zero();
-         X1(0,0) = punkty[0];
-         X1(1,0) = punkty[1];
-         X1(2,0) = punkty[2];
+         CPunctum Tg_c;
+		 Tg_c = makeTransformMatrix("alpha", kat_X)*makeTransformMatrix("beta",kat_Y)*makeTransformMatrix("alpha",Alfa)*makeTransformMatrix("beta",deg2rad(scanner_beta)); //na radiany
+         CPunctum X1;
+		 X1.setZero();
+         X1.rot[0][0] = punkty[0];
+         X1.rot[1][0] = punkty[1];
+         X1.rot[2][0] = punkty[2];
 
          /*printf("x-> %f %f %f %f \n", X1(0,0), X1(0,1),X1(0,2), X1(0,3));
          printf("y-> %f %f %f %f \n", X1(1,0), X1(1,1),X1(1,2), X1(1,3));
@@ -370,20 +376,21 @@ float CLocalMap::CalculateGlobalCoordinates(float* punkty, float kat_Y, float ka
          printf("    %f %f %f %f \n", X1(3,0), X1(3,1),X1(3,2), X1(3,3));
 */
 
-         Matrix4f X = Tg_c * X1;
+         CPunctum X;
+		 X = Tg_c * X1;
 
          /*printf("x-> %f %f %f %f \n", X(0,0), X(0,1),X(0,2), X(0,3));
          printf("y-> %f %f %f %f \n", X(1,0), X(1,1),X(1,2), X(1,3));
          printf("z-> %f %f %f %f \n", X(2,0), X(2,1),X(2,2), X(2,3));
          printf("    %f %f %f %f \n", X(3,0), X(3,1),X(3,2), X(3,3));
 */
-         punkty[ 0 ] = (float) X(0, 0);
-         punkty[ 1 ] = (float) X(1, 0);
-         punkty[ 2 ] = (float) X(2, 0);
+         punkty[ 0 ] = (float) X.rot[0][0];
+         punkty[ 1 ] = (float) X.rot[1][0];
+         punkty[ 2 ] = (float) X.rot[2][0];
 
        //  printf("x=%f; y=%f; z=%f; \n", punkty[0], punkty[1], punkty[2]);
 
-         float gamma = atan2(-Tg_c(1,2),Tg_c(2,2));
+         float gamma = atan2(-Tg_c.rot[1][2],Tg_c.rot[2][2]);
 	 //gamma = gamma * 180 / 3.14;
 
 	 return gamma;
@@ -465,34 +472,62 @@ robot_dz=z;
 
 
 // makes 4x4 transform matrix
-Matrix4f CLocalMap::makeTransformMatrix(const char * type, float value){
-  Matrix4f tmp = Matrix4f::Identity();
+CPunctum CLocalMap::makeTransformMatrix(const char * type, float value){
+  CPunctum tmp;
+  tmp.setEye();
+  float x,y,z;
   if (!strcmp(type,"x")){
-     tmp(0,3)=value;
+     tmp.pos[0]=value;
   }
   else if (!strcmp(type,"y")){
-     tmp(1,3)=value;
+     tmp.pos[1]=value;
   }
   else if (!strcmp(type,"z")){
-     tmp(2,3)=value;
+     tmp.pos[2]=value;
   }
   else if (!strcmp(type,"alpha")){
-     tmp(1,1)=cos(value);
-     tmp(1,2)=-sin(value);
-     tmp(2,1)=sin(value);
-     tmp(2,2)=cos(value);
+	  x=1;
+	  y=0;
+	  z=0;
+	  tmp.rot[0][0]=x*x*(1-cos(value))+cos(value);
+	  tmp.rot[0][1]=x*y*(1-cos(value))-z*sin(value);
+	  tmp.rot[0][2]=x*z*(1-cos(value))+y*sin(value);
+
+	  tmp.rot[1][0]=y*x*(1-cos(value))+z*sin(value);
+	  tmp.rot[1][1]=y*y*(1-cos(value))+cos(value);
+	  tmp.rot[1][2]=y*z*(1-cos(value))-x*sin(value);
+
+	  tmp.rot[2][0]=x*z*(1-cos(value))-y*sin(value);
+	  tmp.rot[2][1]=y*z*(1-cos(value))+x*sin(value);
+	  tmp.rot[2][2]=z*z*(1-cos(value))+cos(value);
   }
   else if (!strcmp(type,"beta")){
-     tmp(0,0)=cos(value);
-     tmp(0,2)=sin(value);
-     tmp(2,0)=-sin(value);
-     tmp(2,2)=cos(value);
+	  y=1; z=0; x=0;
+	  tmp.rot[0][0] = x*x*(1-cos(value))+cos(value);
+	  tmp.rot[0][1] = x*y*(1-cos(value))-z*sin(value);
+	  tmp.rot[0][2] = x*z*(1-cos(value))+y*sin(value);
+
+	  tmp.rot[1][0] = y*x*(1-cos(value))+z*sin(value);
+	  tmp.rot[1][1] = y*y*(1-cos(value))+cos(value);
+	  tmp.rot[1][2] = y*z*(1-cos(value))-x*sin(value);
+
+	  tmp.rot[2][0] = x*z*(1-cos(value))-y*sin(value);
+	  tmp.rot[2][1] = y*z*(1-cos(value))+x*sin(value);
+	  tmp.rot[2][2] = z*z*(1-cos(value))+cos(value);
   }
   else if (!strcmp(type,"gamma")){
-     tmp(0,0)=cos(value);
-     tmp(0,1)=-sin(value);
-     tmp(1,0)=sin(value);
-     tmp(1,1)=cos(value);     
+	  z=1; x=0; y=0;
+	  tmp.rot[0][0]=x*x*(1-cos(value))+cos(value);
+	  tmp.rot[0][1]=x*y*(1-cos(value))-z*sin(value);
+	  tmp.rot[0][2]=x*z*(1-cos(value))+y*sin(value);
+
+	  tmp.rot[1][0]=y*x*(1-cos(value))+z*sin(value);
+	  tmp.rot[1][1]=y*y*(1-cos(value))+cos(value);
+	  tmp.rot[1][2]=y*z*(1-cos(value))-x*sin(value);
+
+	  tmp.rot[2][0]=x*z*(1-cos(value))-y*sin(value);
+	  tmp.rot[2][1]=y*z*(1-cos(value))+x*sin(value);
+	  tmp.rot[2][2]=z*z*(1-cos(value))+cos(value);
   }
   return tmp;
 }
@@ -686,49 +721,56 @@ void CLocalMap::saveMap2dat(char * nazwa_pliku){
 float CLocalMap::CalculateRobotHight(float *sf, float kat_X, float kat_Y ){
 
     //Wyznaczenie macierzy przejście z układu globalnego do układu platformy
-     Matrix4f Tg_pl = makeTransformMatrix("alpha", kat_X)*makeTransformMatrix("beta",kat_Y);
+     CPunctum Tg_pl;
+	 Tg_pl = makeTransformMatrix("alpha", kat_X)*makeTransformMatrix("beta",kat_Y);
 
     //Macierz O_0
-     Matrix4f O_0 = Matrix4f::Identity();
-     O_0(0,3) = width_min_; //0.065;
-     O_0(1,3) = length_ - scanner_y;	//-0.046711;
-     O_0(2,3) = -scanner_z;	//-0.156;//0.149; //0.181;
+     CPunctum O_0;
+	 O_0.setEye();
+     O_0.pos[0] = width_min_; //0.065;
+     O_0.pos[1] = length_ - scanner_y;	//-0.046711;
+     O_0.pos[2] = -scanner_z;	//-0.156;//0.149; //0.181;
 
      //Macierz O_1
-     Matrix4f O_1 = Matrix4f::Identity();
-     O_1(0,3) = width_max_;//0.13;
-     O_1(1,3) = -scanner_y;
-     O_1(2,3) = -scanner_z;	//-0.156;
+     CPunctum O_1;
+	 O_1.setEye();
+     O_1.pos[0] = width_max_;//0.13;
+     O_1.pos[1] = -scanner_y;
+     O_1.pos[2] = -scanner_z;	//-0.156;
 
     //Macierz O_2
-     Matrix4f O_2 = Matrix4f::Identity();
-     O_2(0,3) = width_min_; //0.065;
-     O_2(1,3) = -length_-scanner_y;	//-0.355289;
-     O_2(2,3) = -scanner_z;	//-0.156;
+     CPunctum O_2;
+	 O_2.setEye();
+     O_2.pos[0] = width_min_; //0.065;
+     O_2.pos[1] = -length_-scanner_y;	//-0.355289;
+     O_2.pos[2] = -scanner_z;	//-0.156;
 
     //Macierz O_3
-     Matrix4f O_3 = Matrix4f::Identity();
-     O_3(0,0) = -1;
-     O_3(0,3) = -width_min_;//-0.065;
-     O_3(1,3) = -length_-scanner_y;	//-0.355289;
-     O_3(2,2) = -1;
-     O_3(2,3) = -scanner_z;
+     CPunctum O_3;
+	 O_3. setEye();
+     O_3.rot[0][0] = -1;
+     O_3.pos[0] = -width_min_;//-0.065;
+     O_3.pos[1] = -length_-scanner_y;	//-0.355289;
+     O_3.rot[2][2] = -1;
+     O_3.pos[2] = -scanner_z;
 
      //Macierz O_4
-     Matrix4f O_4 = Matrix4f::Identity();
-     O_4(0,0) = -1;
-     O_4(0,3) = -width_max_; //-0.13;
-     O_4(1,3) = -scanner_y;
-     O_4(2,2) = -1;
-     O_4(2,3) = -scanner_z;	//-0.156;
+     CPunctum O_4 ;
+	 O_4.setEye();
+     O_4.rot[0][0] = -1;
+     O_4.pos[0] = -width_max_; //-0.13;
+     O_4.pos[1] = -scanner_y;
+     O_4.rot[2][2] = -1;
+     O_4.pos[2] = -scanner_z;	//-0.156;
 
      //Macierz O_5
-     Matrix4f O_5 = Matrix4f::Identity();
-     O_5(0,0) = -1;
-     O_5(0,3) = -width_min_;//-0.065;
-     O_5(1,3) = length_ - scanner_y;	//-0.046711;
-     O_5(2,2) = -1;
-     O_5(2,3) = -scanner_z;	//-0.156;
+     CPunctum O_5;
+	 O_5.setEye();
+     O_5.rot[0][0] = -1;
+     O_5.pos[0] = -width_min_;//-0.065;
+     O_5.pos[1] = length_ - scanner_y;	//-0.046711;
+     O_5.rot[2][2] = -1;
+     O_5.pos[2] = -scanner_z;	//-0.156;
 
      if( foot == 0 ) foot = new SFoot[ 6 ];
 
@@ -738,13 +780,13 @@ float CLocalMap::CalculateRobotHight(float *sf, float kat_X, float kat_Y ){
      float dz_firstLeg = 0;
 
      do{
-         Matrix4f s_f = Matrix4f::Zero();
-         s_f(0,3) = sf[leg_nr*3 + 0];
-         s_f(1,3) = sf[leg_nr*3 + 1];
-         s_f(2,3) = sf[leg_nr*3 + 2];
-         s_f(3,3) = 1;
+         CPunctum s_f;
+		 s_f.setZero();
+         s_f.pos[0] = sf[leg_nr*3 + 0];
+         s_f.pos[1] = sf[leg_nr*3 + 1];
+         s_f.pos[2] = sf[leg_nr*3 + 2];
 
-         Matrix4f s_pl;
+         CPunctum s_pl;
 
          switch(leg_nr){
              case 0:
@@ -767,18 +809,19 @@ float CLocalMap::CalculateRobotHight(float *sf, float kat_X, float kat_Y ){
                  break;
          }
 
-         Matrix4f s_g = Tg_pl * s_pl;
+         CPunctum s_g;
+		 s_g = Tg_pl * s_pl;
 
          //Wyznczamy współrzędne komórki w której znajduje się noga robota
-		printf("x_f = %f \n", s_g(0,3));
-		printf("y_f = %f \n", s_g(1,3));
+		printf("x_f = %f \n", s_g.pos[0]);
+		printf("y_f = %f \n", s_g.pos[1]);
 
 
-            foot[ leg_nr ].x = (int)(s_g(0, 3) / raster_x + (float)size_x / 2);
-            foot[ leg_nr ].y = (int)((float)size_y / 2 - s_g(1, 3) / raster_y);
+            foot[ leg_nr ].x = (int)(s_g.pos[0] / raster_x + (float)size_x / 2);
+            foot[ leg_nr ].y = (int)((float)size_y / 2 - s_g.pos[1] / raster_y);
 
          //Składowa wysokości dz_1
-            float dz_1 = -s_g(2,3);
+            float dz_1 = -s_g.pos[2];
 	    if(leg_nr == 0) dz_firstLeg = dz_1;
 
          //Wyznaczamy wysokość na jakiej stoi stopa robota uwzględniając komórki sąsiadujące (okienko 3x1)

@@ -7,6 +7,7 @@ class CMat44
 {
     public:
 
+	/// rotation matrix
 	union {
 		struct {
 			float m11, m12, m13;
@@ -17,6 +18,7 @@ class CMat44
 		float rotation[9];
 	};
 
+	/// position vector
 	union {
         struct {
             float p1, p2, p3;
@@ -25,6 +27,7 @@ class CMat44
         float p[3];
 	};
 
+	/// alternative representation of rotation
 	union {
 		float orientation[3];
 		struct {
@@ -32,7 +35,6 @@ class CMat44
 		};
 		float Euler_angles[3];
 	};
-	/// macierz 4x4 jako tablica jednowymiarowa
 
 	CMat44();
     virtual ~CMat44();
@@ -129,13 +131,5 @@ class CMat44
     protected:
     private:
 };
-
-/*quaternion.w = sqrt( max( 0, 1 + m00 + m11 + m22 ) ) / 2;
-quaternion.x = sqrt( max( 0, 1 + m00 - m11 - m22 ) ) / 2;
-quaternion.y = sqrt( max( 0, 1 - m00 + m11 - m22 ) ) / 2;
-quaternion.z = sqrt( max( 0, 1 - m00 - m11 + m22 ) ) / 2;
-Q.x = _copysign( Q.x, m21 - m12 )
-Q.y = _copysign( Q.y, m02 - m20 )
-Q.z = _copysign( Q.z, m10 - m01 )*/
 
 #endif // CMAT44_H
