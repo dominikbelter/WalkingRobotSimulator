@@ -200,7 +200,7 @@ CPunctum CRobotStructure::makeTransformMatrix(const char * type, float value){
 void CRobotStructure::copyTable(CPunctum * src, float * dest){
 	for (int i=0;i<4;i++){
 		for (int j=0;j<4;j++){
-			dest[i+4*j]=src->getElement(i,j);
+			dest[i+4*j]=src->getElement(i+1,j+1);
 		}
 	}
 }
@@ -985,7 +985,8 @@ bool CRobotStructure::checkCollision(float x, float y, float z, float alpha, flo
 		}
 
 		for (int i=0;i<44;i++){
-			if (collision_table[i]==true) return true;
+			if (collision_table[i]==true) 
+				return true;
 		}
 		return false;
 }

@@ -58,7 +58,7 @@ void* controller(void*)
 
 	///------DEMO
 	//motion in neutral position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
-	rpccaller->movePlatform(0.1,0,0,0,0,0,0.15,1);
+	/*rpccaller->movePlatform(0.1,0,0,0,0,0,0.15,1);
 	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.15,1);
 	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.15,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
@@ -84,7 +84,7 @@ void* controller(void*)
 	rpccaller->tripodStepPrepare(0.1,0.0,0,0,0,0,0.1);
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
-	rpccaller->tripodStepFinish(0.1,0.0,0,0,0,0,0.1);
+	rpccaller->tripodStepFinish(0.1,0.0,0,0,0,0,0.1);*/
 
 	float pos_end[3] = {0.0,0.7,0.13};
 	float rot_end[3] = {0.0,0,0.0};
@@ -98,6 +98,7 @@ void* controller(void*)
 	motion_planner->legs_traj[3].savePosition2file("foot3_path.m");
 	motion_planner->legs_traj[4].savePosition2file("foot4_path.m");
 	motion_planner->legs_traj[5].savePosition2file("foot5_path.m");
+	motion_planner->savePath2File("path.txt");
 	motion_planner->executeTrajectory(0.1);
 	///!------DEMO
 

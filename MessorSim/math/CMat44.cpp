@@ -136,6 +136,11 @@ void CMat44::exportMat2file(FILE * file){
     fprintf(file, "mat=[%f %f %f %f; %f %f %f %f; %f %f %f %f; %f %f %f %f];\n", rotation[0], rotation[1], rotation[2], pos[0], rotation[3], rotation[4], rotation[5], pos[1], rotation[6], rotation[7], rotation[8], pos[2], 0.0, 0.0, 0.0, 1.0);
 }
 
+///export to file
+void CMat44::exportMat2file(ofstream * file){
+    *file << rotation[0] << " " << rotation[1] << " " << rotation[2] << " " << pos[0] << " " << rotation[3] << " " << rotation[4] << " " << rotation[5] << " " << pos[1] << " " << rotation[6] << " " << rotation[7] << " " << rotation[8] << " " << pos[2] << " " << 0.0 << " " << 0.0 << " " << 0.0 << " " << 1.0 << " ";
+}
+
 ///load from text file
 void CMat44::loadFromTextFile(FILE * file){
     float tmp;

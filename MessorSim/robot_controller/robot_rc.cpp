@@ -1687,7 +1687,7 @@ bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * foots){
 		pos.invThis();
 		pos=pos*foots[i];
 		if (!leg[i].inverse_kinematic(pos.getElement(1,4),pos.getElement(2,4),pos.getElement(3,4),part,&Q_ref[i*3]))
-			return false;
+			return true;
 	}
 	bool collision_table[44];
 	if (robot_structure->checkCollision(body.getElement(1,4),body.getElement(2,4),body.getElement(3,4),body.orientation[0],body.orientation[1],body.orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,-1,-1)) 

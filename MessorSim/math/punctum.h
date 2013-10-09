@@ -23,6 +23,8 @@ public:
 	bool isFoothold(void);
 	/// ODE to OpenGL conversion
 	void ODEtoOGL(const float* p, const float* R, float * matGL);
+	///export to file
+	void export2file(ofstream * file);
 
 private:
 	/// foothold

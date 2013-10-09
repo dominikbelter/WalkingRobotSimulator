@@ -74,3 +74,9 @@ void CPunctum::ODEtoOGL(const float* p, const float* R, float * matGL)
   matGL[8]  = R[2]; matGL[9]  = R[6]; matGL[10] = R[10];matGL[11] = 0;
   matGL[12] = p[0]; matGL[13] = p[1]; matGL[14] = p[2]; matGL[15] = 1;
 }
+
+///export to file
+void CPunctum::export2file(ofstream * file){
+    *file << foothold << " ";
+	exportMat2file(file);
+}

@@ -16,7 +16,7 @@ public:
 	bool SmartGaitFoothold(float x, float y, float z, float rotx, float roty, float rotz, float foot_up, float speed, int accel);
 	////wyciecie z zaplanowanej sciezki fragmentow wykraczajacych poza zadana odleglosc
 	bool reduceTrajectory(float distance);
-	////robot porusza sie po trajektorii zadanej
+	////execute trajectory
 	bool executeTrajectory(float speed);
 	////robot porusza sie po trajektorii zadanej
 	bool executeTrajectoryWave(float speed);
@@ -34,6 +34,11 @@ public:
 	void createPath(CrrtNode q_begin, int shift);
 	///// path smoothing
 	void pathSmoothing(float alpha = 0.01, float beta = 0.99, float alpha_leg = 0.5, float beta_leg = 0.1);
+	/// save trajectory to file
+	void savePath2File(const char * filename);
+	/// load path from file
+	void loadPathFromFile(const char * filename);
+
 	//RPCCaller
 	RPCCaller* rpccaller;
 public:

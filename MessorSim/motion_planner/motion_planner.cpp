@@ -218,7 +218,50 @@ bool CMotionPlanner::SmartGaitFoothold(float x, float y, float z, float rotx, fl
 	return true;
 }
 
-//robot porusza sie po trajektorii zadanej
+/// save path to file
+void CMotionPlanner::savePath2File(const char * filename){
+	ofstream f_path (filename);
+	CPunctum body, foot;
+	if (f_path.is_open()) {
+		size_t size=robot_platform_traj.getSize()-1;
+		robot_platform_traj.getFirst(&body);
+		body.export2file(&f_path);
+		for (int i=0;i<6;i++){
+			legs_traj[i].getFirst(&foot);
+			foot.export2file(&f_path);
+		}
+		f_path << "\n";
+		for (size_t i=0;i<size;i++){
+			robot_platform_traj.getNext(&body);
+			body.export2file(&f_path);
+			for (int i=0;i<6;i++){
+				legs_traj[i].getNext(&foot);
+				foot.export2file(&f_path);
+			}
+			f_path << "\n";
+		}
+		f_path.close();
+	}
+	else cout << "Unable to open file";
+}
+
+/// load path from file
+void CMotionPlanner::loadPathFromFile(const char * filename){
+  string line;
+  ifstream myfile (filename);
+  if (myfile.is_open())
+  {
+    while ( getline (myfile,line) )
+    {
+      cout << line << endl;
+    }
+    myfile.close();
+  }
+
+  else cout << "Unable to open file"; 
+}
+
+//execute trajectory
 bool CMotionPlanner::executeTrajectory(float speed){
 	CPunctum body, body_prev;
 	CPunctum foots[6],foots_prev[6],foots_temp[6];
@@ -232,8 +275,8 @@ bool CMotionPlanner::executeTrajectory(float speed){
 	CPunctum foot_offset[6];
 	for (int i=0; i<6;i++) foot_offset[i].setIdentity();
 
-	int size=robot_platform_traj.getSize()-1;
-	for (int i=0;i<size;i++){
+	size_t size=robot_platform_traj.getSize()-1;
+	for (size_t i=0;i<size;i++){
 		robot_platform_traj.getNext(&body);
 		for (int i=0;i<6;i++)
 			legs_traj[i].getNext(&foots[i]);

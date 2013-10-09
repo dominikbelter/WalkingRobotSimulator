@@ -2,6 +2,9 @@
 #define CMAT44_H
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+#include <fstream>
+using namespace std;
 
 class CMat44
 {
@@ -71,6 +74,8 @@ class CMat44
             return rotation[(row-1)*3+(col-1)];
         else if ((col==4)&&(row<4))
             return p[row-1];
+		else if ((col==4)&&(row==4))
+            return 1;
 		else
 			return 0;
     }
@@ -125,6 +130,8 @@ class CMat44
     void showMatrix(void);
     ///export to file
     void exportMat2file(FILE * file);
+	///export to file
+	void exportMat2file(ofstream * file);
     ///load from text file
     void loadFromTextFile(FILE * file);
 

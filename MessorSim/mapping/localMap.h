@@ -23,9 +23,6 @@
 #include "laser_rangefinder.h"
 #include <iostream>
 #include <fstream>
-//#include "cxcore.h"
-//#include "highgui.h"
-//#include "cv.h"
 #include <gl\glut.h>
 
 #define W 3 //stała o którą zwiększana jest mapa wiarygosności
