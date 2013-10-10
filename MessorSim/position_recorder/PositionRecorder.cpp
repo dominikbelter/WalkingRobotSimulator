@@ -4,6 +4,7 @@
 
 CPositionRecorder::CPositionRecorder(void)
 {
+	plot_stop = false;
 	delay=0;
 	delay_iterator=0;
 }

@@ -8,6 +8,10 @@ class CPunctum : public CMat44, public CQuaternion
 {
 public:
 	CPunctum(void);
+	CPunctum(float * init_tab) : CMat44 (&init_tab[1])
+	{
+		 init_tab[0] ? foothold = true : foothold = false;
+	}
 	~CPunctum(void);
 
 	CPunctum operator= (CMat44 param);

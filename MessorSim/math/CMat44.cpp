@@ -7,6 +7,13 @@ CMat44::CMat44()
     setEye();
 }
 
+CMat44::CMat44(float *tab){
+	rot[0][0] = tab[0]; rot[0][1] = tab[1]; rot[0][2] = tab[2];
+	rot[1][0] = tab[4]; rot[1][1] = tab[5]; rot[1][2] = tab[6];
+	rot[2][0] = tab[8]; rot[2][1] = tab[9]; rot[2][2] = tab[10];
+	pos[0] = tab[3]; pos[1] = tab[7]; pos[2] = tab[11];
+}
+
 CMat44::~CMat44()
 {
     //dtor

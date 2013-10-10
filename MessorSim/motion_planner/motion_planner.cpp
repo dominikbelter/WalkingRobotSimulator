@@ -247,17 +247,33 @@ void CMotionPlanner::savePath2File(const char * filename){
 
 /// load path from file
 void CMotionPlanner::loadPathFromFile(const char * filename){
-  string line;
-  ifstream myfile (filename);
-  if (myfile.is_open())
-  {
-    while ( getline (myfile,line) )
-    {
-      cout << line << endl;
-    }
-    myfile.close();
+  ifstream f_path (filename);
+  if (f_path.is_open())  {
+	  robot_platform_traj.clear();
+	  for (int i=0;i<6;i++)
+		  legs_traj[i].clear();
+	// parse text file
+    const char* DELIM = " \t,;:";
+	const int PUNCTUM_SIZE = 17; //4x4=16 floats for homogenous matrix + foothold
+	const int NUM_POSES = 7;//body+6legs
+	vector <float> pose_tab (PUNCTUM_SIZE, 0);
+    for (string line; !f_path.eof() && getline(f_path, line); )
+        if (!line.empty()&&(line[0]!='#')) {
+            char *token = std::strtok(const_cast<char*>(line.c_str()), DELIM);
+            for (size_t index = 0; token != NULL && index < PUNCTUM_SIZE*NUM_POSES; token = std::strtok(NULL, DELIM), ++index){
+				pose_tab[index % PUNCTUM_SIZE] = float(atof(token));
+				if (index % PUNCTUM_SIZE == PUNCTUM_SIZE-1) {
+					CPunctum pose(&pose_tab[0]);
+					if (int (index/PUNCTUM_SIZE)==0)
+						robot_platform_traj.savePunctum(pose);
+					else
+						legs_traj[index/PUNCTUM_SIZE-1].savePunctum(pose);
+				}
+			}
+       //     trajectory.push_back(config);
+       } 
+    f_path.close();
   }
-
   else cout << "Unable to open file"; 
 }
 

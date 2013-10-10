@@ -40,6 +40,7 @@ class CMat44
 	};
 
 	CMat44();
+	CMat44(float *tab);
     virtual ~CMat44();
     /// multiplication
     CMat44 operator* (CMat44 param);
