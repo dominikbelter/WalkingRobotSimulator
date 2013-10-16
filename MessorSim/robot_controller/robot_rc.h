@@ -86,7 +86,7 @@ public:
 	/// odczytuje orientacje robota (katy)
 	void getRotAngles(float *angles);
 	/// zwraca stan robota w postaci macierzy odpowiedzialnych z polozenie stop i korpusu
-	void getFullRobotState(CPunctum * body, CPunctum * foots);
+	void getFullRobotState(CPunctum * body, CPunctum * feet);
 
 	/*sterowanie ruchem robota kroczacego*/
 	//real robot initialization
@@ -98,9 +98,9 @@ public:
 	/// przesuwa stope o zadana odleglosc w ukladzie robota
 	bool changeFootRobot(float x, float y, float z, unsigned char leg_no, float speed);
 	/// przesuwa wszystkie stopy o zadane odleglosci w ukladzie nogi
-	bool changeAllFoots(float * x, float * y, float * z, float speed);
+	bool changeAllfeet(float * x, float * y, float * z, float speed);
 	/// przesuwa wszystkie stopy o zadane odleglosci w ukladzie robota
-	bool changeAllFootsRobot(float * x, float * y, float * z, float speed);
+	bool changeAllfeetRobot(float * x, float * y, float * z, float speed);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota
 	bool changePlatformRobot(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
@@ -122,40 +122,40 @@ public:
 	/// ze wzgledu na brak znajomosci poprzedniej pozycji platformy (TODO) lub nalezy konczyc ruch w pozycji neutralnej
 	bool changePlatform(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel);
 	//przemieszcza robota do zadanych pozycji w ukladzie globalnym, soft - pozwala na zmiane konfiguracji jezeli pozycja jest niemozliwa do wykonania
-	bool move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * foots_prev, CPunctum * foots, float speed, int soft = 0);
+	bool move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft = 0);
 	/// sprawdza czy pozycja stopy jest osiagalna
 	bool isFootPositionAvailableGlobal(CPunctum robot_pos,double globalx, double globaly, double globalz, int legnumber, float scale = 1.0);
 	///modifies global robot position
 	void modifyRobotPosition(float x, float y, float z, float alpha, float beta, float gamma);
 	/// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-	bool PlaceFoots(float dz, int legs, float speed);
+	bool Placefeet(float dz, int legs, float speed);
 	/// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-	bool PlaceFoots(float dz, float speed);
+	bool Placefeet(float dz, float speed);
 	///check stability
-	bool checkStability(CPunctum body, CPunctum * foots, float stability_margin);
+	bool checkStability(CPunctum body, CPunctum * feet, float stability_margin);
 	///
 	//check stability
-	bool isStable(CPunctum body, CPunctum * foots);
+	bool isStable(CPunctum body, CPunctum * feet);
 	///computes stability margin
-	float computeStabilityMargin(CPunctum body, CPunctum * foots);
+	float computeStabilityMargin(CPunctum body, CPunctum * feet);
 	///move body closer to stability center
-	void increaseStabilityMargin(CPunctum * body, CPunctum * foots, float distance);
+	void increaseStabilityMargin(CPunctum * body, CPunctum * feet, float distance);
 	///move body closer to stability center
-	void increaseStabilityMarginSwing(CPunctum * body, CPunctum * foots, float distance);
+	void increaseStabilityMarginSwing(CPunctum * body, CPunctum * feet, float distance);
 	///computes kinematic margin
-	float computeKinematicMargin(CPunctum body, CPunctum * foots);
+	float computeKinematicMargin(CPunctum body, CPunctum * feet);
 	///computes kinematic margin
-	float computeKinematicMarginApprox(CPunctum body, CPunctum * foots, bool only_stance=false);
+	float computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bool only_stance=false);
 	///computes kinematic margin for single leg
 	float computeKinematicMarginApprox(CPunctum * body, CPunctum * foot, int leg_no);
 	/// check collisions
-	bool checkCollisions(CPunctum body, CPunctum * foots);
+	bool checkCollisions(CPunctum body, CPunctum * feet);
 	/// show com
 	void show_center_of_mass(void);
 	///robot stabilization procedure
 	void stabilizeRobot(void);
 	void react(float * curr_pos, float * dest_pos, float d_z, float speed, float speed_horizontal);
-	bool computeComPosition(CPunctum body, CPunctum * foots);
+	bool computeComPosition(CPunctum body, CPunctum * feet);
 
 	///ODE functions
 	//Simulate ODE for x miliseconds

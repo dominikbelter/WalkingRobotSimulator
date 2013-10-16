@@ -56,7 +56,7 @@ void CrrtNode::drawNode(double red, double green, double blue, double thickness,
 		glPopMatrix();
 		/*for (int i=0;i<6;i++){
 			glPushMatrix();
-			 glTranslatef(foots[i].getElement(1,4)*10, foots[i].getElement(3,4)*10, -foots[i].getElement(2,4)*10);
+			 glTranslatef(feet[i].getElement(1,4)*10, feet[i].getElement(3,4)*10, -feet[i].getElement(2,4)*10);
 			 glutSolidSphere(.02*thickness,5,5);
 			glPopMatrix();			
 		}*/

@@ -11,9 +11,6 @@ class CMotionPlanner: public CFootPlanner
 public:
 	CMotionPlanner(CIdealMap* map, RPCCaller* rpccaller);
 	~CMotionPlanner();
-	bool SmartGait(float x, float y, float z, float rotx, float roty, float rotz, float foot_up, float speed, int accel);
-	/// prepare to smart gait
-	bool SmartGaitFoothold(float x, float y, float z, float rotx, float roty, float rotz, float foot_up, float speed, int accel);
 	////wyciecie z zaplanowanej sciezki fragmentow wykraczajacych poza zadana odleglosc
 	bool reduceTrajectory(float distance);
 	////execute trajectory

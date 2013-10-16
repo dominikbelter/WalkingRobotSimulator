@@ -73,7 +73,7 @@ bool CGaits_RC::tripodPrepare(unsigned int delay_up, unsigned int delay_forward,
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==1)||(i==3)||(i==5)) z_ref[i]=offset_up; else z_ref[i]=0;
 	}
-	if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	return true;
 }
@@ -99,15 +99,15 @@ bool CGaits_RC::tripodStep(unsigned int delay_up, unsigned int delay_forward, fl
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==1)||(i==3)||(i==5)) z_ref[i]=-offset_up; else z_ref[i]=0;
 	}
-	//if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
-	if (!robot_rc->PlaceFoots(0.005,speed)) return false;
+	//if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->Placefeet(0.005,speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	//podnosimy nieparzyste
 	for (int i=0;i<6;i++){
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==0)||(i==2)||(i==4)) z_ref[i]=offset_up; else z_ref[i]=0;
 	}
-	if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	//przejscie do polowy na parzystych
 	for (int i=0;i<6;i=i+2){
@@ -125,15 +125,15 @@ bool CGaits_RC::tripodStep(unsigned int delay_up, unsigned int delay_forward, fl
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==0)||(i==2)||(i==4)) z_ref[i]=-offset_up; else z_ref[i]=0;
 	}
-	//if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
-	if (!robot_rc->PlaceFoots(0.005,speed)) return false;
+	//if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->Placefeet(0.005,speed)) return false;
 	robot_rc->sleepODE(delay_forward/1000);//usleep(delay_forward);
 	//podnosimy parzyste
 	for (int i=0;i<6;i++){
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==1)||(i==3)||(i==5)) z_ref[i]=offset_up; else z_ref[i]=0;
 	}
-	if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	// przejscie do pozycji neutralnej na nieparzystych
 	for (int i=0;i<6;i=i+2){
@@ -144,7 +144,7 @@ bool CGaits_RC::tripodStep(unsigned int delay_up, unsigned int delay_forward, fl
 	}
 	if (!robot_rc->changePlatformRobot(x_ref, y_ref, z_ref, alpha_ref, beta_ref, gamma_ref, speed,accel)) return false;
 	robot_rc->sleepODE(delay_forward/1000);//usleep(delay_forward);
-	//if (!robot_rc->PlaceFoots(0.005,speed)) return false;
+	//if (!robot_rc->Placefeet(0.005,speed)) return false;
 	return true;
 }
 
@@ -203,7 +203,7 @@ bool CGaits_RC::tripodFinish(unsigned int delay_up, unsigned int delay_forward, 
 	    	x_ref[i]=0; y_ref[i]=0; 
 		if ((i==1)||(i==3)||(i==5)) z_ref[i]=-offset_up; else z_ref[i]=0;
 	}
-	if (!robot_rc->changeAllFootsRobot(x_ref, y_ref, z_ref, speed)) return false;
+	if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	return true;
 }
@@ -371,7 +371,7 @@ bool CGaits_RC::SmartGait(float x, float y, float z, float rotx, float roty, flo
 	float y_foot[6]={0,0,0,0,0,0};
 	float z_foot[6]={0.0,0,0.0,0,0.0,0};
 	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=0.14;
-	while (!robot_rc->changeAllFootsRobot(x_foot, y_foot, z_foot, speed)){//move legs up
+	while (!robot_rc->changeAllfeetRobot(x_foot, y_foot, z_foot, speed)){//move legs up
 		for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]-=0.01;
 		if (z_foot[smart_gait_iterator]<=0) 
 			return false;
@@ -416,9 +416,9 @@ bool CGaits_RC::SmartGait(float x, float y, float z, float rotx, float roty, flo
 //	if (!MoveLegsDown(smart_gait_iterator,0,0,&z_foot[0]))//nieparzyste nogi na ziemie
 //	  return false;
 	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=-z_foot[i];
-	if (!robot_rc->changeAllFootsRobot(x_foot, y_foot, z_foot, speed))//opuszczamy konczyny na dol
+	if (!robot_rc->changeAllfeetRobot(x_foot, y_foot, z_foot, speed))//opuszczamy konczyny na dol
 	  return false;
-	//	if (!robot_rc->PlaceFoots(0.005, smart_gait_iterator, speed))
+	//	if (!robot_rc->Placefeet(0.005, smart_gait_iterator, speed))
 	//	  return false;
 	//	robot_rc->stabilizePlatform(speed, accel);
 //	SleepODE(100);

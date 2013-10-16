@@ -121,13 +121,13 @@ class RPCCaller
 	// 40.
 	ERR getIMUorientation(float* angles);
 	// 41.
-	ERR PlaceFoots(float dz, int legs, float speed);
+	ERR Placefeet(float dz, int legs, float speed);
 	// 42.
 	ERR Contact(int i);
 	// 43.
-	ERR checkCollisions(CPunctum body, CPunctum* foots);
+	ERR checkCollisions(CPunctum body, CPunctum* feet);
 	// 44.
-	ERR move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * foots_prev, CPunctum * foots, float speed, int soft);
+	ERR move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft);
 	// 45.
 	ERR stabilizeRobot(void);
 

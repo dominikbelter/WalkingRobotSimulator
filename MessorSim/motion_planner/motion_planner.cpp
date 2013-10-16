@@ -17,207 +17,6 @@ CMotionPlanner::~CMotionPlanner()
 	delete robot;
 }
 
-
-/// prepare to smart gait
-bool CMotionPlanner::SmartGait(float x, float y, float z, float rotx, float roty, float rotz, float foot_up, float speed, int accel){
-	float iter_no = 10;
-	float imu_rot[3];
-	float x_foot1[6];//wspolrzedne x stop robota
-	float y_foot1[6];
-	float z_foot1[6];//wspolrzedne z stop robota
-	float x_foot_after[6];//wspolrzedne x stop robota
-	float y_foot_after[6];
-	float z_foot_after[6];//wspolrzedne z stop robota
-	float foot_distance[6]; // poslizg
-	/*for (int i=0;i<3*iter_no;i++){
-		if (!robot->changePlatformRobot(0,0,0.005,0,0,0,speed,accel))//przenosimy platforme
-		  return false;
-		else
-			robot->modifyRobotPosition(0,0,0.005,0,0,0);
-		//make scan
-		usleep(100000);
-		rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4),robot->robot_platform_pos[3],robot->robot_platform_pos[4],robot->robot_platform_pos[5]);
-	}
-	for (int i=0;i<3*iter_no;i++){
-		if (!robot->changePlatformRobot(0,0,-0.005,0,0,0,speed,accel))//przenosimy platforme
-		  return false;
-		else
-			robot->modifyRobotPosition(0,0,-0.005,0,0,0);
-		//make scan
-		usleep(100000);
-		rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4),robot->robot_platform_pos[3],robot->robot_platform_pos[4],robot->robot_platform_pos[5]);
-	}	*/
-        CPunctum movement;
-	movement.createTRMatrix(rotx, roty, rotz, x, y, z);
-	CPunctum  robot_pos;
-	robot_pos = robot->robot_global_pos * movement;//pozycja robota po ruchu
-	CPunctum rob_pos = robot->getRobotState();
-	z=0.215-rob_pos.getElement(3,4);
-	//obliczenie pozycji stop po wykonaniu ruchu
-	// obliczenie trajektorii
-	float x_foot[6]={0,0,0,0,0,0};
-	float y_foot[6]={0,0,0,0,0,0};
-	float z_foot[6]={0.0,0,0.0,0,0.0,0};
-	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=0.14;
-	while (!robot->changeAllFootsRobot(x_foot, y_foot, z_foot, speed)){//move legs up
-		for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]-=0.01;
-		if (z_foot[smart_gait_iterator]<=0) 
-			return false;
-	}
-	//SleepODE(500000);
-	float x_robot[6]={x/iter_no,x/iter_no,x/iter_no,x/iter_no,x/iter_no,x/iter_no};
-	float y_robot[6]={y/iter_no,y/iter_no,y/iter_no,y/iter_no,y/iter_no,y/iter_no};
-	float z_robot[6]={z/iter_no,z/iter_no,z/iter_no,z/iter_no,z/iter_no,z/iter_no};
-	float alpha_robot[6]={rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no};
-	float beta_robot[6]={roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no};
-	float gamma_robot[6]={rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no};
-	for (int i=smart_gait_iterator;i<6;i+=2) {
-	    x_robot[i]=-x_robot[i]; y_robot[i]=-y_robot[i]; z_robot[i]=-z_robot[i];
-	    alpha_robot[i]=-alpha_robot[i]; beta_robot[i]=-beta_robot[i]; gamma_robot[i]=-gamma_robot[i];
-	}
-	for (int n=0;n<6;n++)//odczyt pozycji stopy przed ruchem
-		// robot->dynamicWorld->rec_robot_leg[n].getLastPoint(&x_foot1[n],&y_foot1[n],&z_foot1[n]);
-	for (int i=0;i<iter_no;i++){
-		for (int j=smart_gait_iterator;j<6;j+=2){
-			x_robot[j]=(i+1)*(-x/iter_no); y_robot[j]=(i+1)*(-y/iter_no); z_robot[j]=(i+1)*(-z/iter_no);
-			alpha_robot[j]=(i+1)*(-rotx/iter_no); beta_robot[j]=(i+1)*(-roty/iter_no); gamma_robot[j]=(i+1)*(-rotz/iter_no);
-		}
-		
-		if (!robot->changePlatformRobotNeutral(x_robot,y_robot,z_robot,alpha_robot,beta_robot,gamma_robot,z_foot[smart_gait_iterator]-foot_up,smart_gait_iterator,speed,accel))//przenosimy platforme
-			return false;
-		else
-			robot->modifyRobotPosition(x/iter_no, y/iter_no, z/iter_no, rotx/iter_no, roty/iter_no, rotz/iter_no);
-		//make scan
-		//SleepODE(100000);
-		robot->getRotAngles(imu_rot);
-	//	rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4), imu_rot[0],imu_rot[1],0);
-	}
-	for (int n=0;n<6;n++)//odczyt pozycji stopy po ruchu
-		// robot->dynamicWorld->rec_robot_leg[n].getLastPoint(&x_foot_after[n],&y_foot_after[n],&z_foot_after[n]);
-	for (int n=0;n<6;n++)//obliczenie poslizgu
-		foot_distance[n]=sqrt(pow(x_foot_after[n]-x_foot1[n],2)+pow(y_foot_after[n]-y_foot1[n],2)+pow(z_foot_after[n]-z_foot1[n],2));
-	//odczyt aktualnej pozycji
-	fprintf(fposlizg,"%f, ",foot_distance[1]+foot_distance[3]+foot_distance[5]); //zapisujemy dane wejsciowe
-		
-	//SleepODE(500000);
-	for (int i=0;i<6;i++) z_foot[i]=0;
-	if (!MoveLegsDown(smart_gait_iterator,0,0,&z_foot[0]))//nieparzyste nogi na ziemie
-	  return false;
-	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=-z_foot[i];
-	if (!robot->changeAllFootsRobot(x_foot, y_foot, z_foot, speed))//opuszczamy konczyny na dol
-	  return false;
-//	if (!robot->PlaceFoots(0.005, smart_gait_iterator, speed))
-//	  return false;
-//	robot->stabilizePlatform(speed, accel);
-	SleepODE(100);
-	robot->stabilizePlatform(0.05, accel);
-	if (smart_gait_iterator == 1) //next step
-	   smart_gait_iterator = 0;
-	else
-	   smart_gait_iterator = 1;
-	return true;
-}
-
-/// prepare to smart gait
-bool CMotionPlanner::SmartGaitFoothold(float x, float y, float z, float rotx, float roty, float rotz, float foot_up, float speed, int accel){
-	float iter_no = 10;
-	float imu_rot[3];
-	float x_foot1[6];//wspolrzedne x stop robota
-	float y_foot1[6];
-	float z_foot1[6];//wspolrzedne z stop robota
-	float x_foot_after[6];//wspolrzedne x stop robota
-	float y_foot_after[6];
-	float z_foot_after[6];//wspolrzedne z stop robota
-	float foot_distance[6]; // poslizg
-	/*for (int i=0;i<3*iter_no;i++){
-		if (!robot->changePlatformRobot(0,0,0.005,0,0,0,speed,accel))//przenosimy platforme
-		  return false;
-		else
-			robot->modifyRobotPosition(0,0,0.005,0,0,0);
-		//make scan
-		usleep(100000);
-		rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4),robot->robot_platform_pos[3],robot->robot_platform_pos[4],robot->robot_platform_pos[5]);
-	}
-	for (int i=0;i<3*iter_no;i++){
-		if (!robot->changePlatformRobot(0,0,-0.005,0,0,0,speed,accel))//przenosimy platforme
-		  return false;
-		else
-			robot->modifyRobotPosition(0,0,-0.005,0,0,0);
-		//make scan
-		usleep(100000);
-		rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4),robot->robot_platform_pos[3],robot->robot_platform_pos[4],robot->robot_platform_pos[5]);
-	}	*/
-        CPunctum movement;
-	movement.createTRMatrix(rotx, roty, rotz, x, y, z);
-	CPunctum  robot_pos; 
-	robot_pos = robot->robot_global_pos * movement;//pozycja robota po ruchu
-	CPunctum rob_pos = robot->getRobotState();
-	z=0.215-rob_pos.getElement(3,4);
-	//obliczenie pozycji stop po wykonaniu ruchu
-	// obliczenie trajektorii
-	float x_foot[6]={0,0,0,0,0,0};
-	float y_foot[6]={0,0,0,0,0,0};
-	float z_foot[6]={0.0,0,0.0,0,0.0,0};
-	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=0.14;
-	while (!robot->changeAllFootsRobot(x_foot, y_foot, z_foot, speed)){//move legs up
-		for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]-=0.01;
-		if (z_foot[smart_gait_iterator]<=0) 
-			return false;
-	}
-	//SleepODE(500000);
-	float x_robot[6]={x/iter_no,x/iter_no,x/iter_no,x/iter_no,x/iter_no,x/iter_no};
-	float y_robot[6]={y/iter_no,y/iter_no,y/iter_no,y/iter_no,y/iter_no,y/iter_no};
-	float z_robot[6]={z/iter_no,z/iter_no,z/iter_no,z/iter_no,z/iter_no,z/iter_no};
-	float alpha_robot[6]={rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no,rotx/iter_no};
-	float beta_robot[6]={roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no,roty/iter_no};
-	float gamma_robot[6]={rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no,rotz/iter_no};
-	for (int i=smart_gait_iterator;i<6;i+=2) {
-	    x_robot[i]=-x_robot[i]; y_robot[i]=-y_robot[i]; z_robot[i]=-z_robot[i];
-	    alpha_robot[i]=-alpha_robot[i]; beta_robot[i]=-beta_robot[i]; gamma_robot[i]=-gamma_robot[i];
-	}
-	for (int n=0;n<6;n++)//odczyt pozycji stopy przed ruchem
-//		// robot->dynamicWorld->rec_robot_leg[n].getLastPoint(&x_foot1[n],&y_foot1[n],&z_foot1[n]);
-	for (int i=0;i<iter_no;i++){
-		for (int j=smart_gait_iterator;j<6;j+=2){
-			x_robot[j]=(i+1)*(-x/iter_no); y_robot[j]=(i+1)*(-y/iter_no); z_robot[j]=(i+1)*(-z/iter_no);
-			alpha_robot[j]=(i+1)*(-rotx/iter_no); beta_robot[j]=(i+1)*(-roty/iter_no); gamma_robot[j]=(i+1)*(-rotz/iter_no);
-		}
-		
-		if (!robot->changePlatformRobotNeutral(x_robot,y_robot,z_robot,alpha_robot,beta_robot,gamma_robot,z_foot[smart_gait_iterator]-foot_up,smart_gait_iterator,speed,accel))//przenosimy platforme
-			return false;
-		else
-			robot->modifyRobotPosition(x/iter_no, y/iter_no, z/iter_no, rotx/iter_no, roty/iter_no, rotz/iter_no);
-		//make scan
-		//SleepODE(100000);
-		robot->getRotAngles(imu_rot);
-	//	rpccaller_map->makeScan(-1.57, 1.57, 1, robot->robot_global_pos.getElement(1,4),robot->robot_global_pos.getElement(2,4),robot->robot_global_pos.getElement(3,4), imu_rot[0],imu_rot[1],0);
-	}
-	for (int n=0;n<6;n++)//odczyt pozycji stopy po ruchu
-		// robot->dynamicWorld->rec_robot_leg[n].getLastPoint(&x_foot_after[n],&y_foot_after[n],&z_foot_after[n]);
-	for (int n=0;n<6;n++)//obliczenie poslizgu
-		foot_distance[n]=sqrt(pow(x_foot_after[n]-x_foot1[n],2)+pow(y_foot_after[n]-y_foot1[n],2)+pow(z_foot_after[n]-z_foot1[n],2));
-	//odczyt aktualnej pozycji
-	fprintf(fposlizg,"%f, ",foot_distance[1]+foot_distance[3]+foot_distance[5]); //zapisujemy dane wejsciowe
-		
-	//SleepODE(500000);
-	for (int i=0;i<6;i++) z_foot[i]=0;
-	if (!MoveLegsDown(smart_gait_iterator,0,0,&z_foot[0]))//nieparzyste nogi na ziemie
-	  return false;
-	for (int i=smart_gait_iterator;i<6;i+=2) z_foot[i]=-z_foot[i]+0.03;
-	if (!robot->changeAllFootsRobot(x_foot, y_foot, z_foot, speed))//opuszczamy konczyny na dol
-	  return false;
-	if (!robot->PlaceFoots(0.005, smart_gait_iterator, speed))
-	  return false;
-//	robot->stabilizePlatform(speed, accel);
-	SleepODE(100);
-	robot->stabilizePlatform(0.05, accel);
-	if (smart_gait_iterator == 1) //next step
-	   smart_gait_iterator = 0;
-	else
-	   smart_gait_iterator = 1;
-	return true;
-}
-
 /// save path to file
 void CMotionPlanner::savePath2File(const char * filename){
 	ofstream f_path (filename);
@@ -280,10 +79,10 @@ void CMotionPlanner::loadPathFromFile(const char * filename){
 //execute trajectory
 bool CMotionPlanner::executeTrajectory(float speed){
 	CPunctum body, body_prev;
-	CPunctum foots[6],foots_prev[6],foots_temp[6];
+	CPunctum feet[6],feet_prev[6],feet_temp[6];
 	char prev_foothold=0;
 	for (int i=0;i<6;i++)
-		legs_traj[i].getFirst(&foots_prev[i]);
+		legs_traj[i].getFirst(&feet_prev[i]);
 	robot_platform_traj.getFirst(&body_prev);
 	float dpos[6];
 	CPunctum robot_pos;
@@ -295,8 +94,8 @@ bool CMotionPlanner::executeTrajectory(float speed){
 	for (size_t i=0;i<size;i++){
 		robot_platform_traj.getNext(&body);
 		for (int i=0;i<6;i++)
-			legs_traj[i].getNext(&foots[i]);
-		if ((foots[0].isFoothold())&&(prev_foothold==1)) {//jezeli nogi nieparzyste maja byc opuszczane
+			legs_traj[i].getNext(&feet[i]);
+		if ((feet[0].isFoothold())&&(prev_foothold==1)) {//jezeli nogi nieparzyste maja byc opuszczane
 			prev_foothold=0;
 			/*robot->sleepODE(100);
 			robot_pos = robot->getRobotState();
@@ -311,11 +110,11 @@ bool CMotionPlanner::executeTrajectory(float speed){
 			//if (!robot->changePlatformRobotTripod(dpos[0],dpos[1],dpos[2],dpos[3],dpos[4],dpos[5],0,speed,1))
 			if (!robot->changePlatformRobotTripod(delta.getElement(1,4),delta.getElement(2,4),delta.getElement(3,4),dpos[3],dpos[4],dpos[5],1,speed,1))
 				return false;*/
-			if (!robot->PlaceFoots(0.005, 0, speed))
+			if (!robot->Placefeet(0.005, 0, speed))
 				return false;
-			//robot->getFullRobotState(&body, foots);
+			//robot->getFullRobotState(&body, feet);
 		}
-		else if ((foots[1].isFoothold())&&(prev_foothold==0)){//jezeli nogi parzyste maja byc opuszczane
+		else if ((feet[1].isFoothold())&&(prev_foothold==0)){//jezeli nogi parzyste maja byc opuszczane
 			prev_foothold=1;
 			/*robot->sleepODE(100);
 			robot_pos = robot->getRobotState();
@@ -330,9 +129,9 @@ bool CMotionPlanner::executeTrajectory(float speed){
 			//if (!robot->changePlatformRobotTripod(dpos[0],dpos[1],dpos[2],dpos[3],dpos[4],dpos[5],0,speed,1))
 			if (!robot->changePlatformRobotTripod(delta.getElement(1,4),delta.getElement(2,4),delta.getElement(3,4),dpos[3],dpos[4],dpos[5],0,speed,1))
 				return false;*/
-			if (!robot->PlaceFoots(0.005, 1, speed))
+			if (!robot->Placefeet(0.005, 1, speed))
 				return false;
-//			robot->getFullRobotState(&body, foots);
+//			robot->getFullRobotState(&body, feet);
 		}
 		else {// w przeciwnym wypadku idz do kolejnego punktu trajektorii
 			//// robot->dynamicWorld->body=body;
@@ -343,18 +142,18 @@ bool CMotionPlanner::executeTrajectory(float speed){
 			CPunctum delta1;
 			delta1 = body_prev.inv()*body_real;
 		/*	for (int j=0;j<6;j++){
-				if (!foots[j].isFoothold())
-					foots[j]=foots[j]*delta;
+				if (!feet[j].isFoothold())
+					feet[j]=feet[j]*delta;
 			}
-			//	// robot->dynamicWorld->foots[j]=foots[j];
+			//	// robot->dynamicWorld->feet[j]=feet[j];
 			
 			body = body*delta;*/
-			if (!robot->move2GlobalPosition(body_real,body,foots_prev,foots,speed,1))
+			if (!robot->move2GlobalPosition(body_real,body,feet_prev,feet,speed,1))
 				return false;
 		}
 		body_prev=body;
 		for (int i=0;i<6;i++)
-			foots_prev[i]=foots[i];
+			feet_prev[i]=feet[i];
 	}
 	return true;
 }
@@ -363,10 +162,10 @@ bool CMotionPlanner::executeTrajectory(float speed){
 //robot porusza sie po trajektorii zadanej
 bool CMotionPlanner::executeTrajectoryWave(float speed){
 	CPunctum body, body_prev;
-	CPunctum foots[6],foots_prev[6];
+	CPunctum feet[6],feet_prev[6];
 	char prev_foothold[6]={1,1,1,1,1,1};
 	for (int i=0;i<6;i++)
-		legs_traj[i].getFirst(&foots_prev[i]);
+		legs_traj[i].getFirst(&feet_prev[i]);
 	robot_platform_traj.getFirst(&body_prev);
 	float dpos[6];
 	CPunctum robot_pos;
@@ -376,8 +175,8 @@ bool CMotionPlanner::executeTrajectoryWave(float speed){
 
 	while (robot_platform_traj.getNext(&body)){
 		for (int i=0;i<6;i++)
-			legs_traj[i].getNext(&foots[i]);
-		if (((foots[0].isFoothold())&&(prev_foothold[0]==0))||((foots[1].isFoothold())&&(prev_foothold[1]==0))||((foots[2].isFoothold())&&(prev_foothold[2]==0))||((foots[3].isFoothold())&&(prev_foothold[3]==0))||((foots[4].isFoothold())&&(prev_foothold[4]==0))||((foots[5].isFoothold())&&(prev_foothold[5]==0))) {//jezeli nogi nieparzyste maja byc opuszczane
+			legs_traj[i].getNext(&feet[i]);
+		if (((feet[0].isFoothold())&&(prev_foothold[0]==0))||((feet[1].isFoothold())&&(prev_foothold[1]==0))||((feet[2].isFoothold())&&(prev_foothold[2]==0))||((feet[3].isFoothold())&&(prev_foothold[3]==0))||((feet[4].isFoothold())&&(prev_foothold[4]==0))||((feet[5].isFoothold())&&(prev_foothold[5]==0))) {//jezeli nogi nieparzyste maja byc opuszczane
 			robot->sleepODE(100);
 /*			robot_pos = robot->getRobotState();
 			dpos[0] = body.getElement(1,4)-robot_pos.getElement(1,4);
@@ -390,9 +189,9 @@ bool CMotionPlanner::executeTrajectoryWave(float speed){
 			CPunctum delta = robot_pos.inv(robot_pos)*body;
 			if (!robot->changePlatformRobotSense(delta.getElement(1,4),delta.getElement(2,4),delta.getElement(3,4),dpos[3],dpos[4],dpos[5],speed,1))
 				return false;*/
-			if (!robot->PlaceFoots(0.005, speed))
+			if (!robot->Placefeet(0.005, speed))
 				return false;
-			for (int i=0;i<6;i++) if (foots[i].isFoothold()) prev_foothold[i]=1; else prev_foothold[i]=0;
+			for (int i=0;i<6;i++) if (feet[i].isFoothold()) prev_foothold[i]=1; else prev_foothold[i]=0;
 		}
 		else {// w przeciwnym wypadku idz do kolejnego punktu trajektorii
 			CPunctum body_real = robot->getRobotState();
@@ -401,19 +200,19 @@ bool CMotionPlanner::executeTrajectoryWave(float speed){
 			CPunctum delta1;
 			delta1 = body_prev.inv()*body_real;
 		/*	for (int j=0;j<6;j++){
-				if (!foots[j].isFoothold())
-					foots[j]=foots[j]*delta;
+				if (!feet[j].isFoothold())
+					feet[j]=feet[j]*delta;
 			}
-			// robot->dynamicWorld->foots[j]=foots[j];
+			// robot->dynamicWorld->feet[j]=feet[j];
 			
 			body = body*delta;*/
-			if (!robot->move2GlobalPosition(body_real,body,foots_prev,foots,speed,1))
+			if (!robot->move2GlobalPosition(body_real,body,feet_prev,feet,speed,1))
 				return false;
-			for (int i=0;i<6;i++) if (foots[i].isFoothold()) prev_foothold[i]=1; else prev_foothold[i]=0;
+			for (int i=0;i<6;i++) if (feet[i].isFoothold()) prev_foothold[i]=1; else prev_foothold[i]=0;
 		}
 		body_prev=body;
 		for (int i=0;i<6;i++)
-			foots_prev[i]=foots[i];
+			feet_prev[i]=feet[i];
 	}
 	return true;
 }
@@ -465,14 +264,14 @@ bool CMotionPlanner::rrtConnect(float pos_end[], float rot_end[], float distance
 	for (int i=0;i<3;i++)
 		position[i]=start_pos.getElement(i+1,4);
 	robot->getRotAngles(angles);
-	CPunctum body; CPunctum foots[6];
-	robot->getFullRobotState(&body, foots);
-	rrt_begin->setRoot(position, angles, body, foots);
+	CPunctum body; CPunctum feet[6];
+	robot->getFullRobotState(&body, feet);
+	rrt_begin->setRoot(position, angles, body, feet);
 
 	rrt_finish->computeOrientationAndHeight(pos_end[0],pos_end[1],&pos_end[2],rot_end, 0.1);//oblicza orientacje i wysokosc platformy na koncu ruchu na podstawie uksztaltowania ternu
 	body.createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
-	rrt_finish->createRobotStateFoothold(pos_end, rot_end, &body, foots,pos_end);
-	rrt_finish->setRoot(pos_end, rot_end, body, foots);
+	rrt_finish->createRobotStateFoothold(pos_end, rot_end, &body, feet);
+	rrt_finish->setRoot(pos_end, rot_end, body, feet);
 
 	CrrtNode q_rand, q_new;
 	for (int k=0;k<48000;k++){
@@ -502,48 +301,6 @@ bool CMotionPlanner::rrtConnect(float pos_end[], float rot_end[], float distance
 	return false;
 }
 
-/*
-bool CMotionPlanner::rrtConnectBegin(float pos_end[], float rot_end[], float distance2ground, float *map_boundaries, int shift){
-	rrt_begin->erase();
-	rrt_finish->erase();
-	rrt_begin->// robot->dynamicWorld->ground = // robot->dynamicWorld->ground;
-	rrt_finish->// robot->dynamicWorld->ground = // robot->dynamicWorld->ground;
-	float angles[3];
-	float position[3];
-	CPunctum start_pos = robot->getRobotState();
-	for (int i=0;i<3;i++)
-		position[i]=start_pos.getElement(i+1,4);
-	robot->getRotAngles(angles);
-	CPunctum body; CPunctum foots[6];
-	robot->getFullRobotState(&body, foots);
-	rrt_begin->setRoot(position, angles, body, foots);
-
-	rrt_finish->computeOrientationAndHeight(pos_end[0],pos_end[1],&pos_end[2],rot_end, 0.1);//oblicza orientacje i wysokosc platformy na koncu ruchu na podstawie uksztaltowania ternu
-	rrt_finish->createRobotStateFoothold(pos_end, rot_end, &body, foots);
-	rrt_finish->setRoot(pos_end, rot_end, body, foots);
-
-	CrrtNode q_rand, q_new;
-	for (int k=0;k<4800;k++){
-
-		q_rand.randomConfig(position[0]-1.2, position[0]+1.2, position[1]-1.2, position[1]+1.2);
-		//Sleep(5000);
-		rrt_begin->Extend(q_rand, &q_new,false,distance2ground,shift,false);
-		if (sqrt(pow(q_new.pos[0]-position[0],2)+pow(q_new.pos[1]-position[1],2))>0.8) {
-			createPath(q_new,shift);
-				return true;
-		}
-
-		q_rand.randomConfig(pos_end[0]-1.6, pos_end[0]+1.6, pos_end[1]-1.6, pos_end[1]+1.6);
-
-		rrt_begin->Extend(q_rand,&q_new, false,distance2ground,shift,false);
-		if (sqrt(pow(q_new.pos[0]-position[0],2)+pow(q_new.pos[1]-position[1],2))>0.8) {
-			createPath(q_new,shift);
-				return true;
-		}
-	}
-	return false;
-}
-*/
 /// create path according to obtained tree
 void CMotionPlanner::createPath(CrrtNode q_begin, CrrtNode q_finish, int shift){
 	robot_platform_traj.setDelay(0);
@@ -570,7 +327,7 @@ void CMotionPlanner::createPath(CrrtNode q_begin, CrrtNode q_finish, int shift){
 		legs_traj[j].reverseOrder();
 	q = q_finish;
 	for (int j=0;j<6;j++)
-		legs_traj[j].savePunctum(q_begin.foots[j]);
+		legs_traj[j].savePunctum(q_begin.feet[j]);
 	robot_platform_traj.savePositionAndOrientation(q_finish.pos[0],q_finish.pos[1],q_finish.pos[2],q_finish.rot[0],q_finish.rot[1],q_finish.rot[2]);
 	while (q.GetParentIndex()!=-1) {
 		//robot_platform_traj.savePositionAndOrientation(q.pos[0],q.pos[1],q.pos[2],q.rot[0],q.rot[1],q.rot[2]);

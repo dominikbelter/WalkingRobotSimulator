@@ -1,5 +1,6 @@
 #include "Crrt.h"
 #include <math.h>
+#include <boost/timer.hpp> 
 
 Crrt::Crrt(CIdealMap* map, RPCCaller* rpccaller, CRobot* robot)
 {
@@ -43,12 +44,12 @@ Crrt::~Crrt(void)
 }
 
 /// set root node
-void Crrt::setRoot(float * position, float * orientation, CPunctum body, CPunctum * foots){
+void Crrt::setRoot(float * position, float * orientation, CPunctum body, CPunctum * feet){
 	CrrtNode temp_node(position, orientation);
 	temp_node.body = body;
 //	temp_node.even = _even;
 	for (int i=0;i<6;i++)
-		temp_node.foots[i] = foots[i];
+		temp_node.feet[i] = feet[i];
 	AddNode(-1,&temp_node);
 }
 
@@ -110,27 +111,27 @@ double Crrt::dist(CrrtNode node1, CrrtNode node2) {
 }
 
 /// check if the change of the robots position is possible
-int Crrt::checkPassing(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift){
+int Crrt::checkPassing(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift){
 	int success_no = 0;
 	int start = 0;
 	CPunctum foothold;
 	for (int smart_gait_iterator=0;smart_gait_iterator<2;smart_gait_iterator++){
 		for (int i=smart_gait_iterator;i<6;i+=2) {
-			generateFootTraj(foots_traj,foots_start[i], foots_finish[i],*body_start, *body_finish,distance2ground,i, (int)shift/2);//jezeli udalo sie przejsc do kolejnego punktu podparcia
+			generateFootTraj(feet_traj,feet_start[i], feet_finish[i],*body_start, *body_finish,distance2ground,i, (int)shift/2);//jezeli udalo sie przejsc do kolejnego punktu podparcia
 		}
 		for (int i=(smart_gait_iterator==0?1:0);i<6;i+=2) {//pozostale nogi w tym czasie sie nie ruszaja
 			if (smart_gait_iterator==0)
-				foothold.createTRMatrix(0,0,0,foots_start[i].getElement(1,4),foots_start[i].getElement(2,4),foots_start[i].getElement(3,4));
+				foothold.createTRMatrix(0,0,0,feet_start[i].getElement(1,4),feet_start[i].getElement(2,4),feet_start[i].getElement(3,4));
 			else
-				foothold.createTRMatrix(0,0,0,foots_finish[i].getElement(1,4),foots_finish[i].getElement(2,4),foots_finish[i].getElement(3,4));
+				foothold.createTRMatrix(0,0,0,feet_finish[i].getElement(1,4),feet_finish[i].getElement(2,4),feet_finish[i].getElement(3,4));
 			foothold.setFoothold(true);
 			for (int j=0;j<(int)shift/2;j++) {
-				foots_traj[i].savePunctum(foothold);
+				feet_traj[i].savePunctum(foothold);
 			}
 		}
 	}
 	for (int i=0;i<6;i++){
-		foots_traj[i].setBegin();
+		feet_traj[i].setBegin();
 	}
 	float delta[6], pos[6];
 	float dividor = shift-1;
@@ -141,17 +142,17 @@ int Crrt::checkPassing(CPositionRecorder * foots_traj, CPunctum * body_traj, CPu
 		pos[i+3] = body_start->orientation[i];
 	}
 	CPunctum act_pos;
-	CPunctum _foots[6];
+	CPunctum _feet[6];
 
 	for (int i=0;i<(int)dividor;i++){
 		for (int j=0;j<6;j++){
 			pos[j]+=delta[j];
-			foots_traj[j].getElement(&_foots[j]);
+			feet_traj[j].getElement(&_feet[j]);
 		}
 		act_pos.createTRMatrix(pos[3],pos[4],pos[5],pos[0],pos[1],pos[2]);
 		body_traj[i]=act_pos;
 		
-		if (verifyAchievability(act_pos,_foots[0],_foots[1],_foots[2],_foots[3],_foots[4],_foots[5],0.85)){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+		if (verifyAchievability(act_pos,_feet[0],_feet[1],_feet[2],_feet[3],_feet[4],_feet[5],0.85)){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
 				success_no=6;
 		}
 		else
@@ -162,28 +163,28 @@ int Crrt::checkPassing(CPositionRecorder * foots_traj, CPunctum * body_traj, CPu
 }
 
 /// check if the change of the robots position is possible
-int Crrt::checkPassingOpt(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift){
+int Crrt::checkPassingOpt(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift){
 	int success_no = 0;
 	int start = 0;
 	CPunctum foothold;
-	CPositionRecorder foots_traj_temp[6];
+	CPositionRecorder feet_traj_temp[6];
 	for (int smart_gait_iterator=0;smart_gait_iterator<2;smart_gait_iterator++){
 		for (int i=smart_gait_iterator;i<6;i+=2) {
-			generateFootTraj(foots_traj_temp,foots_start[i], foots_finish[i],*body_start, *body_finish,distance2ground,i, (int)shift/2);//jezeli udalo sie przejsc do kolejnego punktu podparcia
+			generateFootTraj(feet_traj_temp,feet_start[i], feet_finish[i],*body_start, *body_finish,distance2ground,i, (int)shift/2);//jezeli udalo sie przejsc do kolejnego punktu podparcia
 		}
 		for (int i=(smart_gait_iterator==0?1:0);i<6;i+=2) {//pozostale nogi w tym czasie sie nie ruszaja
 			if (smart_gait_iterator==0)
-				foothold.createTRMatrix(0,0,0,foots_start[i].getElement(1,4),foots_start[i].getElement(2,4),foots_start[i].getElement(3,4));
+				foothold.createTRMatrix(0,0,0,feet_start[i].getElement(1,4),feet_start[i].getElement(2,4),feet_start[i].getElement(3,4));
 			else
-				foothold.createTRMatrix(0,0,0,foots_finish[i].getElement(1,4),foots_finish[i].getElement(2,4),foots_finish[i].getElement(3,4));
+				foothold.createTRMatrix(0,0,0,feet_finish[i].getElement(1,4),feet_finish[i].getElement(2,4),feet_finish[i].getElement(3,4));
 			foothold.setFoothold(true);
 			for (int j=0;j<(int)shift/2;j++) {
-				foots_traj_temp[i].savePunctum(foothold);
+				feet_traj_temp[i].savePunctum(foothold);
 			}
 		}
 	}
 	for (int i=0;i<6;i++){
-		foots_traj_temp[i].setBegin();
+		feet_traj_temp[i].setBegin();
 	}
 	float delta[6], pos[6];
 	float dividor = shift-1;
@@ -194,10 +195,10 @@ int Crrt::checkPassingOpt(CPositionRecorder * foots_traj, CPunctum * body_traj, 
 		pos[i+3] = body_start->orientation[i];
 	}
 	CPunctum act_pos;
-	CPunctum _foots[6];
-	CPunctum _foots_next[6];
+	CPunctum _feet[6];
+	CPunctum _feet_next[6];
 	for (int j=0;j<6;j++){
-		foots_traj_temp[j].getElement(&_foots_next[j]);
+		feet_traj_temp[j].getElement(&_feet_next[j]);
 	}
 
 	bool is_fh[6];
@@ -205,33 +206,33 @@ int Crrt::checkPassingOpt(CPositionRecorder * foots_traj, CPunctum * body_traj, 
 	for (int i=0;i<(int)dividor;i++){
 		for (int j=0;j<6;j++){
 			pos[j]+=delta[j];
-			is_fh[j]=_foots[j].isFoothold();
-			_foots[j]=_foots_next[j];
-			foots_traj_temp[j].getElement(&_foots_next[j]);
-			if (is_fh[j]&&!_foots[j].isFoothold())
+			is_fh[j]=_feet[j].isFoothold();
+			_feet[j]=_feet_next[j];
+			feet_traj_temp[j].getElement(&_feet_next[j]);
+			if (is_fh[j]&&!_feet[j].isFoothold())
 				is_fh[j]=true;
 			else
 				is_fh[j]=false;
 		}
 		act_pos.createTRMatrix(pos[3],pos[4],pos[5],pos[0],pos[1],pos[2]);
 
-		//if (verifyAchievability(act_pos,_foots[0],_foots[1],_foots[2],_foots[3],_foots[4],_foots[5],0.85)){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
-		if ((!_foots[1].isFoothold()&&_foots_next[1].isFoothold())){//((i<2)||(i>(dividor-2))||(!_foots[0].isFoothold()&&_foots_next[0].isFoothold())||(!_foots[1].isFoothold()&&_foots_next[1].isFoothold())||is_fh[0]||is_fh[1]){
-			if (verifyAchievability(act_pos,_foots[0],_foots[1],_foots[2],_foots[3],_foots[4],_foots[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+		//if (verifyAchievability(act_pos,_feet[0],_feet[1],_feet[2],_feet[3],_feet[4],_feet[5],0.85)){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+		if ((!_feet[1].isFoothold()&&_feet_next[1].isFoothold())){//((i<2)||(i>(dividor-2))||(!_feet[0].isFoothold()&&_feet_next[0].isFoothold())||(!_feet[1].isFoothold()&&_feet_next[1].isFoothold())||is_fh[0]||is_fh[1]){
+			if (verifyAchievability(act_pos,_feet[0],_feet[1],_feet[2],_feet[3],_feet[4],_feet[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
 				body_traj[i]=act_pos;
 				for (int j=0;j<6;j++){
-					foots_traj[j].savePunctum(_foots[j]);
+					feet_traj[j].savePunctum(_feet[j]);
 				}
 			}
 			else
 				return 0;
 		}
 		else {
-			if (optimizePostureSwingApprox(&act_pos,_foots,&opt_pos)){
-				if (verifyAchievability(opt_pos,_foots[0],_foots[1],_foots[2],_foots[3],_foots[4],_foots[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+			if (optimizePostureSwingApprox(&act_pos,_feet,&opt_pos)){
+				if (verifyAchievability(opt_pos,_feet[0],_feet[1],_feet[2],_feet[3],_feet[4],_feet[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
 					body_traj[i]=opt_pos;
 					for (int j=0;j<6;j++){
-						foots_traj[j].savePunctum(_foots[j]);
+						feet_traj[j].savePunctum(_feet[j]);
 					}
 					success_no=6;
 				}
@@ -244,33 +245,33 @@ int Crrt::checkPassingOpt(CPositionRecorder * foots_traj, CPunctum * body_traj, 
 	}
 	body_traj[shift-1]=*body_finish;
 	for (int i=0;i<6;i++)
-		foots_traj[i].savePunctum(foots_finish[i]);
+		feet_traj[i].savePunctum(feet_finish[i]);
 	return success_no;
 }
 
 /// check if the change of the robots position is possible - wave gait
-int Crrt::checkPassingWave(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift){
+int Crrt::checkPassingWave(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift){
 	int success_no = 0;
 	int start = 0;
 	CPunctum foothold;
 	int sequence[6]={3,2,4,1,5,0};
 	for (int i=0;i<6;i++){
-		generateFootTraj(foots_traj,foots_start[sequence[i]], foots_finish[sequence[i]],*body_start, *body_finish,distance2ground,sequence[i], shift);//jezeli udalo sie przejsc do kolejnego punktu podparcia
-		foothold.createTRMatrix(0,0,0,foots_finish[sequence[i]].getElement(1,4),foots_finish[sequence[i]].getElement(2,4),foots_finish[sequence[i]].getElement(3,4));
+		generateFootTraj(feet_traj,feet_start[sequence[i]], feet_finish[sequence[i]],*body_start, *body_finish,distance2ground,sequence[i], shift);//jezeli udalo sie przejsc do kolejnego punktu podparcia
+		foothold.createTRMatrix(0,0,0,feet_finish[sequence[i]].getElement(1,4),feet_finish[sequence[i]].getElement(2,4),feet_finish[sequence[i]].getElement(3,4));
 		foothold.setFoothold(true);
 		for (int j=0;j<shift*(5-i);j++) {
-			foots_traj[sequence[i]].savePunctum(foothold);
+			feet_traj[sequence[i]].savePunctum(foothold);
 		}
 		for (int j=i+1;j<6;j++){
-			foothold.createTRMatrix(0,0,0,foots_start[sequence[j]].getElement(1,4),foots_start[sequence[j]].getElement(2,4),foots_start[sequence[j]].getElement(3,4));
+			foothold.createTRMatrix(0,0,0,feet_start[sequence[j]].getElement(1,4),feet_start[sequence[j]].getElement(2,4),feet_start[sequence[j]].getElement(3,4));
 			foothold.setFoothold(true);
 			for (int k=0;k<shift;k++) {
-				foots_traj[sequence[j]].savePunctum(foothold);
+				feet_traj[sequence[j]].savePunctum(foothold);
 			}
 		}
 	}
 	for (int i=0;i<6;i++){
-		foots_traj[i].setBegin();
+		feet_traj[i].setBegin();
 	}
 	float delta[6], pos[6];
 	float dividor = 6*shift-1;
@@ -281,15 +282,15 @@ int Crrt::checkPassingWave(CPositionRecorder * foots_traj, CPunctum * body_traj,
 		pos[i+3] = body_start->orientation[i];
 	}
 	CPunctum act_pos;
-	CPunctum _foots[6];
+	CPunctum _feet[6];
 	for (int i=0;i<(int)dividor;i++){
 		for (int j=0;j<6;j++){
 			pos[j]+=delta[j];
-			foots_traj[j].getElement(&_foots[j]);
+			feet_traj[j].getElement(&_feet[j]);
 		}
 		act_pos.createTRMatrix(pos[3],pos[4],pos[5],pos[0],pos[1],pos[2]);
 		body_traj[i]=act_pos;
-		if (verifyAchievability(act_pos,_foots[0],foots_start[1],_foots[2],foots_start[3],_foots[4],foots_start[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+		if (verifyAchievability(act_pos,_feet[0],feet_start[1],_feet[2],feet_start[3],_feet[4],feet_start[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
 				success_no=6;
 		}
 		else
@@ -300,29 +301,29 @@ int Crrt::checkPassingWave(CPositionRecorder * foots_traj, CPunctum * body_traj,
 }
 
 /// check if the change of the robots position is possible - wave gait
-int Crrt::checkPassingFree(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift){
+int Crrt::checkPassingFree(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift){
 	int success_no = 0;
 	int start = 0;
 	CPunctum foothold;
 	int sequence[6]={3,2,4,1,5,0};
-	computeSequence(foots_start, body_start, body_finish, 20, sequence);
+	computeSequence(feet_start, body_start, body_finish, 20, sequence);
 	for (int i=0;i<6;i++){
-		generateFootTraj(foots_traj,foots_start[sequence[i]], foots_finish[sequence[i]],*body_start, *body_finish,distance2ground,sequence[i], shift);//jezeli udalo sie przejsc do kolejnego punktu podparcia
-		foothold.createTRMatrix(0,0,0,foots_finish[sequence[i]].getElement(1,4),foots_finish[sequence[i]].getElement(2,4),foots_finish[sequence[i]].getElement(3,4));
+		generateFootTraj(feet_traj,feet_start[sequence[i]], feet_finish[sequence[i]],*body_start, *body_finish,distance2ground,sequence[i], shift);//jezeli udalo sie przejsc do kolejnego punktu podparcia
+		foothold.createTRMatrix(0,0,0,feet_finish[sequence[i]].getElement(1,4),feet_finish[sequence[i]].getElement(2,4),feet_finish[sequence[i]].getElement(3,4));
 		foothold.setFoothold(true);
 		for (int j=0;j<shift*(5-i);j++) {
-			foots_traj[sequence[i]].savePunctum(foothold);
+			feet_traj[sequence[i]].savePunctum(foothold);
 		}
 		for (int j=i+1;j<6;j++){
-			foothold.createTRMatrix(0,0,0,foots_start[sequence[j]].getElement(1,4),foots_start[sequence[j]].getElement(2,4),foots_start[sequence[j]].getElement(3,4));
+			foothold.createTRMatrix(0,0,0,feet_start[sequence[j]].getElement(1,4),feet_start[sequence[j]].getElement(2,4),feet_start[sequence[j]].getElement(3,4));
 			foothold.setFoothold(true);
 			for (int k=0;k<shift;k++) {
-				foots_traj[sequence[j]].savePunctum(foothold);
+				feet_traj[sequence[j]].savePunctum(foothold);
 			}
 		}
 	}
 	for (int i=0;i<6;i++){
-		foots_traj[i].setBegin();
+		feet_traj[i].setBegin();
 	}
 	float delta[6], pos[6];
 	float dividor = 6*shift-1;
@@ -333,15 +334,15 @@ int Crrt::checkPassingFree(CPositionRecorder * foots_traj, CPunctum * body_traj,
 		pos[i+3] = body_start->orientation[i];
 	}
 	CPunctum act_pos;
-	CPunctum _foots[6];
+	CPunctum _feet[6];
 	for (int i=0;i<(int)dividor;i++){
 		for (int j=0;j<6;j++){
 			pos[j]+=delta[j];
-			foots_traj[j].getElement(&_foots[j]);
+			feet_traj[j].getElement(&_feet[j]);
 		}
 		act_pos.createTRMatrix(pos[3],pos[4],pos[5],pos[0],pos[1],pos[2]);
 		body_traj[i]=act_pos;
-		if (verifyAchievability(act_pos,_foots[0],foots_start[1],_foots[2],foots_start[3],_foots[4],foots_start[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
+		if (verifyAchievability(act_pos,_feet[0],feet_start[1],_feet[2],feet_start[3],_feet[4],feet_start[5])){//sprawdz czy osiagalny - miesci sie w przestrzenii roboczej
 				success_no=6;
 		}
 		else
@@ -449,7 +450,6 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 
 	if (!only_stance)
 		robot->increaseStabilityMargin(body_init,feet_init,0.02);
-
 	//int pos[2];
 	//map->CalculateGroundCoordinates(body_init->getElement(1,4), body_init->getElement(2,4),pos);
 	body_init->setElement(body_init->getElement(3,4)-0.15,3,4);
@@ -472,14 +472,20 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 		current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
 		for (int j=0;j<3;j++) current_body.orientation[j]=population[i].pos[j+3];
 		//population[i].fitness=robot.computeKinematicMargin(current_body,feet_init);
-		population[i].fitness=robot->computeKinematicMarginApprox(current_body,feet_init, only_stance);
+
+		//createRobotStateFoothold(population[i].pos, &population[i].pos[3], &current_body, population[i].feet);
+		//createFootholds(&current_body, population[i].feet);
+		for (int j=0;j<6;j++) population[i].feet[j] = feet_init[j];
+		population[i].fitness=robot->computeKinematicMarginApprox(current_body, population[i].feet, only_stance);
 		if (population[i].fitness>g_fitness&&!collisionsWithGround(&current_body)){
 			*body_opt = current_body;
 			g_fitness=population[i].fitness;
 			g_best=i;
 			for (int j=0;j<5;j++){
 				best_particle.pos[j]=population[i].pos[j];
+				best_particle.feet[j] = population[i].feet[j];
 			}
+			best_particle.feet[5] = population[i].feet[5];
 		}
 	}
 
@@ -492,14 +498,16 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 				population[i].pos[j]+=population[i].p_change[j];
 			}
 			current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
+			//createRobotStateFoothold(population[i].pos, &population[i].pos[3], &current_body, population[i].feet);
 			for (int j=0;j<2;j++) current_body.orientation[j]=population[i].pos[j+3];
-			population[i].fitness=robot->computeKinematicMarginApprox(current_body,feet_init, only_stance);
+			population[i].fitness=robot->computeKinematicMarginApprox(current_body, population[i].feet, only_stance);
 			if (((population[i].fitness>1)||(population[i].fitness<0)))
 				population[i].fitness=0;
 			if ((population[i].fitness>g_fitness)&&(!collisionsWithGround(&current_body))){
 				*body_opt = current_body;
 				for (int j=0;j<6;j++){
 					best_particle.pos[j]=population[i].pos[j];
+					best_particle.feet[j] = population[i].feet[j];
 				}
 				g_fitness=population[i].fitness;
 				g_best=i;
@@ -515,11 +523,15 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 	for (int i=0;i<20;i++){
 		current_body.createTRMatrix(best_particle.pos[3],best_particle.pos[4],best_particle.pos[5],best_particle.pos[0],best_particle.pos[1],best_particle.pos[2]-0.15+i*0.015);
 		if (!collisionsWithGround(&current_body)){
-			if (robot->computeKinematicMarginApprox(current_body,feet_init)>g_fitness)
+			if (robot->computeKinematicMarginApprox(current_body,best_particle.feet)>g_fitness) {
 				*body_opt = current_body;
+				for (int j=0;j<6;j++) feet_init[j] = best_particle.feet[j];
+			}
 		}
 	}
+
 	body_opt->setElement(body_opt->getElement(3,4),3,4);
+	for (int i=0;i<6;i++) feet_init[i] = best_particle.feet[i];
 	if (g_fitness<0.02)
 		return false;
 	else
@@ -758,31 +770,31 @@ int Crrt::ExtendFreeGait(CrrtNode node, CrrtNode * q_new, bool reverse, float di
 	//tworzymy pozycje zwiazana z robotem
 	node.rot[2] = q_near.rot[2]+rot_z;
 	CPunctum body_node;
-	CPunctum foots_node[6];
+	CPunctum feet_node[6];
 	int success_no = 0;
-	CPositionRecorder foots_traj[6];
+	CPositionRecorder feet_traj[6];
 	if ((distance<max_distance)&&(can_connect)){
-			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node)){
+			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 				//for (int i=0;i<6;i++){
 				if (!reverse){
-					success_no = checkPassingFree(foots_traj,node.body_traj,&q_near.body,&node.body,q_near.foots,node.foots, distance2ground,shift/6);
+					success_no = checkPassingFree(feet_traj,node.body_traj,&q_near.body,&node.body,q_near.feet,node.feet, distance2ground,shift/6);
 				}
 				else {
-					success_no = checkPassingFree(foots_traj,node.body_traj,&node.body,&q_near.body,node.foots,q_near.foots, distance2ground,shift/6);
+					success_no = checkPassingFree(feet_traj,node.body_traj,&node.body,&q_near.body,node.feet,q_near.feet, distance2ground,shift/6);
 				}
 				//}
-				if (success_no==6) {//if (robot.checkStability(body_node, foots_node, 0)) {
-					//if (robot.checkStability(body_node, foots_node, 0)) {
+				if (success_no==6) {//if (robot.checkStability(body_node, feet_node, 0)) {
+					//if (robot.checkStability(body_node, feet_node, 0)) {
 					for (int j=0;j<6;j++){
-						foots_traj[j].setBegin();
+						feet_traj[j].setBegin();
 					}
 					for (int k=0;k<shift;k++){
 						for (int j=0;j<6;j++){
-							foots_traj[j].getElement(&node.legs_traj[j][k]);
+							feet_traj[j].getElement(&node.legs_traj[j][k]);
 						}
 					}
 					node.body = body_node; 
-					for (int k=0;k<6;k++) node.foots[k] = foots_node[k];
+					for (int k=0;k<6;k++) node.feet[k] = feet_node[k];
 					node.pos[0]=node.body.getElement(1,4); node.pos[1]=node.body.getElement(2,4); 
 					node.pos[2]=node.body.getElement(3,4);
 					node.rot[0]=node.body.orientation[0]; node.rot[1]=node.body.orientation[1]; node.rot[2]=node.body.orientation[2];
@@ -816,32 +828,32 @@ int Crrt::ExtendFreeGait(CrrtNode node, CrrtNode * q_new, bool reverse, float di
 			bool zmiana=true;
 			for (int k=1;k<17;k++){
 				body_node.createTRMatrix(node.rot[0], node.rot[1], node.rot[2], node.pos[0], node.pos[1], node.pos[2]);
-				if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node,node.pos)){
+				if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 					success_no=0;
 					for (int j=0;j<6;j++)
-						foots_traj[j].clear();
+						feet_traj[j].clear();
 					if (!reverse){
-						success_no = checkPassingFree(foots_traj,node.body_traj,&q_near.body,&body_node,q_near.foots,foots_node, distance2ground,shift/6);
+						success_no = checkPassingFree(feet_traj,node.body_traj,&q_near.body,&body_node,q_near.feet,feet_node, distance2ground,shift/6);
 					}
 					else {
-						success_no = checkPassingFree(foots_traj,node.body_traj,&body_node,&q_near.body,foots_node,q_near.foots, distance2ground,shift/6);
+						success_no = checkPassingFree(feet_traj,node.body_traj,&body_node,&q_near.body,feet_node,q_near.feet, distance2ground,shift/6);
 					}
 					//}
 					if (success_no==6){
-						//float test = robot.computeStabilityMargin(body_node,foots_node);
-						//float test1 = robot.computeKinematicMargin(body_node,foots_node);
-						//optimizePosture(&body_node, foots_node, &body_node);
-						//if (robot.checkStability(body_node, foots_node, 0)) {
+						//float test = robot.computeStabilityMargin(body_node,feet_node);
+						//float test1 = robot.computeKinematicMargin(body_node,feet_node);
+						//optimizePosture(&body_node, feet_node, &body_node);
+						//if (robot.checkStability(body_node, feet_node, 0)) {
 						for (int j=0;j<6;j++){
-							foots_traj[j].setBegin();
+							feet_traj[j].setBegin();
 						}
 						for (int l=0;l<shift;l++){
 							for (int j=0;j<6;j++){
-								foots_traj[j].getElement(&node.legs_traj[j][l]);
+								feet_traj[j].getElement(&node.legs_traj[j][l]);
 							}
 						}
 						node.body = body_node; 
-						for (int l=0;l<6;l++) node.foots[l] = foots_node[l];
+						for (int l=0;l<6;l++) node.feet[l] = feet_node[l];
 						node.pos[0]=node.body.getElement(1,4); node.pos[1]=node.body.getElement(2,4); 
 						node.pos[2]=node.body.getElement(3,4);
 						node.rot[0]=node.body.orientation[0]; node.rot[1]=node.body.orientation[1]; node.rot[2]=node.body.orientation[2];
@@ -904,9 +916,9 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 	//tworzymy pozycje zwiazana z robotem
 	node.rot[2] = q_near.rot[2]+rot_z;
 	CPunctum body_node;
-	CPunctum foots_node[6];
+	CPunctum feet_node[6];
 	int success_no = 0;
-	CPositionRecorder foots_traj[6];
+	CPositionRecorder feet_traj[6];
 
 	rrt_goalx[0]=node.pos[0];
 	rrt_goaly[0]=node.pos[1];
@@ -931,32 +943,32 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 
 	float traverse_cost_thresh=10000.1;
 	if ((distance<max_distance)&&(can_connect)){
-			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node)){
+			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 				//for (int i=0;i<6;i++){
 				if (!reverse){
 					if (traverse_cost>traverse_cost_thresh)
-						success_no = checkPassingFree(foots_traj,node.body_traj,&q_near.body,&node.body,q_near.foots,node.foots, distance2ground,shift/6);
+						success_no = checkPassingFree(feet_traj,node.body_traj,&q_near.body,&node.body,q_near.feet,node.feet, distance2ground,shift/6);
 					else
-						success_no = checkPassingOpt(foots_traj,node.body_traj,&q_near.body,&node.body,q_near.foots,node.foots, distance2ground,shift);
+						success_no = checkPassingOpt(feet_traj,node.body_traj,&q_near.body,&node.body,q_near.feet,node.feet, distance2ground,shift);
 				}
 				else {
 					if (traverse_cost>traverse_cost_thresh)
-						success_no = checkPassingFree(foots_traj,node.body_traj,&node.body,&q_near.body,node.foots,q_near.foots, distance2ground,shift/6);
+						success_no = checkPassingFree(feet_traj,node.body_traj,&node.body,&q_near.body,node.feet,q_near.feet, distance2ground,shift/6);
 					else
-						success_no = checkPassingOpt(foots_traj,node.body_traj,&node.body,&q_near.body,node.foots,q_near.foots, distance2ground,shift);
+						success_no = checkPassingOpt(feet_traj,node.body_traj,&node.body,&q_near.body,node.feet,q_near.feet, distance2ground,shift);
 				}
 				//}
-				if (success_no==6) {//if (robot.checkStability(body_node, foots_node, 0)) {
-					//if (robot.checkStability(body_node, foots_node, 0)) {
+				if (success_no==6) {//if (robot.checkStability(body_node, feet_node, 0)) {
+					//if (robot.checkStability(body_node, feet_node, 0)) {
 					for (int j=0;j<6;j++){
-						foots_traj[j].setBegin();
+						feet_traj[j].setBegin();
 					}
 					for (int k=0;k<shift;k++){
 						for (int j=0;j<6;j++){
-							foots_traj[j].getElement(&node.legs_traj[j][k]);
+							feet_traj[j].getElement(&node.legs_traj[j][k]);
 						}
 					}
-					for (int k=0;k<6;k++) node.foots[k] = foots_node[k];
+					for (int k=0;k<6;k++) node.feet[k] = feet_node[k];
 					if (traverse_cost>traverse_cost_thresh)
 						node.gait_type=0;
 					else
@@ -980,7 +992,7 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 	for (int i=0;i<30;i++){
 		trans.createTRMatrix(0,0,i*node.rot[2]/20,i*0.01*cos(direction),i*0.01*sin(direction),0);
 		tmp = q_near.body*trans;
-		if (!verifyAchievability(tmp,q_near.foots[0],q_near.foots[1],q_near.foots[2],q_near.foots[3],q_near.foots[4],q_near.foots[5],0.9)){
+		if (!verifyAchievability(tmp,q_near.feet[0],q_near.feet[1],q_near.feet[2],q_near.feet[3],q_near.feet[4],q_near.feet[5],0.9)){
 			for (int j=0;j<5;j++){
 				nodes[j].rot[0]=0; nodes[j].rot[1]=0; nodes[j].rot[2]=i*nodes[j].rot[2]/40;
 				trans.createTRMatrix(0,0,i*nodes[j].rot[2]/40,i*0.01*cos(direction)*0.2*j,i*0.01*sin(direction)*0.2*j,0.0);
@@ -997,8 +1009,7 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 		rrt_goalx[1]=nodes[j].pos[0];
 		rrt_goaly[1]=nodes[j].pos[1];
 		rrt_goalz[1]=nodes[j].pos[2];
-		float ddoo[2]={node.pos[0],node.pos[1]};
-		if (!createRobotStateFoothold(nodes[j].pos, nodes[j].rot, &nodes[j].body, nodes[j].foots,ddoo))
+		if (!createRobotStateFoothold(nodes[j].pos, nodes[j].rot, &nodes[j].body, nodes[j].feet))
 			return 0;
 
 			///obliczanie kosztu przejscia
@@ -1016,30 +1027,30 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 		traverse_cost=(variance+distance1)/2;
 
 	//	startTimeMeasure();
-		if (optimizePostureApprox(&(nodes[j].body), nodes[j].foots, &(nodes[j].body))){
+		if (optimizePostureApprox(&(nodes[j].body), nodes[j].feet, &(nodes[j].body))){
 		//	double wynik = stopTimeMeasure();
 			success_no=0;
 			for (int k=0;k<6;k++)
-				foots_traj[k].clear();
+				feet_traj[k].clear();
 			if (!reverse){
 				if (traverse_cost>traverse_cost_thresh)
-					success_no = checkPassingFree(foots_traj,nodes[j].body_traj,&q_near.body,&nodes[j].body,q_near.foots,nodes[j].foots, distance2ground,shift/6);
+					success_no = checkPassingFree(feet_traj,nodes[j].body_traj,&q_near.body,&nodes[j].body,q_near.feet,nodes[j].feet, distance2ground,shift/6);
 				else
-					success_no = checkPassingOpt(foots_traj,nodes[j].body_traj,&q_near.body,&nodes[j].body,q_near.foots,nodes[j].foots, distance2ground,shift);
+					success_no = checkPassingOpt(feet_traj,nodes[j].body_traj,&q_near.body,&nodes[j].body,q_near.feet,nodes[j].feet, distance2ground,shift);
 			}
 			else {
 				if (traverse_cost>traverse_cost_thresh)
-					success_no = checkPassingFree(foots_traj,nodes[j].body_traj,&nodes[j].body,&q_near.body,nodes[j].foots,q_near.foots, distance2ground,shift/6);
+					success_no = checkPassingFree(feet_traj,nodes[j].body_traj,&nodes[j].body,&q_near.body,nodes[j].feet,q_near.feet, distance2ground,shift/6);
 				else
-					success_no = checkPassingOpt(foots_traj,nodes[j].body_traj,&nodes[j].body,&q_near.body,nodes[j].foots,q_near.foots, distance2ground,shift);
+					success_no = checkPassingOpt(feet_traj,nodes[j].body_traj,&nodes[j].body,&q_near.body,nodes[j].feet,q_near.feet, distance2ground,shift);
 			}
 			if (success_no==6){
 				for (int k=0;k<6;k++){
-					foots_traj[k].setBegin();
+					feet_traj[k].setBegin();
 				}
 				for (int l=0;l<shift;l++){
 					for (int k=0;k<6;k++){
-						foots_traj[k].getElement(&nodes[j].legs_traj[k][l]);
+						feet_traj[k].getElement(&nodes[j].legs_traj[k][l]);
 					}
 				}
 				if (traverse_cost>traverse_cost_thresh)
@@ -1101,31 +1112,31 @@ int Crrt::Extend(CrrtNode node, CrrtNode * q_new, bool reverse, float distance2g
 	//tworzymy pozycje zwiazana z robotem
 	node.rot[2] = q_near.rot[2]+rot_z;
 	CPunctum body_node;
-	CPunctum foots_node[6];
+	CPunctum feet_node[6];
 	int success_no = 0;
-	CPositionRecorder foots_traj[6];
+	CPositionRecorder feet_traj[6];
 	if ((distance<max_distance)&&(can_connect)){
-			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node)){
+			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 				//for (int i=0;i<6;i++){
 				if (!reverse){
-					success_no = checkPassing(foots_traj,node.body_traj,&q_near.body,&node.body,q_near.foots,node.foots, distance2ground,shift);
+					success_no = checkPassing(feet_traj,node.body_traj,&q_near.body,&node.body,q_near.feet,node.feet, distance2ground,shift);
 				}
 				else {
-					success_no = checkPassing(foots_traj,node.body_traj,&node.body,&q_near.body,node.foots,q_near.foots, distance2ground,shift);
+					success_no = checkPassing(feet_traj,node.body_traj,&node.body,&q_near.body,node.feet,q_near.feet, distance2ground,shift);
 				}
 				//}
-				if (success_no==6) {//if (robot.checkStability(body_node, foots_node, 0)) {
-					//if (robot.checkStability(body_node, foots_node, 0)) {
+				if (success_no==6) {//if (robot.checkStability(body_node, feet_node, 0)) {
+					//if (robot.checkStability(body_node, feet_node, 0)) {
 					for (int j=0;j<6;j++){
-						foots_traj[j].setBegin();
+						feet_traj[j].setBegin();
 					}
 					for (int k=0;k<shift;k++){
 						for (int j=0;j<6;j++){
-							foots_traj[j].getElement(&node.legs_traj[j][k]);
+							feet_traj[j].getElement(&node.legs_traj[j][k]);
 						}
 					}
 					node.body = body_node; 
-					for (int k=0;k<6;k++) node.foots[k] = foots_node[k];
+					for (int k=0;k<6;k++) node.feet[k] = feet_node[k];
 					node.pos[0]=node.body.getElement(1,4); node.pos[1]=node.body.getElement(2,4); 
 					node.pos[2]=node.body.getElement(3,4);
 					node.rot[0]=node.body.orientation[0]; node.rot[1]=node.body.orientation[1]; node.rot[2]=node.body.orientation[2];
@@ -1159,29 +1170,29 @@ int Crrt::Extend(CrrtNode node, CrrtNode * q_new, bool reverse, float distance2g
 			bool zmiana=true;
 			for (int k=1;k<17;k++){
 					body_node.createTRMatrix(node.rot[0], node.rot[1], node.rot[2], node.pos[0], node.pos[1], node.pos[2]);
-				if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node,node.pos)){
+				if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 					success_no=0;
 					for (int j=0;j<6;j++)
-						foots_traj[j].clear();
+						feet_traj[j].clear();
 					if (!reverse){
-						success_no = checkPassing(foots_traj,node.body_traj,&q_near.body,&body_node,q_near.foots,foots_node, distance2ground,shift);
+						success_no = checkPassing(feet_traj,node.body_traj,&q_near.body,&body_node,q_near.feet,feet_node, distance2ground,shift);
 					}
 					else {
-						success_no = checkPassing(foots_traj,node.body_traj,&body_node,&q_near.body,foots_node,q_near.foots, distance2ground,shift);
+						success_no = checkPassing(feet_traj,node.body_traj,&body_node,&q_near.body,feet_node,q_near.feet, distance2ground,shift);
 					}
 					//}
 					if (success_no==6){
-						//if (robot.checkStability(body_node, foots_node, 0)) {
+						//if (robot.checkStability(body_node, feet_node, 0)) {
 						for (int j=0;j<6;j++){
-							foots_traj[j].setBegin();
+							feet_traj[j].setBegin();
 						}
 						for (int l=0;l<shift;l++){
 							for (int j=0;j<6;j++){
-								foots_traj[j].getElement(&node.legs_traj[j][l]);
+								feet_traj[j].getElement(&node.legs_traj[j][l]);
 							}
 						}
 						node.body = body_node; 
-						for (int l=0;l<6;l++) node.foots[l] = foots_node[l];
+						for (int l=0;l<6;l++) node.feet[l] = feet_node[l];
 						node.pos[0]=node.body.getElement(1,4); node.pos[1]=node.body.getElement(2,4); 
 						node.pos[2]=node.body.getElement(3,4);
 						node.rot[0]=node.body.orientation[0]; node.rot[1]=node.body.orientation[1]; node.rot[2]=node.body.orientation[2];
@@ -1225,7 +1236,7 @@ int Crrt::ExtendSimple(CrrtNode node, CrrtNode * q_new, bool reverse, float dist
 	node.pos[2]=map->getMaxSquareHeight(poz_int[0],poz_int[1],8)+0.075;
 	//sprawdzenie czy robot moze przejsc do zadanego wezla
 	if ((distance<max_distance)&&(can_connect)){
-			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, foots_node)){
+			//if (createRobotStateFoothold(node.pos, node.rot, &body_node, feet_node)){
 				//for (int i=0;i<6;i++){
 				if (checkTraverse(q_near.pos, node.pos)){
 					node.body.setElement(node.pos[0],1,4); node.body.setElement(node.pos[1],2,4); 
@@ -1401,85 +1412,52 @@ void Crrt::computeOrientationAndHeight(float x, float y, float * height, float *
 		*height = b_y+delta_y;
 }
 
-/// compute orientation according to terrain shape
-/*void Crrt::computeOrientationAndHeight(float x, float y, float * height, float * rot_xy, float distance2ground){
-	int pos[2];
-	map->CalculateGroundCoordinates((double)x, (double) y,pos);
-	float scale_factor = map->getScaleFactorX();
-	int raster_no = (int) (0.33/scale_factor)+1; //liczba rastrow przypadajaca na polowe szerokosci platformy robota
-	float max_height[3]; max_height[2]= map->getHeight(pos[0],pos[1]);
-	max_height[0] = x+(raster_no/2)*scale_factor;
-	max_height[1] = y+(raster_no/2)*scale_factor;
-	float actual_height;
-	float suma_xz=0; float suma_yz=0; float suma_xx=0; float suma_yy=0;
-	float suma_x=0; float suma_y=0;	float suma_z=0;
-	int N=0;
-	for (int i=-raster_no;i<raster_no;i++){
-		for (int j=-raster_no;j<raster_no;j++){
-			actual_height = map->getHeight(pos[0]+i,pos[1]+j);
-			if (actual_height>max_height[2]){
-				max_height[0] = x+int(i*scale_factor*cos(rot_xy[2]));
-				max_height[1] = y+int(j*scale_factor*sin(rot_xy[2]));
-				max_height[2] = actual_height;
-			}
-			suma_x+=x+i*scale_factor;
-			suma_y+=y+j*scale_factor;
-			suma_z+=actual_height;
-			suma_xz+=(x+i*scale_factor)*actual_height;
-			suma_yz+=(y+j*scale_factor)*actual_height;
-			suma_xx+=(x+i*scale_factor)*(x+i*scale_factor);
-			suma_yy+=(y+j*scale_factor)*(y+j*scale_factor);
-			N++;
-		}
-	}
-	float a_x = (N*suma_xz-suma_x*suma_z)/(N*suma_xx-suma_x*suma_x);
-	float a_y = (N*suma_yz-suma_y*suma_z)/(N*suma_yy-suma_y*suma_y);
-	float b_x = (suma_xx*suma_z-suma_x*suma_xz)/(N*suma_xx-suma_x*suma_x);
-	float b_y = (suma_xx*suma_z-suma_x*suma_xz)/(N*suma_xx-suma_x*suma_x);
-	rot_xy[1]=-atan(double(a_x));// pamietac, ze krzywa zalezna od z opisuje obrot wokol osi y
-	rot_xy[0]=-atan(double(a_y));
-	float height_maxx = a_x *max_height[0]+ b_x;//wysokosc prostej nad najwyzszym punktem dla osi x
-	float height_maxy = a_y *max_height[1]+ b_y;//wysokosc prostej nad najwyzszym punktem dla osi y
-	float delta_x = max_height[2] - height_maxx+distance2ground;// o ile trzeba podniesc wysokosc robota wynikajaca z osi x
-	float delta_y = max_height[2] - height_maxy+distance2ground; // o ile trzeba podniesc wysokosc robota wynikajaca z osi y
-	if (delta_x>delta_y)
-		*height = map->getHeight(pos[0],pos[1])+delta_x;
-	else
-		*height = map->getHeight(pos[0],pos[1])+delta_y;
-}
-*/
 /// get full body state Foothold
-bool Crrt::createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *foots, float * dest_pos){
+bool Crrt::createRobotState(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet){
 	//body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
 	int r[2];
 	CPunctum foothold, _body=*body;
 	int part;
 	float pos[3];
-	float motion[3];
-	float max=0.00001;
-	for (int i=0;i<2;i++){
-		motion[i]=dest_pos[i]-body->getElement(i+1,4);
-		if (abs(motion[i])>max) max = abs(motion[i]);
-	}
 	float dist_offset=0;
 	for (int i=0;i<6;i++) {
-		if (i==0||i==5)
-			dist_offset=0.01;
-		else if (i==1||i==4)
-			dist_offset=0.02;
-		else if (i==2||i==3)
-			dist_offset=0.04;
-		_body.setElement(body->getElement(1,4)+(motion[0]*(dist_offset/max)),1,4);
-		_body.setElement(body->getElement(2,4)+(motion[1]*(dist_offset/max)),2,4);
+		(i<3) ? part=1 : part=-1;
+		feet[i] = (*body)*robot->leg[i].start*robot->leg[i].getNeutralPosition(part);
+		map->CalculateGroundCoordinates((float)feet[i].getElement(1,4), (float)feet[i].getElement(2,4),r);
+		map->CalculateGlobalCoordinates(r[0],r[1],pos);
+		pos[2] = map->getHeight(r[0],r[1]);
+		feet[i].setPos(pos);
+	}
+	for (int i=0;i<3;i++) body->orientation[i]=rot_end[i];
+	return true;
+}
+
+/// get full body state Foothold
+bool Crrt::createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet){
+	//body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
+	int r[2];
+	int part;
+	float pos[3];
+	createRobotState(pos_end, rot_end, body, feet);
+	if (!createFootholds(body, feet))
+		return false;
+	return true;
+}
+
+/// get footholds
+bool Crrt::createFootholds(CPunctum * body, CPunctum *feet){
+	//body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
+	int r[2];
+	int part;
+	float pos[3];
+	for (int i=0;i<6;i++) {
 		if (i<3) part=1; else part=-1;
-		foots[i] = (_body)*robot->leg[i].start*robot->leg[i].getNeutralPosition(part);
-		map->CalculateGroundCoordinates((float)foots[i].getElement(1,4), (float)foots[i].getElement(2,4),r);
+		map->CalculateGroundCoordinates((float)feet[i].getElement(1,4), (float)feet[i].getElement(2,4),r);
 		if (!selectFoothold(*body, r[0], r[1], i, pos))
 			return false;
 		map->CalculateGlobalCoordinates(pos[0],pos[1],pos);
-		foots[i].createTRMatrix(0,0,0,pos[0],pos[1],pos[2]);
+		feet[i].createTRMatrix(0,0,0,pos[0],pos[1],pos[2]);
 	}
-	for (int i=0;i<3;i++) body->orientation[i]=rot_end[i];
 	return true;
 }
 

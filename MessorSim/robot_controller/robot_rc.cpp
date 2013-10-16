@@ -688,7 +688,7 @@ bool CRobot_RC::isFootPositionAvailableGlobal(CPunctum robot_pos, double globalx
 
 //check stability
 //stability margin 0(min)-1(max-normal)
-bool CRobot_RC::checkStability(CPunctum body, CPunctum * foots, float stability_margin){
+bool CRobot_RC::checkStability(CPunctum body, CPunctum * feet, float stability_margin){
 	float angles[18];
 	CPunctum leg_m[6], tmp;//masy konczyn w ukladzie globalnym
 	int part;
@@ -698,7 +698,7 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * foots, float stability_
 		tmp = body*leg[i].start;
 		tmp.invThis();
 		CPunctum foot_pos;
-		foot_pos = tmp * foots[i];
+		foot_pos = tmp * feet[i];
 		if (!leg[i].inverse_kinematic(foot_pos.getElement(1,4),foot_pos.getElement(2,4),foot_pos.getElement(3,4),part,&angles[3*i]))
 			return false;
 		leg_m[i]=body*leg[i].start*leg[i].computeCenterOfMass(&angles[i*3],(i<3?1:0));//obliczenie srodka masy w ukladzie konczyny i przeliczenie do ukladu globalnego
@@ -719,15 +719,15 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * foots, float stability_
 	float a[2],b[2],c[2];//wierzcholki trojkata
 	float barycentrum[2];//srodek ciezkosci
 	float com2d[2]={com.getElement(1,4),com.getElement(2,4)};
-	if (foots[0].isFoothold()){//trojkat podparcia na nieparzystych
-		a[0]=foots[0].getElement(1,4); a[1]=foots[0].getElement(2,4);
-		b[0]=foots[2].getElement(1,4); b[1]=foots[2].getElement(2,4);
-		c[0]=foots[4].getElement(1,4); c[1]=foots[4].getElement(2,4);
+	if (feet[0].isFoothold()){//trojkat podparcia na nieparzystych
+		a[0]=feet[0].getElement(1,4); a[1]=feet[0].getElement(2,4);
+		b[0]=feet[2].getElement(1,4); b[1]=feet[2].getElement(2,4);
+		c[0]=feet[4].getElement(1,4); c[1]=feet[4].getElement(2,4);
 	}
 	else {
-		a[0]=foots[1].getElement(1,4); a[1]=foots[1].getElement(2,4);
-		b[0]=foots[3].getElement(1,4); b[1]=foots[3].getElement(2,4);
-		c[0]=foots[5].getElement(1,4); c[1]=foots[5].getElement(2,4);
+		a[0]=feet[1].getElement(1,4); a[1]=feet[1].getElement(2,4);
+		b[0]=feet[3].getElement(1,4); b[1]=feet[3].getElement(2,4);
+		c[0]=feet[5].getElement(1,4); c[1]=feet[5].getElement(2,4);
 	}
 	if (stability_margin>0){//zmniejszenie trojkata podparcia
 		barycentrum[0]=(a[0]+b[0]+c[0])/3.0; barycentrum[1]=(a[1]+b[1]+c[1])/3.0;
@@ -742,8 +742,8 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * foots, float stability_
 }
 
 //check stability
-bool CRobot_RC::isStable(CPunctum body, CPunctum * foots){
-	computeComPosition(body,foots);
+bool CRobot_RC::isStable(CPunctum body, CPunctum * feet){
+	computeComPosition(body,feet);
 	float ** vertices;
 	vertices = new float *[6];
 	for (int i=0;i<6;i++)
@@ -751,10 +751,10 @@ bool CRobot_RC::isStable(CPunctum body, CPunctum * foots){
 	float com2d[2]={com.getElement(1,4),com.getElement(2,4)};
 	int support_no=0;
 	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
-		//if (foots[i].isFoothold()){
+		//if (feet[i].isFoothold()){
 		if (this->dynamicWorld->robotODE.getContact(i)) {
-			vertices[support_no][0]=foots[i].getElement(1,4); 
-			vertices[support_no][1]=foots[i].getElement(2,4);
+			vertices[support_no][0]=feet[i].getElement(1,4); 
+			vertices[support_no][1]=feet[i].getElement(2,4);
 			support_no++;
 		}
 	}
@@ -776,7 +776,7 @@ bool CRobot_RC::isStable(CPunctum body, CPunctum * foots){
 }
 
 //check stability
-bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * foots){
+bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * feet){
 	float angles[18];
 	CPunctum leg_m[6], tmp;//masy konczyn w ukladzie globalnym
 	int part;
@@ -786,7 +786,7 @@ bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * foots){
 	    else part=0;
 		tmp = body*leg[i].start;
 		tmp.invThis();
-		foot_pos = tmp * foots[i];
+		foot_pos = tmp * feet[i];
 		if (!leg[i].inverse_kinematic(foot_pos.getElement(1,4),foot_pos.getElement(2,4),foot_pos.getElement(3,4),part,&angles[3*i]))
 			return false;
 		leg_m[i]=body*leg[i].start*leg[i].computeCenterOfMass(&angles[i*3],(i<3?1:0));//obliczenie srodka masy w ukladzie konczyny i przeliczenie do ukladu globalnego
@@ -836,7 +836,7 @@ void CRobot_RC::stabilizeRobot(void){
 		float curr_pos[3]={com.getElement(1,4), com.getElement(2,4), com.getElement(3,4)};
 		float dest_pos[3]={supp_centroid[0], supp_centroid[1], com.getElement(3,4)};
 		react(curr_pos, dest_pos, 0.005,0.9,0.02);
-		//this->PlaceFoots(0.005,0.9);
+		//this->Placefeet(0.005,0.9);
 		//dynamicWorld->SimStep();
 	}
 }
@@ -928,15 +928,15 @@ void CRobot_RC::react(float * curr_pos, float * dest_pos, float d_z, float speed
 //	return true;
 }
 ///computes stability margin
-float CRobot_RC::computeStabilityMargin(CPunctum body, CPunctum * foots){
-	if (!isStable(body, foots))
+float CRobot_RC::computeStabilityMargin(CPunctum body, CPunctum * feet){
+	if (!isStable(body, feet))
 		return 0;
 	CPunctum rob;
 	for (int r=0;r<15;r++){
 		for (int theta=0;theta<8;theta++){
 			rob.createTRMatrix(0,0,0,r*0.01*cos(theta*0.785),r*0.01*sin(theta*0.785),0);
 			rob=body*rob;
-			if (!isStable(rob, foots))
+			if (!isStable(rob, feet))
 				return r*0.01;
 		}
 	}
@@ -944,14 +944,14 @@ float CRobot_RC::computeStabilityMargin(CPunctum body, CPunctum * foots){
 }
 
 ///move body closer to stability center
-void CRobot_RC::increaseStabilityMargin(CPunctum *body, CPunctum * foots, float distance){
+void CRobot_RC::increaseStabilityMargin(CPunctum *body, CPunctum * feet, float distance){
 	float ** vertices;
 	vertices = new float *[6];
 	for (int i=0;i<6;i++)
 		vertices[i]=new float[2];
 	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
-		vertices[i][0]=foots[i].getElement(1,4); 
-		vertices[i][1]=foots[i].getElement(2,4);
+		vertices[i][0]=feet[i].getElement(1,4); 
+		vertices[i][1]=feet[i].getElement(2,4);
 	}
 	float Cx,Cy;
 	computePolygonCentroid(vertices, 6, &Cx, &Cy);
@@ -967,16 +967,16 @@ void CRobot_RC::increaseStabilityMargin(CPunctum *body, CPunctum * foots, float 
 }
 
 ///move body closer to stability center
-void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * foots, float distance){
+void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * feet, float distance){
 /*	float ** vertices;
 	vertices = new float *[6];
 	for (int i=0;i<6;i++)
 		vertices[i]=new float[2];
 	int ilokat=0;
 	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
-		if (foots[i].isFoothold()){
-			vertices[ilokat][0]=foots[i].getElement(1,4); 
-			vertices[ilokat][1]=foots[i].getElement(2,4);
+		if (feet[i].isFoothold()){
+			vertices[ilokat][0]=feet[i].getElement(1,4); 
+			vertices[ilokat][1]=feet[i].getElement(2,4);
 			ilokat++;
 		}
 	}
@@ -986,11 +986,11 @@ void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * foots, f
 	body_best=*body;
 	CPunctum C0;
 	float fit;
-	float best_marg = computeStabilityMargin(*body,foots);
+	float best_marg = computeStabilityMargin(*body,feet);
 	for (int i=-3;i<3;i++){
 		C0.createTRMatrix(0,0,0,0.015*i,0,0);
 		body_temp = (*body) * C0;
-		fit = computeStabilityMargin(body_temp,foots);
+		fit = computeStabilityMargin(body_temp,feet);
 		if (fit>best_marg){
 			best_marg=fit;
 			body_best=body_temp;
@@ -1004,14 +1004,14 @@ void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * foots, f
 }
 
 ///computes kinematic margin
-float CRobot_RC::computeKinematicMargin(CPunctum body, CPunctum * foots){
+float CRobot_RC::computeKinematicMargin(CPunctum body, CPunctum * feet){
 	float margin=1e10;
 	float marg;
 	CPunctum foot_pos, tmp;
 	int part;
 	for (int i=0;i<6;i++){
 		tmp = body * leg[i].start;
-		foot_pos = tmp.inv()*foots[i];
+		foot_pos = tmp.inv()*feet[i];
 		if (i<3) part=1;
 		else part=-1;
 		marg = leg[i].computeKinematicMarginPos(foot_pos.getElement(1,4),foot_pos.getElement(2,4),foot_pos.getElement(3,4),part,0);
@@ -1023,12 +1023,12 @@ float CRobot_RC::computeKinematicMargin(CPunctum body, CPunctum * foots){
 }
 
 ///computes kinematic margin
-float CRobot_RC::computeKinematicMarginApprox(CPunctum body, CPunctum * foots, bool only_stance){
+float CRobot_RC::computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bool only_stance){
 	float margin=1e10;
 	float marg;
 	for (int i=0;i<6;i++){
-		if (!(only_stance&&!foots[i].isFoothold())){
-			marg = computeKinematicMarginApprox(&body, &foots[i], i);
+		if (!(only_stance&&!feet[i].isFoothold())){
+			marg = computeKinematicMarginApprox(&body, &feet[i], i);
 			if (marg<margin)
 				margin=marg;
 		}
@@ -1105,7 +1105,7 @@ bool CRobot_RC::changeFoot(float x, float y, float z, unsigned char leg_no, floa
 }
 
 /// przesuwa wszystkie stopy o zadane odleglosci w ukladzie nogi
-bool CRobot_RC::changeAllFoots(float * x, float * y, float * z, float speed){
+bool CRobot_RC::changeAllfeet(float * x, float * y, float * z, float speed){
 	int part;
 	float delta_t; //czas w jakim zostanie wykonany ruch
 	float delta_angle[18]; //zmiany katow w stawach dla wszystkich konczyn
@@ -1144,7 +1144,7 @@ bool CRobot_RC::changeFootRobot(float x, float y, float z, unsigned char leg_no,
 }
 
 /// przesuwa wszystkie stopy o zadane odleglosci w ukladzie robota
-bool CRobot_RC::changeAllFootsRobot(float * x, float * y, float * z, float speed){
+bool CRobot_RC::changeAllfeetRobot(float * x, float * y, float * z, float speed){
     float x_leg[6],y_leg[6], z_leg[6];
     CPunctum movement;//ruch w ukladzie robota
     for (int i=0; i<3;i++){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
@@ -1157,13 +1157,13 @@ bool CRobot_RC::changeAllFootsRobot(float * x, float * y, float * z, float speed
 		y_leg[i]=y[i];
 		z_leg[i]=-z[i];
     }
-    if (!changeAllFoots(x_leg, y_leg, z_leg, speed)) 
+    if (!changeAllfeet(x_leg, y_leg, z_leg, speed)) 
 		return false;//wysterowanie wszystkich konczyn
 	return true;
 }
 
 /// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-bool CRobot_RC::PlaceFoots(float dz, int legs, float speed){
+bool CRobot_RC::Placefeet(float dz, int legs, float speed){
 	float x_leg[6]={0,0,0,0,0,0};
 	float y_leg[6]={0,0,0,0,0,0};
 	float z_leg[6]={0,0,0,0,0,0};
@@ -1179,14 +1179,14 @@ bool CRobot_RC::PlaceFoots(float dz, int legs, float speed){
 			else
 				z_leg[i]=moove[int(i/2.0)];
 		}
-		if (!changeAllFoots(x_leg, y_leg, z_leg, speed)) 
+		if (!changeAllfeet(x_leg, y_leg, z_leg, speed)) 
 			return false;//wysterowanie wszystkich konczyn
 	} while (!((moove[0]==0)&&(moove[1]==0)&&(moove[2]==0)));
 	return true;
 }
 
 /// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-bool CRobot_RC::PlaceFoots(float dz, float speed){
+bool CRobot_RC::Placefeet(float dz, float speed){
 	float x_leg[6]={0,0,0,0,0,0};
 	float y_leg[6]={0,0,0,0,0,0};
 	float z_leg[6]={0,0,0,0,0,0};
@@ -1202,7 +1202,7 @@ bool CRobot_RC::PlaceFoots(float dz, float speed){
 			else
 				z_leg[i]=moove[i];
 		}
-		if (!changeAllFoots(x_leg, y_leg, z_leg, speed)) 
+		if (!changeAllfeet(x_leg, y_leg, z_leg, speed)) 
 			return false;//wysterowanie wszystkich konczyn
 	} while (!((moove[0]==0)&&(moove[1]==0)&&(moove[2]==0)&&(moove[3]==0)&&(moove[4]==0)&&(moove[5]==0)));
 	return true;
@@ -1454,11 +1454,11 @@ bool CRobot_RC::changePlatformRobotNeutral(float * x, float * y, float * z, floa
 }
 
 //przemieszcza robota do zadanych pozycji w ukladzie globalnym
-bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * foots_prev, CPunctum * foots, float speed, int soft){
+bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft){
 	CPunctum pos[6];
 	double angles[18];
 	int part;
-	getFullRobotState(&body_prev, foots_prev);
+	getFullRobotState(&body_prev, feet_prev);
 	for (int i=0;i<6;i++) {
 	    if (i<3) part=1;
 	    else part=-1;
@@ -1466,14 +1466,14 @@ bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum 
 		delta1 = leg[i].forward_kinematic(getAngle(i,0),getAngle(i,1),getAngle(i,2),part);
 		tmp = body*leg[i].start;
 		tmp.invThis();
-		if (foots[i].isFoothold())
-			pos[i]=tmp*foots_prev[i];
+		if (feet[i].isFoothold())
+			pos[i]=tmp*feet_prev[i];
 		else
-			pos[i]=tmp*foots[i];
+			pos[i]=tmp*feet[i];
 		for (int j=0;j<5;j++){
 			int success=0;
 			if ((soft)&&(!leg[i].inverse_kinematic(pos[i].getElement(1,4),pos[i].getElement(2,4),pos[i].getElement(3,4),part,&angles[i*3])))	{
-				if (!foots[i].isFoothold()){
+				if (!feet[i].isFoothold()){
 					for (int r=1;r<5;r++){
 						for (int theta=0;theta<8;theta++){
 							for (int phi=0;phi<8;phi++){
@@ -1494,7 +1494,7 @@ bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum 
 					body.setElement(body.getElement(3,4)-0.01,3,4);
 					tmp = body*leg[i].start;
 					tmp.invThis();
-					pos[i]=tmp*foots_prev[i];
+					pos[i]=tmp*feet_prev[i];
 				}
 			}
 			else {
@@ -1666,17 +1666,17 @@ void CRobot_RC::sleepODE(int miliseconds){
 }
 
 /// zwraca stan robota w postaci macierzy odpowiedzialnych z polozenie stop i korpusu
-void CRobot_RC::getFullRobotState(CPunctum *body, CPunctum * foots){
+void CRobot_RC::getFullRobotState(CPunctum *body, CPunctum * feet){
 	* body = this->getRobotState();
 	int part;
 	for (int i=0;i<6;i++){
 		if (i<3) part=1; else part=-1;
-		foots[i] = (*body)*leg[i].start*leg[i].getPosition(part);
+		feet[i] = (*body)*leg[i].start*leg[i].getPosition(part);
 	}
 }
 
 /// check collisions
-bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * foots){
+bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * feet){
 	float Q_ref[18];
 	int part;
 	CPunctum pos;
@@ -1685,7 +1685,7 @@ bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * foots){
 	    else part=-1;
 		pos = body*leg[i].start;
 		pos.invThis();
-		pos=pos*foots[i];
+		pos=pos*feet[i];
 		if (!leg[i].inverse_kinematic(pos.getElement(1,4),pos.getElement(2,4),pos.getElement(3,4),part,&Q_ref[i*3]))
 			return true;
 	}

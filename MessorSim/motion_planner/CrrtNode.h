@@ -31,11 +31,11 @@ public:
 	float rot[3];
 	/// Robots body position and orientation
 	CPunctum body;
-	/// foots positions
-	CPunctum foots[6];//tablica zawierajaca pozycje stop w danej konfiguracji
-	/// odd or even foots while tripod gait
+	/// feet positions
+	CPunctum feet[6];//tablica zawierajaca pozycje stop w danej konfiguracji
+	/// odd or even feet while tripod gait
 	//bool even;
-	/// foots trajectory from actual to next foothold
+	/// feet trajectory from actual to next foothold
 	CPunctum legs_traj[6][30];
 	/// body_traj
 	CPunctum body_traj[40];

@@ -22,6 +22,7 @@ struct SParticle {
 	float p_change[6];
 	float p_best[6];
 	float fitness;
+	CPunctum feet[6];
 };
 
 class Crrt : public CFootPlanner, public Graph
@@ -33,7 +34,7 @@ public:
 public:
 	~Crrt(void);
 	/// set root node
-	void setRoot(float * position, float * orientation, CPunctum body, CPunctum * foots);
+	void setRoot(float * position, float * orientation, CPunctum body, CPunctum * feet);
 	///add node
 	void AddNode(int parent, CrrtNode *new_node);
 	///get node
@@ -60,18 +61,20 @@ public:
 	void initializeParameters();
 	/// compute orientation according to terrain shape
 	void computeOrientationAndHeight(float x, float y, float * height, float * rot_xy, float distance2ground);
+	/// get full body state
+	bool createRobotState(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet);
 	/// get full body state Foothold
-	bool createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *foots, float *dest_pos);
+	bool createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet);
 	/// draw tree
 	void drawTree(double red, double green, double blue, double thickness, const char marker);
 	/// check if the change of the robots position is possible
-	int checkPassing(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift);
+	int checkPassing(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift);
 	/// check if the change of the robots position is possible
-	int checkPassingOpt(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift);
+	int checkPassingOpt(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift);
 	/// check if the change of the robots position is possible - wave gait
-	int checkPassingWave(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift);
+	int checkPassingWave(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift);
 	/// check if the change of the robots position is possible - wave gait
-	int checkPassingFree(CPositionRecorder * foots_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *foots_start, CPunctum * foots_finish, float distance2ground, int shift);
+	int checkPassingFree(CPositionRecorder * feet_traj, CPunctum * body_traj, CPunctum *body_start, CPunctum *body_finish, CPunctum *feet_start, CPunctum * feet_finish, float distance2ground, int shift);
 	/// save to file
 	void save2file(const char * filename);
 	void NodeToXY( void* node, int* x, int* y );
@@ -97,6 +100,8 @@ public:
 	bool collisionsWithGround(CPunctum *current_body);
 	///does body collide with ground?
 	bool fastCollisionsWithGround(CPunctum * current_body);
+	/// get footholds
+	bool createFootholds(CPunctum * body, CPunctum *feet);
 
 	float rrt_goalx[2];
 	float rrt_goaly[2];

@@ -77,6 +77,6 @@ public:
 //	CPositionRecorder * robot_platform_traj;
 //	CPositionRecorder * legs_traj[6];
 	CPunctum body;
-	CPunctum foots[6];
+	CPunctum feet[6];
 	bool draw_path;
 };

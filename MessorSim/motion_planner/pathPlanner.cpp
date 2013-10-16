@@ -57,18 +57,18 @@ bool CPathPlanner::verifyAchievability(CPunctum body, CPunctum foot, int leg_no)
 }
 
 //sprawdza czy punkty lezace na sciezce stopy sa wewnatrz przestrzenii roboczej
-bool CPathPlanner::verifyAchievability(CPunctum body, CPunctum * foots, float scale){
+bool CPathPlanner::verifyAchievability(CPunctum body, CPunctum * feet, float scale){
 	for (int i=0;i<6;i++){
-		if (!robot->isFootPositionAvailableGlobal(body,foots[i].getElement(1,4),foots[i].getElement(2,4),foots[i].getElement(3,4),i,scale))
+		if (!robot->isFootPositionAvailableGlobal(body,feet[i].getElement(1,4),feet[i].getElement(2,4),feet[i].getElement(3,4),i,scale))
 			return false;
 	}
-//	if (!robot.checkCollisions(body,foots))
+//	if (!robot.checkCollisions(body,feet))
 //		return false;
 	return true;
 }
 
 /// wyznacza sekwencje przestawien stop na podstawie "zapasu" kinematycznego
-void CPathPlanner::computeSequence(CPunctum * foots_start, CPunctum * body_start, CPunctum * body_finish, int num_iter, int * sequence){
+void CPathPlanner::computeSequence(CPunctum * feet_start, CPunctum * body_start, CPunctum * body_finish, int num_iter, int * sequence){
 	float dpos[6];
 	for (int i=0;i<3;i++){
 		dpos[i] = (body_finish->getElement(i+1,4)-body_start->getElement(i+1,4))/num_iter;
@@ -81,7 +81,7 @@ void CPathPlanner::computeSequence(CPunctum * foots_start, CPunctum * body_start
 		body.createTRMatrix(body_start->orientation[0]+dpos[3]*i,body_start->orientation[1]+dpos[4]*i,body_start->orientation[2]+dpos[5]*i,body_start->getElement(1,4)+dpos[0]*i,body_start->getElement(2,4)+dpos[1]*i,body_start->getElement(3,4)+dpos[2]*i);
 		for (int j=0;j<6;j++){
 			if (seq[j]==-1){
-				if (!robot->isFootPositionAvailableGlobal(body,foots_start[sequence[j]].getElement(1,4),foots_start[sequence[j]].getElement(2,4),foots_start[sequence[j]].getElement(3,4),sequence[j])){
+				if (!robot->isFootPositionAvailableGlobal(body,feet_start[sequence[j]].getElement(1,4),feet_start[sequence[j]].getElement(2,4),feet_start[sequence[j]].getElement(3,4),sequence[j])){
 					seq[iterator]=sequence[j];
 				}
 			}
@@ -138,8 +138,8 @@ bool CPathPlanner::verifyAchievability(CPunctum body, CPunctum foot1, CPunctum f
 	odl = sqrt(pow(foot5.getElement(1,4)-foot6.getElement(1,4),2.0)+pow(foot5.getElement(2,4)-foot6.getElement(2,4),2)+pow(foot5.getElement(3,4)-foot6.getElement(3,4),2));
 	if (sqrt(pow(foot5.getElement(1,4)-foot6.getElement(1,4),2.0)+pow(foot5.getElement(2,4)-foot6.getElement(2,4),2)+pow(foot5.getElement(3,4)-foot6.getElement(3,4),2))<0.12) 
 		return false;
-	CPunctum foots[6] = {foot1, foot2, foot3, foot4, foot5, foot6};
-	if (robot->checkCollisions(body,foots))
+	CPunctum feet[6] = {foot1, foot2, foot3, foot4, foot5, foot6};
+	if (robot->checkCollisions(body,feet))
 		return false;
 	return true;
 }

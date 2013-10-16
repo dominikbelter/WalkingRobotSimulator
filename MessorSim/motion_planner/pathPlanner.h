@@ -18,11 +18,11 @@ public:
 	/// Simulate ODE for x miliseconds
 	void SleepODE(int miliseconds);
 	/// wyznacza sekwencje przestawien stop na podstawie "zapasu" kinematycznego
-	void computeSequence(CPunctum * foots_start, CPunctum * body_start, CPunctum * body_finish, int num_iter, int * sequence);
+	void computeSequence(CPunctum * feet_start, CPunctum * body_start, CPunctum * body_finish, int num_iter, int * sequence);
 	/// sprawdza czy punkty lezace na sciezce stopy sa wewnatrz przestrzenii roboczej
 	bool verifyAchievability(CPunctum body, CPunctum foot, int leg_no);
 	//sprawdza czy punkty lezace na sciezce stopy sa wewnatrz przestrzenii roboczej
-	bool verifyAchievability(CPunctum body, CPunctum * foots, float scale=1.0);
+	bool verifyAchievability(CPunctum body, CPunctum * feet, float scale=1.0);
 	//sprawdza czy punkty lezace na sciezce stopy sa wewnatrz przestrzenii roboczej
 	bool verifyAchievability(CPunctum body, CPunctum foot1, CPunctum foot2, CPunctum foot3, CPunctum foot4, CPunctum foot5, CPunctum foot6, float scale=1.0);
 	/// rrt connect

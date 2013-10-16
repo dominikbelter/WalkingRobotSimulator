@@ -471,9 +471,9 @@ ERR RPCCaller::getIMUorientation(float* angles)
 	return 0;
 }
 
-ERR RPCCaller::PlaceFoots(float dz, int legs, float speed)
+ERR RPCCaller::Placefeet(float dz, int legs, float speed)
 {
-	return control->robot_rc->PlaceFoots(dz,legs,speed);
+	return control->robot_rc->Placefeet(dz,legs,speed);
 }
 
 ERR RPCCaller::Contact(int i)
@@ -481,12 +481,12 @@ ERR RPCCaller::Contact(int i)
 	return control->robot_rc->dynamicWorld->robotODE.getContact(i);
 }
 
-ERR RPCCaller::checkCollisions(CPunctum body, CPunctum * foots)
+ERR RPCCaller::checkCollisions(CPunctum body, CPunctum * feet)
 {
-	return control->robot_rc->checkCollisions(body,foots);
+	return control->robot_rc->checkCollisions(body,feet);
 }
 
-ERR RPCCaller::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * foots_prev, CPunctum * foots, float speed, int soft)
+ERR RPCCaller::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft)
 {
 	/*//pobranie aktualnej pozycji robota
 	readPositionIMU(robot_position);
@@ -508,5 +508,5 @@ ERR RPCCaller::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum *
 	getIMUorientation(robot_orientation_temp);
 	*/
 	//przemieszczenie robota
-	return control->robot_rc->move2GlobalPosition(body_prev,body,foots_prev,foots,speed,soft);
+	return control->robot_rc->move2GlobalPosition(body_prev,body,feet_prev,feet,speed,soft);
 }
