@@ -382,7 +382,7 @@ bool Crrt::optimizePosture(CPunctum *body_init, CPunctum * feet_init, CPunctum *
 		current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
 		for (int j=0;j<3;j++) current_body.orientation[j]=population[i].pos[j+3];
 		if (!collisionsWithGround(&current_body))
-			population[i].fitness=robot->computeStabilityMargin(current_body,feet_init)+robot->computeKinematicMarginApprox(current_body,feet_init);
+			population[i].fitness=robot->computeStabilityMargin(current_body,feet_init)+robot->computeKinematicMarginApprox(&current_body,feet_init);
 		else
 			population[i].fitness=0;
 		if (population[i].fitness>g_fitness){
@@ -410,7 +410,7 @@ bool Crrt::optimizePosture(CPunctum *body_init, CPunctum * feet_init, CPunctum *
 			current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
 			for (int j=0;j<3;j++) current_body.orientation[j]=population[i].pos[j+3];
 			if (!collisionsWithGround(&current_body)){
-				population[i].fitness=robot->computeStabilityMargin(current_body,feet_init)+robot->computeKinematicMarginApprox(current_body,feet_init);
+				population[i].fitness=robot->computeStabilityMargin(current_body,feet_init)+robot->computeKinematicMarginApprox(&current_body,feet_init);
 				if ((population[i].fitness>1)||(population[i].fitness<0))
 					population[i].fitness=0;
 				/*if (abs(robot.computeKinematicMarginApprox(current_body,feet_init)-robot.computeKinematicMargin(current_body,feet_init))>0.05){
@@ -439,7 +439,7 @@ bool Crrt::optimizePosture(CPunctum *body_init, CPunctum * feet_init, CPunctum *
 }
 
 /// optimize posture - approx
-bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt, bool only_stance){
+bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt){
 	int pop_size=20; //population size
 	SParticle * population = new SParticle[pop_size]; //swarm
 	CPunctum current_body; // current body posture 
@@ -448,8 +448,8 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 	int max_epoch=15;
 	SParticle best_particle;
 
-	if (!only_stance)
-		robot->increaseStabilityMargin(body_init,feet_init,0.02);
+	//for (int j=0;j<6;j++) population[i].feet[j] = feet_init[j];
+	//robot->increaseStabilityMargin(body_init,feet_init,0.02);
 	//int pos[2];
 	//map->CalculateGroundCoordinates(body_init->getElement(1,4), body_init->getElement(2,4),pos);
 	body_init->setElement(body_init->getElement(3,4)-0.15,3,4);
@@ -472,20 +472,16 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 		current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
 		for (int j=0;j<3;j++) current_body.orientation[j]=population[i].pos[j+3];
 		//population[i].fitness=robot.computeKinematicMargin(current_body,feet_init);
-
+		population[i].fitness=robot->computeKinematicMarginApprox(&current_body, feet_init);
 		//createRobotStateFoothold(population[i].pos, &population[i].pos[3], &current_body, population[i].feet);
 		//createFootholds(&current_body, population[i].feet);
-		for (int j=0;j<6;j++) population[i].feet[j] = feet_init[j];
-		population[i].fitness=robot->computeKinematicMarginApprox(current_body, population[i].feet, only_stance);
 		if (population[i].fitness>g_fitness&&!collisionsWithGround(&current_body)){
 			*body_opt = current_body;
 			g_fitness=population[i].fitness;
 			g_best=i;
 			for (int j=0;j<5;j++){
 				best_particle.pos[j]=population[i].pos[j];
-				best_particle.feet[j] = population[i].feet[j];
 			}
-			best_particle.feet[5] = population[i].feet[5];
 		}
 	}
 
@@ -500,14 +496,13 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 			current_body.createTRMatrix(population[i].pos[3],population[i].pos[4],population[i].pos[5],population[i].pos[0],population[i].pos[1],population[i].pos[2]);
 			//createRobotStateFoothold(population[i].pos, &population[i].pos[3], &current_body, population[i].feet);
 			for (int j=0;j<2;j++) current_body.orientation[j]=population[i].pos[j+3];
-			population[i].fitness=robot->computeKinematicMarginApprox(current_body, population[i].feet, only_stance);
+			population[i].fitness=robot->computeKinematicMarginApprox(&current_body, feet_init);
 			if (((population[i].fitness>1)||(population[i].fitness<0)))
 				population[i].fitness=0;
 			if ((population[i].fitness>g_fitness)&&(!collisionsWithGround(&current_body))){
 				*body_opt = current_body;
 				for (int j=0;j<6;j++){
 					best_particle.pos[j]=population[i].pos[j];
-					best_particle.feet[j] = population[i].feet[j];
 				}
 				g_fitness=population[i].fitness;
 				g_best=i;
@@ -523,15 +518,13 @@ bool Crrt::optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPun
 	for (int i=0;i<20;i++){
 		current_body.createTRMatrix(best_particle.pos[3],best_particle.pos[4],best_particle.pos[5],best_particle.pos[0],best_particle.pos[1],best_particle.pos[2]-0.15+i*0.015);
 		if (!collisionsWithGround(&current_body)){
-			if (robot->computeKinematicMarginApprox(current_body,best_particle.feet)>g_fitness) {
+			if (robot->computeKinematicMarginApprox(&current_body,best_particle.feet)>g_fitness) {
 				*body_opt = current_body;
 				for (int j=0;j<6;j++) feet_init[j] = best_particle.feet[j];
 			}
 		}
 	}
 
-	body_opt->setElement(body_opt->getElement(3,4),3,4);
-	for (int i=0;i<6;i++) feet_init[i] = best_particle.feet[i];
 	if (g_fitness<0.02)
 		return false;
 	else
@@ -684,7 +677,7 @@ bool Crrt::computeOptimalPosture(CPunctum *body_init, CPunctum * feet_init, CPun
 
 
 	collisionsWithGround(&current_body);
-	robot->computeKinematicMarginApprox(current_body,feet_init);
+	robot->computeKinematicMarginApprox(&current_body,feet_init);
 	
 	return true;
 }
@@ -886,9 +879,6 @@ int Crrt::ExtendOpt(CrrtNode node, CrrtNode *q_new, bool reverse, float distance
 	CrrtNode temp = node;
 	CrrtNode nodes[5];
 	CrrtNode q_near = NearestNeighbour(node);//find the nearest neighbour
-	///! jezeli mapa lokalna (dokladna ma 1,6m)
-	//if (sqrt(pow(q_near.pos[0]-robot_pos[0],2)+pow(q_near.pos[1]-robot_pos[1],2))>0.8)
-	//	return ExtendSimple(node, q_new,reverse,distance2ground,shift,can_connect);
 	float distance=dist(q_near,node);
 	float max_distance = 0.15;
 
@@ -1434,13 +1424,13 @@ bool Crrt::createRobotState(float pos_end[], float rot_end[], CPunctum * body, C
 
 /// get full body state Foothold
 bool Crrt::createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet){
-	//body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
+	body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
 	int r[2];
 	int part;
 	float pos[3];
 	createRobotState(pos_end, rot_end, body, feet);
-	if (!createFootholds(body, feet))
-		return false;
+	//if (!createFootholds(body, feet))
+//		return false;
 	return true;
 }
 

@@ -72,7 +72,6 @@ void CFootPlanner::ComputeKcoef(int size, int x, int y){
 	neutral_height = map->getHeight(x, y); //wysokosc punktu domyslnego
 
 	float height;
-	float height1;
 	size=size+4;
 	/*for (int i=-size;i<=size;i++){
 		for (int j=-size;j<=size;j++) {
@@ -141,7 +140,7 @@ bool CFootPlanner::selectFoothold(CPunctum robot_pos, int x, int y, int legnumbe
 			input[0] = K2[i][j];
 			input[1] = K3[i][j];
 
-			input[0]=(input[0]-(-0.25))/(0.25-(-0.25));
+			input[0]=(input[0]-(-0.25))/(0.25-(-0.25));//denormalization
 			input[1]=(input[1]-(-0.000))/(0.25-(-0.000));
 			
 			calc_out=9.912273*exp(-(0.000000*pow(input[0]-(0.234143),2.0)+1.550903*pow(input[1]-(0.238928),2.0)))-0.920301*exp(-(1.299873*pow(input[0]-(0.455745),2.0)+1.392158*pow(input[1]-(0.540615),2.0)))-0.289054*exp(-(0.965865*pow(input[0]-(0.970677),2.0)+2.000479*pow(input[1]-(0.743804),2.0)))+6.670944*exp(-(1.234546*pow(input[0]-(0.513995),2.0)+0.716602*pow(input[1]-(0.338549),2.0)))+18.040905*exp(-(1.207993*pow(input[0]-(0.609503),2.0)+0.216478*pow(input[1]-(0.717137),2.0)))+5.735108*exp(-(0.031054*pow(input[0]-(1.262249),2.0)+0.000000*pow(input[1]-(0.568037),2.0)))-34.902508*exp(-(0.565552*pow(input[0]-(0.519898),2.0)+0.464450*pow(input[1]-(0.346225),2.0)))+14.137899*exp(-(0.116270*pow(input[0]-(0.188365),2.0)+0.000000*pow(input[1]-(0.280456),2.0)))+4.859023*exp(-(0.622169*pow(input[0]-(0.581143),2.0)+0.000000*pow(input[1]-(0.829203),2.0)))+1.046218*exp(-(0.391128*pow(input[0]-(0.119867),2.0)+0.959771*pow(input[1]-(0.003189),2.0)))-7.539943*exp(-(0.068036*pow(input[0]-(-0.141919),2.0)+0.000000*pow(input[1]-(0.487370),2.0)))-1.957351*exp(-(1.301417*pow(input[0]-(1.206275),2.0)+0.055104*pow(input[1]-(0.064505),2.0)))-27.713840*exp(-(0.450000*pow(input[0]-(0.587237),2.0)+0.000000*pow(input[1]-(0.806775),2.0)))-2.680697*exp(-(1.297690*pow(input[0]-(0.300009),2.0)+1.574235*pow(input[1]-(0.088284),2.0)))+15.620176*exp(-(0.000000*pow(input[0]-(0.800079),2.0)+0.000000*pow(input[1]-(0.793374),2.0)));
@@ -186,8 +185,8 @@ bool CFootPlanner::selectFoothold(CPunctum robot_pos, int x, int y, int legnumbe
 	float quality;
 	float Kfin[21][21];
 	found = false;
-	for (int i=1;i<2*(6+4);i++){
-		for (int j=1;j<2*(6+4);j++){
+	for (int i=1;i<2*(6+4)-1;i++){
+		for (int j=1;j<2*(6+4)-1;j++){
 			quality=0;
 			for (int k=-1;k<2;k++){
 				for (int l=-1;l<2;l++){

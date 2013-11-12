@@ -55,7 +55,7 @@ zprInit()
     glutMouseFunc(zprMouse);
     glutMotionFunc(zprMotion);
 
-	double dy=-150;
+	double dy=-250;
 	        double s = exp((double)dy*0.01);
 
         glTranslatef( zprReferencePoint[0], zprReferencePoint[1], zprReferencePoint[2]);
@@ -68,9 +68,9 @@ double ax,ay,az;
             double bx,by,bz;
             double angle;
 
-			dy=10;
+			dy=100;
             ax = dy;
-            ay = 0;
+            ay = -100;
             az = 0.0;
             angle = vlen(ax,ay,az)/(double)(viewport[2]+1)*180.0;
 

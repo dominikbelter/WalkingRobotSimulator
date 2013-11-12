@@ -327,6 +327,20 @@ void CGround::readCustMap(int sizex, int sizey)
 		max_height = 1;
 	}
 
+/*	for (int i=0;i<int(sizex/15);i++)
+			for (int j=0;j<int(sizey/15);j++) {
+				float maxm=-1000;
+				for (int k=0;k<15;k++)
+					for (int l=0;l<15;l++) {
+						if (points[j*15+k][i*15+l][2]>maxm)
+							maxm = points[j*15+k][i*15+l][2];
+					}
+				for (int k=0;k<15;k++)
+					for (int l=0;l<15;l++) {
+							points[j*15+k][i*15+l][2] = maxm;
+					}
+			}*/
+
 	//mapa pewnoœci pomiaru wysokoœci danych punktów terenu przez robota
 	FILE *mapa2=fopen(mapa2_adres,"r");
 	if (mapa2!=NULL) {

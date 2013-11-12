@@ -18,9 +18,9 @@ CGaits_RC::~CGaits_RC(void)
 void CGaits_RC::setInitZeroAngle()
 {
 	for (int i=0;i<6;i++){
-	    	if ((i==0)||(i==5)) robot_rc->leg[i].zero_angle[0]=(float)0.785;
+	    if ((i==0)||(i==5)) robot_rc->leg[i].zero_angle[0]=(float)0.785;
 		if ((i==1)||(i==4)) robot_rc->leg[i].zero_angle[0]=(float)0;
-	    	if ((i==2)||(i==3)) robot_rc->leg[i].zero_angle[0]=(float)-0.785;
+	    if ((i==2)||(i==3)) robot_rc->leg[i].zero_angle[0]=(float)-0.785;
 		robot_rc->leg[i].zero_angle[1]=(float)0.31867;
 		robot_rc->leg[i].zero_angle[2]=(float)-1.4887;
 	}

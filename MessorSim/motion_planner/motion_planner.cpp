@@ -272,6 +272,7 @@ bool CMotionPlanner::rrtConnect(float pos_end[], float rot_end[], float distance
 	body.createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
 	rrt_finish->createRobotStateFoothold(pos_end, rot_end, &body, feet);
 	rrt_finish->setRoot(pos_end, rot_end, body, feet);
+	initializeRand();
 
 	CrrtNode q_rand, q_new;
 	for (int k=0;k<48000;k++){

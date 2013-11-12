@@ -803,15 +803,18 @@ float CRobot::computeKinematicMargin(CPunctum body, CPunctum * feet){
 }
 
 ///computes kinematic margin
-float CRobot::computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bool only_stance){
+float CRobot::computeKinematicMarginApprox(CPunctum *body, CPunctum * feet){
 	float margin=1e10;
 	float marg;
 	for (int i=0;i<6;i++){
-		if (!(only_stance&&!feet[i].isFoothold())){
-			marg = computeKinematicMarginApprox(&body, &feet[i], i);
-			if (marg<margin)
+		//if (feet[i].isFoothold()){
+			marg = computeKinematicMarginApprox(body, &feet[i], i);
+			if (marg<margin) {
 				margin=marg;
-		}
+				if (margin==0)
+					return 0;
+			}
+		//}
 	}
 	if ((margin>1)||(margin<0))
 		margin=0;

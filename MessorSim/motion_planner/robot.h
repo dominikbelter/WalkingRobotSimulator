@@ -142,11 +142,11 @@ public:
 	///computes kinematic margin
 	float computeKinematicMargin(CPunctum body, CPunctum * feet);
 	///computes kinematic margin
-	float computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bool only_stance=false);
+	float computeKinematicMarginApprox(CPunctum *body, CPunctum *feet);
 	///computes kinematic margin for single leg
-	float computeKinematicMarginApprox(CPunctum * body, CPunctum * foot, int leg_no);
+	float computeKinematicMarginApprox(CPunctum *body, CPunctum *foot, int leg_no);
 	/// check collisions
-	bool checkCollisions(CPunctum body, CPunctum * feet);
+	bool checkCollisions(CPunctum body, CPunctum *feet);
 
 	///ODE functions
 //	Simulate ODE for x miliseconds

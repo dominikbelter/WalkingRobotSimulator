@@ -89,7 +89,7 @@ public:
 	/// optimize posture
 	bool optimizePosture(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt);
 	/// optimize posture - approx
-	bool optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt, bool only_stance=false);
+	bool optimizePostureApprox(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt);
 	/// optimize posture - swing
 	bool optimizePostureSwingApprox(CPunctum *body_init, CPunctum * feet_init, CPunctum *body_opt);
 	/// optimize swing leg using gradient method
