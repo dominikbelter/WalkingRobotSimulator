@@ -103,16 +103,16 @@ void openGLview::rysuj_figury(void)
 	//rysowanie obiektów ODE
 	dynamicWorld->DrawObjects();
 
-	float Q_ref[18];
-	dynamicWorld->robotODE.getRealServoValues(Q_ref);
-	float position[3];
-	dynamicWorld->robotODE.imu.getIMUposition(position);
-	float orientation[3];
-	dynamicWorld->robotODE.imu.getIMUorientation(orientation);
+	std::vector<robsim::float_type> Q_ref(18,0);
+	dynamicWorld->robotODE->readAngles(Q_ref);
+	robsim::float_type position[3];
+	dynamicWorld->robotODE->getPosition(position);
+	robsim::float_type orientation[3];
+	dynamicWorld->robotODE->getRPY(orientation);
 	const dReal * pos;
-	pos = dGeomGetPosition(dynamicWorld->robotODE.Object[0].Geom[0]);//pobiera pozycje obiektu
+	pos = dGeomGetPosition(dynamicWorld->robotODE->getGeomId(0));//pobiera pozycje obiektu
 	const dReal * R;
-    R = dGeomGetRotation(dynamicWorld->robotODE.Object[0].Geom[0]); //pobiera orientacje obiektu
+    R = dGeomGetRotation(dynamicWorld->robotODE->getGeomId(0)); //pobiera orientacje obiektu
 
 	float p[3];
 	float r[12];

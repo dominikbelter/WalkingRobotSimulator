@@ -4,7 +4,7 @@
 #include <ode/ode.h>    // ode library header
 #include "Ground.h"
 #include "OdeGeom.h"
-#include "ODErobot.h"
+#include "hexapodRobot.h"
 #include "../resource.h"
 
 //#include "../openGL/openGL1Dlg.h"
@@ -64,7 +64,7 @@ public:
 	/// klasa rysujaca obiekty na scenie
 	COdeGeom geometry; 
 	/// robot
-	CODERobot robotODE;
+	SimRobot* robotODE;
 	///krok symulacji [s]
 	double stepDT;
 	///czas symulacji [s]

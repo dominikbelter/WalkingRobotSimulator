@@ -270,8 +270,10 @@ ERR RPCCaller::readLegForceInGlobal(char leg1,char leg2,float res[6])
 /// 22. odczytuje pozycje robota mierzona przez IMU
 ERR RPCCaller::readPositionIMU(float res[3])
 {
-  control->robot_rc->dynamicWorld->robotODE.imu.getIMUposition(res);
-  return 0;
+	robsim::float_type pos[3];
+	control->robot_rc->dynamicWorld->robotODE->getPosition(pos);
+	res[0] = pos[0]; res[1] = pos[1]; res[2] = pos[2];
+	return 0;
 }
 
 /// 23. resetuje pomiar IMU - ustawia wartosci zero
@@ -467,7 +469,9 @@ ERR RPCCaller::sleepODE(int miliseconds)
 
 ERR RPCCaller::getIMUorientation(float* angles)
 {
-	control->robot_rc->dynamicWorld->robotODE.imu.getIMUorientation(angles);
+	robsim::float_type rot[3];
+	control->robot_rc->dynamicWorld->robotODE->getRPY(rot);
+	angles[0] = rot[0]; angles[1] = rot[1]; angles[2] = rot[2];
 	return 0;
 }
 
@@ -478,7 +482,7 @@ ERR RPCCaller::Placefeet(float dz, int legs, float speed)
 
 ERR RPCCaller::Contact(int i)
 {
-	return control->robot_rc->dynamicWorld->robotODE.getContact(i);
+	return control->robot_rc->dynamicWorld->robotODE->getContact(i);
 }
 
 ERR RPCCaller::checkCollisions(CPunctum body, CPunctum * feet)

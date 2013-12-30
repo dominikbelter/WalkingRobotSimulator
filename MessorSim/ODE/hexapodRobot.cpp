@@ -1,86 +1,183 @@
-#include "ODErobot.h"
+#include "hexapodRobot.h"
 #include <math.h>
 
-CODERobot::CODERobot(void)
+/// A single instance of Kinect grabber
+HexRobot::Ptr robot;
+
+const uint_fast8_t LEGS = 6;
+const uint_fast8_t SERVOS_PER_LEG = 3;
+const uint_fast8_t SERVOMOTORS_NO = SERVOS_PER_LEG * LEGS;
+
+HexRobot::HexRobot(void) : SimRobot("Hexapod Robot")
 {
+	refSpeed.resize(SERVOMOTORS_NO); //18 servomotors
+	refAngles.resize(SERVOMOTORS_NO); //18 servomotors
+	refLoad.resize(SERVOMOTORS_NO); //18 servomotors
+	groundContact.resize(LEGS);
 	imu.setInitialPosition(0.023,0,0);
 	for (int i=0;i<6;i++) {
-		filtered_contact[i]=0;
-		ref_angles[i*3]=0;
-		ref_angles[i*3+1]=(float)deg2rad((float)24);
-		ref_angles[i*3+2]=(float)deg2rad((float)-114);
+		groundContact[i]=0;
+		refAngles[i*3]=0;
+		refAngles[i*3+1]=(float)deg2rad((float)24);
+		refAngles[i*3+2]=(float)deg2rad((float)-114);
 	}
 
 	for (int i=0; i<18; i++)
 	{
-		ref_speed[i]=1;
+		refSpeed[i]=1;
 	}
 
-	ref_angles[0]=(float)deg2rad((float)45);
-	ref_angles[6]=(float)deg2rad((float)-45);
-	ref_angles[9]=(float)deg2rad((float)-45);
-	ref_angles[15]=(float)deg2rad((float)45);
+	refAngles[0]=(float)deg2rad((float)45);
+	refAngles[6]=(float)deg2rad((float)-45);
+	refAngles[9]=(float)deg2rad((float)-45);
+	refAngles[15]=(float)deg2rad((float)45);
 }
 
-CODERobot::~CODERobot(void)
+HexRobot::~HexRobot(void)
 {
 }
 
+const std::string& HexRobot::getName() const {
+	return name;
+}
+
 ///ustawia poczatkowa pozycje i orientacje robota
-void CODERobot::setInitialPosition(float x, float y, float z, float alpha, float beta, float gamma){
+void HexRobot::setInitialPosition(robsim::float_type x, robsim::float_type y, robsim::float_type z, robsim::float_type alpha, robsim::float_type beta, robsim::float_type gamma){
 	imu.setInitialPosition(x,y,z,alpha,beta,gamma);
 }
 
-/// odczytuje wartosci zadane dla serwomechanizmow
-float CODERobot::getAngle(int leg, int joint){
-	return ref_angles[leg*3+joint];
+/// Get reference values for each leg
+const std::vector<robsim::float_type>& HexRobot::getAngles(void) const{
+	return refAngles;
+}
+
+/// Get reference values for leg
+void HexRobot::getLegAngles(uint_fast8_t legNo, std::vector<robsim::float_type>& legAngles) const{
+	legAngles.assign(refAngles.begin()+legNo*SERVOS_PER_LEG, refAngles.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
+}
+
+/// Get reference rotation speed
+const std::vector<robsim::float_type>& HexRobot::getSpeed(void) const{
+	return refSpeed;
+}
+
+/// Get reference rotation speed
+void HexRobot::getLegSpeed(uint_fast8_t legNo, std::vector<robsim::float_type>& legSpeed) const{
+	legSpeed.assign(refSpeed.begin()+legNo*SERVOS_PER_LEG, refSpeed.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
+}
+
+/// Get max load
+const std::vector<robsim::float_type>& HexRobot::getLoad(void) const{
+	return refLoad;
+}
+
+/// Get max load
+void HexRobot::getLegLoad(uint_fast8_t legNo, std::vector<robsim::float_type>& legLoad) const{
+	legLoad.assign(refLoad.begin()+legNo*SERVOS_PER_LEG, refLoad.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
 }
 
 /// ustawia predkosc zadana dla konczyny
-void CODERobot::setLegSpeed(int leg_no, short * leg_speed){
-	ref_speed[leg_no*3]=((float)leg_speed[0])/114.0;
-	ref_speed[leg_no*3+1]=((float)leg_speed[1])/114.0;
-	ref_speed[leg_no*3+2]=((float)leg_speed[2])/114.0;
+void HexRobot::setLegSpeed(uint_fast8_t legNo, const std::vector<robsim::float_type>& legSpeed){
+	refSpeed[legNo*SERVOS_PER_LEG]=(legSpeed[0])/114.0;
+	refSpeed[legNo*SERVOS_PER_LEG+1]=(legSpeed[1])/114.0;
+	refSpeed[legNo*SERVOS_PER_LEG+2]=(legSpeed[2])/114.0;
 }
 
-/// ustawia wartosci zadane W STOPNIACH!!!
-void CODERobot::setLeg(int leg_no, float * leg_deg){
-	ref_angles[leg_no*3]=(float)leg_deg[0];
-	ref_angles[leg_no*3+1]=(float)leg_deg[1];
-	ref_angles[leg_no*3+2]=(float)leg_deg[2];
+/// Set reference values for each leg
+void HexRobot::setAngles(const std::vector<robsim::float_type>& _refAngles) {
+	refAngles = _refAngles;
 }
 
-/// odczytuje rzeczywiste wartosci katów w stawach
-void CODERobot::readLegPosition(int leg_no, short * read_angles){
-	if (leg_no==4){
-		read_angles[0] = (short)rad2deg((float)dJointGetHingeAngle(Joints[15])+ref_angles[15]);
-		read_angles[1] = (short)rad2deg((float)dJointGetHingeAngle(Joints[16])+ref_angles[16]);
-		read_angles[2] = (short)rad2deg((float)dJointGetHingeAngle(Joints[17])+ref_angles[17]);
+/// set reference rotation speed
+void HexRobot::setSpeed(const std::vector<robsim::float_type>& _refSpeed) {
+	refSpeed = _refSpeed;
+}
+
+/// set max load
+void HexRobot::setLoad(const std::vector<robsim::float_type>& maxLoad) {
+	refLoad = maxLoad;
+}
+
+/// set max load
+void HexRobot::setLegLoad(uint_fast8_t legNo, const std::vector<robsim::float_type>& maxLoad) {
+	refLoad[legNo*SERVOS_PER_LEG]=(maxLoad[0])/114.0;
+	refLoad[legNo*SERVOS_PER_LEG+1]=(maxLoad[1])/114.0;
+	refLoad[legNo*SERVOS_PER_LEG+2]=(maxLoad[2])/114.0;
+}
+
+/// set reference values for leg
+void HexRobot::setLegAngles(uint_fast8_t legNo, const std::vector<robsim::float_type>& legAngles){
+	refAngles[legNo*SERVOS_PER_LEG]=legAngles[0];
+	refAngles[legNo*SERVOS_PER_LEG+1]=legAngles[1];
+	refAngles[legNo*SERVOS_PER_LEG+2]=legAngles[2];
+}
+
+/// read current joint positions
+void HexRobot::readLegAngles(uint_fast8_t legNo, std::vector<robsim::float_type>& currentAngles) const{
+	if (legNo==4){
+		currentAngles[0] = dJointGetHingeAngle(Joints[15])+refAngles[15];
+		currentAngles[1] = dJointGetHingeAngle(Joints[16])+refAngles[16];
+		currentAngles[2] = dJointGetHingeAngle(Joints[17])+refAngles[17];
 	}
-	else if (leg_no==5){
-		read_angles[0] = (short)rad2deg((float)dJointGetHingeAngle(Joints[12])+ref_angles[12]);
-		read_angles[1] = (short)rad2deg((float)dJointGetHingeAngle(Joints[13])+ref_angles[13]);
-		read_angles[2] = (short)rad2deg((float)dJointGetHingeAngle(Joints[14])+ref_angles[14]);
+	else if (legNo==5){
+		currentAngles[0] = dJointGetHingeAngle(Joints[12])+refAngles[12];
+		currentAngles[1] = dJointGetHingeAngle(Joints[13])+refAngles[13];
+		currentAngles[2] = dJointGetHingeAngle(Joints[14])+refAngles[14];
 	}
-	else if (leg_no==6){
-		read_angles[0] = (short)rad2deg((float)dJointGetHingeAngle(Joints[9])+ref_angles[9]);
-		read_angles[1] = (short)rad2deg((float)dJointGetHingeAngle(Joints[10])+ref_angles[10]);
-		read_angles[2] = (short)rad2deg((float)dJointGetHingeAngle(Joints[11])+ref_angles[11]);
+	else if (legNo==6){
+		currentAngles[0] = dJointGetHingeAngle(Joints[9])+refAngles[9];
+		currentAngles[1] = dJointGetHingeAngle(Joints[10])+refAngles[10];
+		currentAngles[2] = dJointGetHingeAngle(Joints[11])+refAngles[11];
 	}
 	else {
-		read_angles[0] = (short)rad2deg((float)dJointGetHingeAngle(Joints[leg_no*3])+ref_angles[leg_no*3]);
-		read_angles[1] = (short)rad2deg((float)dJointGetHingeAngle(Joints[leg_no*3+1])+ref_angles[leg_no*3+1]);
-		read_angles[2] = (short)rad2deg((float)dJointGetHingeAngle(Joints[leg_no*3+2])+ref_angles[leg_no*3+2]);
+		currentAngles[0] = dJointGetHingeAngle(Joints[legNo*SERVOS_PER_LEG])+refAngles[legNo*SERVOS_PER_LEG];
+		currentAngles[1] = dJointGetHingeAngle(Joints[legNo*SERVOS_PER_LEG+1])+refAngles[legNo*SERVOS_PER_LEG+1];
+		currentAngles[2] = dJointGetHingeAngle(Joints[legNo*SERVOS_PER_LEG+2])+refAngles[legNo*SERVOS_PER_LEG+2];
 	}
+}
+
+/// read current joints speed
+void HexRobot::readSpeed(std::vector<robsim::float_type>& currentSpeed) const {
+	std::cout << "not implemented" << endl;
+}
+
+/// read current joints speed
+void HexRobot::readLegSpeed(uint_fast8_t legNo, std::vector<robsim::float_type>& currentSpeed) const {
+	std::cout << "not implemented" << endl;
+}
+
+/// read current joints speed
+void HexRobot::readLoad(std::vector<robsim::float_type>& currentLoad) const {
+	std::cout << "not implemented" << endl;
+}
+
+/// read current joints speed
+void HexRobot::readLegLoad(uint_fast8_t legNo, std::vector<robsim::float_type>& currentLoad) {
+	std::cout << "not implemented" << endl;
+}
+
+/// read reference value for servomotor (angle)
+const robsim::float_type& HexRobot::getRefAngle(uint_fast8_t leg, uint_fast8_t joint) const{
+	return refAngles[leg*SERVOS_PER_LEG+joint];
+}
+
+/// read reference value for servomotor (speed)
+const robsim::float_type& HexRobot::getRefSpeed(uint_fast8_t leg, uint_fast8_t joint) const{
+	return refSpeed[leg*SERVOS_PER_LEG+joint];
+}
+
+/// read reference value for servomotor (load)
+const robsim::float_type& HexRobot::getRefLoad(uint_fast8_t leg, uint_fast8_t joint) const{
+	return refLoad[leg*SERVOS_PER_LEG+joint];
 }
 
 /// ODE - symulacja regulatora w serwomechanizmie
-void CODERobot::setServo(int servo_nr, double value) {
+void HexRobot::setServo(uint_fast8_t servoNo, robsim::float_type value) {
 	dReal Gain = (dReal) 55.1465;
-	dReal v_max = (dReal) ref_speed[servo_nr]*max_servo_speed;
+	dReal v_max = (dReal) refSpeed[servoNo]*max_servo_speed;
 	dReal MaxForce = (dReal)13.0;
 
-	dReal TruePosition = dJointGetHingeAngle(Joints[servo_nr]);
+	dReal TruePosition = dJointGetHingeAngle(Joints[servoNo]);
 	dReal DesiredPosition = (dReal)value;
 	dReal Error = TruePosition - DesiredPosition;
 
@@ -90,7 +187,7 @@ void CODERobot::setServo(int servo_nr, double value) {
 	if (DesiredVelocity<-v_max) 
 		DesiredVelocity=-v_max;
 
-	dJointSetHingeParam(Joints[servo_nr], dParamVel, DesiredVelocity);
+	dJointSetHingeParam(Joints[servoNo], dParamVel, DesiredVelocity);
 
 	/*
 	float b=1.0;//tlumienie
@@ -105,54 +202,55 @@ void CODERobot::setServo(int servo_nr, double value) {
 	}*/
 }
 
-/// ODE - ustawia wartosci katow we wszystkich stawach
-void CODERobot::setAllServos()
+/// set all servos using selected controller (P/PI/PID)
+void HexRobot::setAllServos()
 {
-	setServo(0,deg2rad(45)-getAngle(0, 0));
-	setServo(1,deg2rad(24)-getAngle(0, 1));
-	setServo(2,deg2rad(-114)-getAngle(0, 2));
-	setServo(3,deg2rad(0)-getAngle(1, 0));
-	setServo(4,deg2rad(24)-getAngle(1, 1));
-	setServo(5,deg2rad(-114)-getAngle(1, 2));
-	setServo(6,deg2rad(-45)-getAngle(2, 0));
-	setServo(7,deg2rad(24)-getAngle(2, 1));
-	setServo(8,deg2rad(-114)-getAngle(2, 2));
-	setServo(9,-(deg2rad(-45)-getAngle(3, 0)));
-	setServo(10,-(deg2rad(24)-getAngle(3, 1)));
-	setServo(11,-(deg2rad(-114)-getAngle(3, 2)));
-	setServo(12,-(deg2rad(0)-getAngle(4, 0)));
-	setServo(13,-(deg2rad(24)-getAngle(4, 1)));
-	setServo(14,-(deg2rad(-114)-getAngle(4, 2)));
-	setServo(15,-(deg2rad(45)-getAngle(5, 0)));
-	setServo(16,-(deg2rad(24)-getAngle(5, 1)));
-	setServo(17,-(deg2rad(-114)-getAngle(5, 2)));
+	setServo(0,deg2rad(45)-getRefAngle(0, 0));
+	setServo(1,deg2rad(24)-getRefAngle(0, 1));
+	setServo(2,deg2rad(-114)-getRefAngle(0, 2));
+	setServo(3,deg2rad(0)-getRefAngle(1, 0));
+	setServo(4,deg2rad(24)-getRefAngle(1, 1));
+	setServo(5,deg2rad(-114)-getRefAngle(1, 2));
+	setServo(6,deg2rad(-45)-getRefAngle(2, 0));
+	setServo(7,deg2rad(24)-getRefAngle(2, 1));
+	setServo(8,deg2rad(-114)-getRefAngle(2, 2));
+	setServo(9,-(deg2rad(-45)-getRefAngle(3, 0)));
+	setServo(10,-(deg2rad(24)-getRefAngle(3, 1)));
+	setServo(11,-(deg2rad(-114)-getRefAngle(3, 2)));
+	setServo(12,-(deg2rad(0)-getRefAngle(4, 0)));
+	setServo(13,-(deg2rad(24)-getRefAngle(4, 1)));
+	setServo(14,-(deg2rad(-114)-getRefAngle(4, 2)));
+	setServo(15,-(deg2rad(45)-getRefAngle(5, 0)));
+	setServo(16,-(deg2rad(24)-getRefAngle(5, 1)));
+	setServo(17,-(deg2rad(-114)-getRefAngle(5, 2)));
 }
 
-/// ODE - pobiera rzeczywiste wartosci katow we wszystkich stawach
-void CODERobot::getRealServoValues(float angles[])
-{
+/// read current joint positions
+void HexRobot::readAngles(std::vector<robsim::float_type>& currentAngles) const{
 	for (int i=0;i<18;i++) {
 		if (i<9){
-			if (i%3==1) angles[i]=-dJointGetHingeAngle(Joints[i])+24*3.14/180;
-			else if (i%3==2) angles[i]=-dJointGetHingeAngle(Joints[i])-114*3.14/180;
-			else if (i%3==0) angles[i]=-dJointGetHingeAngle(Joints[i]);
+			if (i%3==1) currentAngles[i]=-dJointGetHingeAngle(Joints[i])+24*3.14/180;
+			else if (i%3==2) currentAngles[i]=-dJointGetHingeAngle(Joints[i])-114*3.14/180;
+			else if (i%3==0) currentAngles[i]=-dJointGetHingeAngle(Joints[i]);
 		}
 		else {
-			if (i%3==1) angles[i]=dJointGetHingeAngle(Joints[i])+24*3.14/180;
-			else if (i%3==2) angles[i]=dJointGetHingeAngle(Joints[i])-114*3.14/180;
-			else if (i%3==0) angles[i]=dJointGetHingeAngle(Joints[i]);
+			if (i%3==1) currentAngles[i]=dJointGetHingeAngle(Joints[i])+24*3.14/180;
+			else if (i%3==2) currentAngles[i]=dJointGetHingeAngle(Joints[i])-114*3.14/180;
+			else if (i%3==0) currentAngles[i]=dJointGetHingeAngle(Joints[i]);
 		}
 	}
-	angles[0]+=45*3.14/180;
-	angles[6]-=45*3.14/180;
-	angles[9]-=45*3.14/180;
-	angles[15]+=45*3.14/180;
+	currentAngles[0]+=45*3.14/180;
+	currentAngles[6]-=45*3.14/180;
+	currentAngles[9]-=45*3.14/180;
+	currentAngles[15]+=45*3.14/180;
 }
 
 /// definicja robota w srodowisku ODE
-void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID jointgroup) {
+void HexRobot::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& jointgroup, robsim::float_type dt) {
 
 	#pragma warning( disable : 4244 4305 )
+
+	imu.setDT(dt);
 
 	double mass_corp=0.908;
 	double mass_tibia=0.163;
@@ -178,7 +276,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     double dlugosc = segment3-2*promien; //dlugosc piguly - 2*3 segment nogi
 
 	for (int bodies = 0;bodies<25;bodies++)
-		Object[bodies].Body = dBodyCreate(World);
+		Object[bodies].Body = dBodyCreate(world);
 
     // Set up for static object - rama glowna
     sides[0] = 0.03;
@@ -189,7 +287,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 1, 0, 0, 0);
 	dBodySetRotation(Object[0].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]); //ustawia gestosc dla masy dMassSetBoxTotal
-    Object[0].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[0].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[0].Geom[0], Object[0].Body);
     dBodySetMass(Object[0].Body, &m);
 
@@ -205,7 +303,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 0, 1, 0, leg_ref[0]);
 	dBodySetRotation(Object[1].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[1].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[1].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[1].Geom[0], Object[1].Body);
     dBodySetMass(Object[1].Body, &m);
 
@@ -222,7 +320,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[2].Body, R);
     dBodySetPosition(Object[2].Body, offset_x+width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1])/2)*cos(leg_ref[0]), segment2*sin(leg_ref[1])/2+offset_z, -(lenght)+offset_y-segment1*sin(leg_ref[0])-(segment2*cos(leg_ref[1])/2.0)*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[2].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[2].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[2].Geom[0], Object[2].Body);
     dBodySetMass(Object[2].Body, &m);
 
@@ -236,7 +334,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[3].Body, R);
     dBodySetPosition(Object[3].Body, offset_x+width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+((segment3-foot_length)*cos(leg_ref[2])/2.0)*cos(leg_ref[0]), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, -(lenght)+offset_y-segment1*sin(leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(leg_ref[0])-((segment3-foot_length)*cos(leg_ref[2])/2.0)*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[3].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[3].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[3].Geom[0], Object[3].Body);
     dBodySetMass(Object[3].Body, &m);
 
@@ -250,7 +348,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 1, 0, 0, 0);
 	dBodySetRotation(Object[4].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[4].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[4].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[4].Geom[0], Object[4].Body);
     dBodySetMass(Object[4].Body, &m);
 
@@ -264,7 +362,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[5].Body, R);
     dBodySetPosition(Object[5].Body, offset_x+width_max+(segment1)+segment2*cos(leg_ref[1])/2, segment2*sin(leg_ref[1])/2+offset_z,offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[5].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[5].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[5].Geom[0], Object[5].Body);
     dBodySetMass(Object[5].Body, &m);
 
@@ -278,7 +376,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[6].Body, R);
     dBodySetPosition(Object[6].Body, offset_x+width_max+(segment1)+segment2*cos(leg_ref[1])+(segment3-foot_length)*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[6].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[6].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[6].Geom[0], Object[6].Body);
     dBodySetMass(Object[6].Body, &m);
 
@@ -292,7 +390,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 0, 1, 0, -leg_ref[0]);
 	dBodySetRotation(Object[7].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[7].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[7].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[7].Geom[0], Object[7].Body);
     dBodySetMass(Object[7].Body, &m);
 
@@ -308,7 +406,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[8].Body, R);
     dBodySetPosition(Object[8].Body, offset_x+width_min+segment1*cos(-leg_ref[0])+((segment2/2.0)*cos(leg_ref[1]))*cos(leg_ref[0]), segment2*sin(leg_ref[1])/2+offset_z, (lenght)+offset_y-segment1*sin(-leg_ref[0])-((segment2/2.0)*cos(-leg_ref[1]))*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[8].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[8].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[8].Geom[0], Object[8].Body);
     dBodySetMass(Object[8].Body, &m);
 
@@ -322,7 +420,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[9].Body, R);
     dBodySetPosition(Object[9].Body, offset_x+width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+((segment3-foot_length)*cos(leg_ref[2])/2.0)*cos(-leg_ref[0]), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, (lenght)+offset_y-segment1*sin(-leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])-((segment3-foot_length)*cos(leg_ref[2])/2.0)*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[9].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[9].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[9].Geom[0], Object[9].Body);
     dBodySetMass(Object[9].Body, &m);
 
@@ -336,7 +434,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 0, 1, 0, -leg_ref[0]);
 	dBodySetRotation(Object[10].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[10].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[10].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[10].Geom[0], Object[10].Body);
     dBodySetMass(Object[10].Body, &m);
 
@@ -352,7 +450,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[11].Body, R);
     dBodySetPosition(Object[11].Body, offset_x-(width_min+segment1*cos(-leg_ref[0])+((segment2/2.0)*cos(leg_ref[1]))*cos(-leg_ref[0])), segment2*sin(leg_ref[1])/2+offset_z, -(lenght)+offset_y+segment1*sin(-leg_ref[0])+((segment2/2.0)*cos(leg_ref[1]))*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[11].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[11].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[11].Geom[0], Object[11].Body);
     dBodySetMass(Object[11].Body, &m);
 
@@ -366,7 +464,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[12].Body, R);
     dBodySetPosition(Object[12].Body, offset_x-(width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+((segment3-foot_length)*cos(leg_ref[2])/2.0)*cos(-leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, -(lenght)+offset_y+segment1*sin(-leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])+((segment3-foot_length)*cos(leg_ref[2])/2.0)*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[12].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[12].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[12].Geom[0], Object[12].Body);
     dBodySetMass(Object[12].Body, &m);
 
@@ -380,7 +478,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 1, 0, 0, 0);
 	dBodySetRotation(Object[13].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[13].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[13].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[13].Geom[0], Object[13].Body);
     dBodySetMass(Object[13].Body, &m);
 
@@ -394,7 +492,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[14].Body, R);
     dBodySetPosition(Object[14].Body, offset_x-(width_max+(segment1))-segment2*cos(leg_ref[1])/2, segment2*sin(leg_ref[1])/2+offset_z, offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[14].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[14].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[14].Geom[0], Object[14].Body);
     dBodySetMass(Object[14].Body, &m);
 
@@ -408,7 +506,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[15].Body, R);
     dBodySetPosition(Object[15].Body, offset_x-(width_max+(segment1))-segment2*cos(leg_ref[1])-(segment3-foot_length)*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[15].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[15].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[15].Geom[0], Object[15].Body);
     dBodySetMass(Object[15].Body, &m);
 
@@ -422,7 +520,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dRFromAxisAndAngle(R, 0, 1, 0, leg_ref[0]);
 	dBodySetRotation(Object[16].Body, R);
     dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[16].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[16].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[16].Geom[0], Object[16].Body);
     dBodySetMass(Object[16].Body, &m);
 
@@ -438,7 +536,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[17].Body, R);
     dBodySetPosition(Object[17].Body, offset_x-(width_min+segment1*cos(leg_ref[0])+((segment2/2.0)*cos(leg_ref[1]))*cos(leg_ref[0])), segment2*sin(leg_ref[1])/2+offset_z, (lenght)+offset_y+segment1*sin(leg_ref[0])+((segment2/2.0)*cos(leg_ref[1]))*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[17].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+    Object[17].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[17].Geom[0], Object[17].Body);
     dBodySetMass(Object[17].Body, &m);
 
@@ -452,7 +550,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[18].Body, R);
     dBodySetPosition(Object[18].Body, offset_x-(width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+((segment3/2.0)*cos(leg_ref[2]))*cos(leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])/2+offset_z, (lenght)+offset_y+segment1*sin(leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(leg_ref[0])+((segment3/2.0)*cos(leg_ref[2]))*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[18].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[18].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[18].Geom[0], Object[18].Body);
     dBodySetMass(Object[18].Body, &m);
 
@@ -466,7 +564,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[19].Body, R);
     dBodySetPosition(Object[19].Body, offset_x+width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+(((segment3)-foot_length)*cos(leg_ref[2])/2.0)*cos(leg_ref[0]), segment2*sin(leg_ref[1])-((segment3)-(sides[2]/2))*sin(leg_ref[2])+offset_z, -(lenght)+offset_y-segment1*sin(leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(leg_ref[0])-((segment3)*cos(leg_ref[2])/2.0)*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[19].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[19].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[19].Geom[0], Object[19].Body);
     dBodySetMass(Object[19].Body, &m);
 
@@ -476,7 +574,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[20].Body, R);
     dBodySetPosition(Object[20].Body, offset_x+width_max+(segment1)+segment2*cos(leg_ref[1])+segment3*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-(sides[2]/2))*sin(leg_ref[2])+offset_z, offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[20].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[20].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[20].Geom[0], Object[20].Body);
     dBodySetMass(Object[20].Body, &m);
 
@@ -486,7 +584,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[21].Body, R);
     dBodySetPosition(Object[21].Body, offset_x+width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+(segment3*cos(leg_ref[2])/2.0)*cos(-leg_ref[0]), segment2*sin(leg_ref[1])-(segment3-(sides[2]/2))*sin(leg_ref[2])+offset_z, (lenght)+offset_y-segment1*sin(-leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])-(segment3*cos(leg_ref[2])/2.0)*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[21].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[21].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[21].Geom[0], Object[21].Body);
     dBodySetMass(Object[21].Body, &m);
 
@@ -496,7 +594,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[22].Body, R);
     dBodySetPosition(Object[22].Body, offset_x-(width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+(segment3*cos(leg_ref[2]))*cos(-leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-(sides[2]/2))*sin(leg_ref[2])+offset_z, -(lenght)+offset_y+segment1*sin(-leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])+(segment3*cos(leg_ref[2]))*sin(-leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[22].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[22].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[22].Geom[0], Object[22].Body);
     dBodySetMass(Object[22].Body, &m);
 
@@ -506,7 +604,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[23].Body, R);
     dBodySetPosition(Object[23].Body, offset_x-(width_max+(segment1))-segment2*cos(leg_ref[1])-segment3*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-(sides[2]/2))*sin(leg_ref[2])+offset_z, offset_y);
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[23].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[23].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[23].Geom[0], Object[23].Body);
     dBodySetMass(Object[23].Body, &m);
 
@@ -516,12 +614,12 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 	dBodySetRotation(Object[24].Body, R);
     dBodySetPosition(Object[24].Body, offset_x-(width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+((segment3)*cos(leg_ref[2]))*cos(leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-(sides[2]/2))*sin(leg_ref[2])+offset_z, (lenght)+offset_y+segment1*sin(leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(leg_ref[0])+((segment3)*cos(leg_ref[2]))*sin(leg_ref[0]));
 	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-	Object[24].Geom[0] = dCreateBox(Space, sides[0], sides[1], sides[2]);
+	Object[24].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
     dGeomSetBody(Object[24].Geom[0], Object[24].Body);
     dBodySetMass(Object[24].Body, &m);
 
 	// zlacze pomiedzy glownym elementem a pierwszym czlonem nogi 1
-    Joints[0] = dJointCreateHinge(World, jointgroup);
+    Joints[0] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[0], Object[0].Body, Object[1].Body);
     dJointSetHingeAnchor(Joints[0], offset_x+width_min, offset_z, -lenght+offset_y);
     dJointSetHingeAxis(Joints[0], 0, 1, 0);
@@ -529,7 +627,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[0], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 1 
-    Joints[1] = dJointCreateHinge(World, jointgroup);
+    Joints[1] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[1], Object[1].Body, Object[2].Body);
     dJointSetHingeAnchor(Joints[1], offset_x+width_min+segment1*cos(leg_ref[0]), offset_z, -lenght+offset_y-segment1*sin(leg_ref[0]));
     dJointSetHingeAxis(Joints[1], 0.5, 0, 0.5);
@@ -537,7 +635,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[1], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 1 
-    Joints[2] = dJointCreateHinge(World, jointgroup);
+    Joints[2] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[2], Object[2].Body, Object[3].Body);
     dJointSetHingeAnchor(Joints[2], offset_x+width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0]), segment2*sin(leg_ref[1])+offset_z, -(lenght)+offset_y-segment1*sin(leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(leg_ref[0]));
     dJointSetHingeAxis(Joints[2], 0.5, 0, 0.5);
@@ -545,7 +643,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[2], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy prawym wypustkiem a pierwszym czlonem nogi 2
-	Joints[3] = dJointCreateHinge(World, jointgroup);
+	Joints[3] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[3], Object[0].Body, Object[4].Body);
 	dJointSetHingeAnchor(Joints[3], offset_x+width_max, offset_z, 0+offset_y);
     dJointSetHingeAxis(Joints[3], 0, 1, 0);
@@ -553,7 +651,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[3], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 2
-	Joints[4] = dJointCreateHinge(World, jointgroup);
+	Joints[4] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[4], Object[4].Body, Object[5].Body);
     dJointSetHingeAnchor(Joints[4], offset_x+width_max+segment1, offset_z, offset_y);
     dJointSetHingeAxis(Joints[4], 0, 0, 1);
@@ -561,7 +659,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[4], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 2
-    Joints[5] = dJointCreateHinge(World, jointgroup);
+    Joints[5] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[5], Object[5].Body, Object[6].Body);
     dJointSetHingeAnchor(Joints[5], offset_x+width_max+segment1+segment2*cos(leg_ref[1]), segment2*sin(leg_ref[1])+offset_z, offset_y);
     dJointSetHingeAxis(Joints[5], 0, 0, 1);
@@ -569,7 +667,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[5], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy glownym elementem a pierwszym czlonem nogi 3
-    Joints[6] = dJointCreateHinge(World, jointgroup);
+    Joints[6] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[6], Object[0].Body, Object[7].Body);
     dJointSetHingeAnchor(Joints[6], offset_x+width_min, offset_z, lenght+offset_y);
     dJointSetHingeAxis(Joints[6], 0, 1, 0);
@@ -577,7 +675,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[6], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 3 
-    Joints[7] = dJointCreateHinge(World, jointgroup);
+    Joints[7] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[7], Object[7].Body, Object[8].Body);
     dJointSetHingeAnchor(Joints[7], offset_x+width_min+segment1*cos(-leg_ref[0]), offset_z, lenght+offset_y-segment1*sin(-leg_ref[0]));
     dJointSetHingeAxis(Joints[7], -0.5, 0, 0.5);
@@ -585,7 +683,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[7], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 3 
-    Joints[8] = dJointCreateHinge(World, jointgroup);
+    Joints[8] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[8], Object[8].Body, Object[9].Body);
     dJointSetHingeAnchor(Joints[8], offset_x+width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0]), segment2*sin(leg_ref[1])+offset_z, lenght+offset_y-segment1*sin(-leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(-leg_ref[0]));
     dJointSetHingeAxis(Joints[8], -0.5, 0, 0.5);
@@ -593,7 +691,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[8], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy glownym elementem a pierwszym czlonem nogi 4
-    Joints[15] = dJointCreateHinge(World, jointgroup);
+    Joints[15] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[15], Object[0].Body, Object[10].Body);
     dJointSetHingeAnchor(Joints[15], offset_x-width_min, offset_z, -lenght+offset_y);
     dJointSetHingeAxis(Joints[15], 0, 1, 0);
@@ -601,7 +699,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[15], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 4
-	Joints[16] = dJointCreateHinge(World, jointgroup);
+	Joints[16] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[16], Object[10].Body, Object[11].Body);
     dJointSetHingeAnchor(Joints[16], offset_x-(width_min+segment1*cos(-leg_ref[0])), offset_z, -lenght+offset_y+segment1*sin(-leg_ref[0]));
     dJointSetHingeAxis(Joints[16], -0.5, 0, 0.5);
@@ -609,7 +707,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[16], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 4 
-    Joints[17] = dJointCreateHinge(World, jointgroup);
+    Joints[17] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[17], Object[11].Body, Object[12].Body);
     dJointSetHingeAnchor(Joints[17], offset_x-(width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])), segment2*sin(leg_ref[1])+offset_z, -(lenght)+offset_y+segment1*sin(-leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(-leg_ref[0]));
     dJointSetHingeAxis(Joints[17], -0.5, 0, 0.5);
@@ -617,7 +715,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[17], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy prawym wypustkiem a pierwszym czlonem nogi 5
-	Joints[12] = dJointCreateHinge(World, jointgroup);
+	Joints[12] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[12], Object[0].Body, Object[13].Body);
 	dJointSetHingeAnchor(Joints[12], offset_x-width_max, offset_z, offset_y);
     dJointSetHingeAxis(Joints[12], 0, 1, 0);
@@ -625,7 +723,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[12], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 5
-	Joints[13] = dJointCreateHinge(World, jointgroup);
+	Joints[13] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[13], Object[13].Body, Object[14].Body);
     dJointSetHingeAnchor(Joints[13], offset_x-(width_max+segment1), offset_z, offset_y);
     dJointSetHingeAxis(Joints[13], 0, 0, 1);
@@ -633,7 +731,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[13], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 5
-    Joints[14] = dJointCreateHinge(World, jointgroup);
+    Joints[14] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[14], Object[14].Body, Object[15].Body);
     dJointSetHingeAnchor(Joints[14], offset_x-(width_max+segment1)-segment2*cos(leg_ref[1]), segment2*sin(leg_ref[1])+offset_z, offset_y);
     dJointSetHingeAxis(Joints[14], 0, 0, 1);
@@ -641,7 +739,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[14], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy glownym elementem a pierwszym czlonem nogi 6
-    Joints[9] = dJointCreateHinge(World, jointgroup);
+    Joints[9] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[9], Object[0].Body, Object[16].Body);
     dJointSetHingeAnchor(Joints[9], offset_x-width_min, offset_z, lenght+offset_y);
     dJointSetHingeAxis(Joints[9], 0, 1, 0);
@@ -649,7 +747,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[9], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 1, a 2 elementem nogi 6
-	Joints[10] = dJointCreateHinge(World, jointgroup);
+	Joints[10] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[10], Object[16].Body, Object[17].Body);
     dJointSetHingeAnchor(Joints[10], offset_x-(width_min+segment1*cos(leg_ref[0])), offset_z, lenght+offset_y+segment1*sin(leg_ref[0]));
     dJointSetHingeAxis(Joints[10], 0.5, 0, 0.5);
@@ -657,7 +755,7 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[10], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 6 
-    Joints[11] = dJointCreateHinge(World, jointgroup);
+    Joints[11] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[11], Object[17].Body, Object[18].Body);
     dJointSetHingeAnchor(Joints[11], offset_x-(width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])), segment2*sin(leg_ref[1])+offset_z, lenght+offset_y+segment1*sin(leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(leg_ref[0]));
     dJointSetHingeAxis(Joints[11], 0.5, 0, 0.5);
@@ -665,42 +763,42 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
     dJointSetHingeParam(Joints[11], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy noga 1, a stopa
-    Joints[18] = dJointCreateUniversal(World, jointgroup);
+    Joints[18] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[18], Object[3].Body, Object[19].Body);
     dJointSetUniversalAnchor(Joints[18], offset_x+width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+(segment3*cos(leg_ref[2])/2.0)*cos(leg_ref[0]), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, -(lenght)+offset_y-segment1*sin(leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(leg_ref[0])-(segment3*cos(leg_ref[2])/2.0)*sin(leg_ref[0]));
 	dJointSetUniversalAxis1 (Joints[18], 1,0,0);
 	dJointSetUniversalAxis2 (Joints[18], 0,0,1);
 
 	// zlacze pomiedzy noga 2, a stopa
-    Joints[19] = dJointCreateUniversal(World, jointgroup);
+    Joints[19] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[19], Object[6].Body, Object[20].Body);
     dJointSetUniversalAnchor(Joints[19], offset_x+width_max+(segment1)+segment2*cos(leg_ref[1])+segment3*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, offset_y);
 	dJointSetUniversalAxis1(Joints[19], 1,0,0);
 	dJointSetUniversalAxis2(Joints[19], 0,0,1);
 
 	// zlacze pomiedzy noga 3, a stopa
-    Joints[20] = dJointCreateUniversal(World, jointgroup);
+    Joints[20] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[20], Object[9].Body, Object[21].Body);
     dJointSetUniversalAnchor(Joints[20], offset_x+width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+(segment3*cos(leg_ref[2])/2.0)*cos(-leg_ref[0]), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, (lenght)+offset_y-segment1*sin(-leg_ref[0])-(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])-(segment3*cos(leg_ref[2])/2.0)*sin(-leg_ref[0]));
 	dJointSetUniversalAxis1(Joints[20], 1,0,0);
 	dJointSetUniversalAxis2(Joints[20], 0,0,1);
 
 	// zlacze pomiedzy noga 4, a stopa
-    Joints[21] = dJointCreateUniversal(World, jointgroup);
+    Joints[21] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[21], Object[12].Body, Object[22].Body);
     dJointSetUniversalAnchor(Joints[21], offset_x-(width_min+segment1*cos(-leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(-leg_ref[0])+(segment3*cos(leg_ref[2]))*cos(-leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, -(lenght)+offset_y+segment1*sin(-leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(-leg_ref[0])+(segment3*cos(leg_ref[2]))*sin(-leg_ref[0]));
 	dJointSetUniversalAxis1 (Joints[21], 1,0,0);
 	dJointSetUniversalAxis2 (Joints[21], 0,0,1);
 
 	// zlacze pomiedzy noga 5, a stopa
-    Joints[22] = dJointCreateUniversal(World, jointgroup);
+    Joints[22] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[22], Object[15].Body, Object[23].Body);
     dJointSetUniversalAnchor(Joints[22], offset_x-(width_max+(segment1))-segment2*cos(leg_ref[1])-segment3*cos(leg_ref[2])/2, segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, offset_y);
 	dJointSetUniversalAxis1(Joints[22], 1,0,0);
 	dJointSetUniversalAxis2(Joints[22], 0,0,1);
 
 	// zlacze pomiedzy noga 6, a stopa
-    Joints[23] = dJointCreateUniversal(World, jointgroup);
+    Joints[23] = dJointCreateUniversal(world, jointgroup);
     dJointAttach(Joints[23], Object[18].Body, Object[24].Body);
     dJointSetUniversalAnchor(Joints[23], offset_x-(width_min+segment1*cos(leg_ref[0])+(segment2*cos(leg_ref[1]))*cos(leg_ref[0])+((segment3)*cos(leg_ref[2]))*cos(leg_ref[0])), segment2*sin(leg_ref[1])-(segment3-foot_length)*sin(leg_ref[2])+offset_z, (lenght)+offset_y+segment1*sin(leg_ref[0])+(segment2*cos(leg_ref[1]))*sin(leg_ref[0])+((segment3)*cos(leg_ref[2]))*sin(leg_ref[0]));
 	dJointSetUniversalAxis1(Joints[23], 1,0,0);
@@ -724,47 +822,67 @@ void CODERobot::ODEcreateRobot(dWorldID World, dSpaceID Space, dJointGroupID joi
 
 }
 
-void CODERobot::setPositionSensors() {
+void HexRobot::setPositionSensors() {
 	imu.measure();
 }
 
 /// ODE pobiera pozycje stopy numeracja stop 1 do 6
-void CODERobot::getFootPosition(int foot, dReal position[]){
+void HexRobot::getFootPosition(uint_fast8_t foot, CPunctum& pose) const{
 	dVector3 result;
-	double pozycja; // pozycja stopy w ukladzie srdoka ciezkosci ostatniego czlonu nogi
-	if (foot<3) pozycja=0.005/2.0;
+	double foot_z; // foot position in the last joint reference frame
+	if (foot<3) foot_z = 0.005/2.0;
 	else { 
-		pozycja=0.005/2.0;
+		foot_z = 0.005/2.0;
 		if (foot==3) foot=5;
 		else if (foot==5) foot=3;
 	} 
-	dBodyGetRelPointPos (Object[19+foot].Body, 0, 0, -pozycja, result);
-	position[0]=result[0];
-	position[1]=-result[2];
-	position[2]=result[1];
+	dBodyGetRelPointPos (Object[19+foot].Body, 0, 0, -foot_z, result);
+	pose.createTRMatrix(0,0,0, result[0], -result[2], result[1]);
 }
 
-/*kroczenie po trudnym terenie*/
-
-///pobiera dane o pozycji i orientacji robota
-CPunctum CODERobot::getRobotState()
+/// get robot pose
+const CPunctum HexRobot::getRobotState(void)
 {
+	imu.measure();
 	CPunctum robot_pos;
 	float robot_orientation[3];
 	imu.getIMUorientation(robot_orientation);
 	float robot_position[3];
-	imu.getIMUorientation(robot_position);
+	imu.getIMUposition(robot_position);
 	robot_pos.createTRMatrix(robot_orientation[0],robot_orientation[1],robot_orientation[2],robot_position[0],robot_position[1],robot_position[2]);
 	return robot_pos;
 
 }
 
-void CODERobot::getRotAngles(float *angles)
-{
+void HexRobot::getRPY(robsim::float_type (&rpy)[3]){
+	float angles[3];
+	imu.measure();
 	imu.getIMUorientation(angles);
+	rpy[0] = angles[0]; rpy[1] = angles[1]; rpy[2] = angles[2];
 }
 
+void HexRobot::getPosition(robsim::float_type (&position)[3]){
+	imu.measure();
+	float robot_position[3];
+	imu.getIMUposition(robot_position);
+	position[0] = robot_position[0]; position[1] = robot_position[1]; position[2] = robot_position[2];
+}
 /// odczytuje stan przycisku w stopie
-bool CODERobot::getContact(int leg){
-	return filtered_contact[leg];
+bool HexRobot::getContact(uint_fast8_t legNo) const {
+	return groundContact[legNo];
+}
+
+/// Set info about contact with ground
+void HexRobot::setContact(uint_fast8_t legNo, bool state) {
+	groundContact[legNo] = state;
+}
+
+/// Get ODE geom id
+const dGeomID HexRobot::getGeomId(uint_fast8_t partNo) const{
+	return Object[partNo].Geom[0];
+}
+
+robsim::SimRobot* robsim::createSimRobotHexapod(void) {
+	robot.reset(new HexRobot());
+	return robot.get();
 }

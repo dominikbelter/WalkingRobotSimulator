@@ -4,7 +4,7 @@
 	dWorldID World;             // the ode simulation world 
 	dJointGroupID contactgroup; // wykorzystywane w kolizjach
 	dGeomID *plane_c; //robot - wykrywanie kontaktu
-	CODERobot* robot_collision; //robot - wykrywanie kontaktu
+	HexRobot* robot_collision; //robot - wykrywanie kontaktu
 
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
@@ -54,6 +54,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 COdeWorld::COdeWorld(int sizex, int sizey)
 {
+	robotODE = createSimRobotHexapod();
+
 	ground = new CGround(5.99,5.99,sizex,sizey,0.36);
 	rec_robot_platform.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie
 	rec_robot_orientation.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie
@@ -142,10 +144,10 @@ void COdeWorld::DrawGeom(dGeomID g, const dReal *pos, const dReal *R, char corp,
 			geometry.DrawBox(sides, (const float*)pos, (const float*)R); //rysuje szescian
 		}
     }
-	float angles[3];
-	robotODE.getRotAngles(angles);
-	float robot_position[3];
-	robotODE.imu.getIMUposition(robot_position);
+	robsim::float_type angles[3];
+	robotODE->getRPY(angles);
+	robsim::float_type robot_position[3];
+	robotODE->getPosition(robot_position);
 	//geometry.DrawCoordinateSystem(rad2deg(angles[0]),rad2deg(angles[1]),rad2deg(angles[2]),robot_position[0]*10,robot_position[1]*10,robot_position[2]*10);
 }
 
@@ -153,7 +155,7 @@ void COdeWorld::DrawGeom(dGeomID g, const dReal *pos, const dReal *R, char corp,
 void COdeWorld::SimStep()
 {
 	for (int i=0;i<6;i++)
-		robotODE.contact[i]=0;
+		((HexRobot*)robotODE)->contact[i] = false;
     dSpaceCollide(Space, 0, &nearCallback);//ustawia sprawdzanie kolizji
 	//if (time<100) //kopniecie robota
 	//	dBodySetForce  (robotODE.Object[1].Body, 2, 1, 0);
@@ -165,21 +167,20 @@ void COdeWorld::SimStep()
 	//if (((actual_time>0.1))&&(actual_time<0.2))
 	//	dBodySetForce(robotODE.Object[0].Body, 0, 100, -50);
 	// ustawia wszystkie serwa zgodnie z wartosciami zadanymi
-	robotODE.setAllServos();
+	robotODE->setAllServos();
 	//nagranie pozycji platformy
-	robotODE.setPositionSensors();
-	float robot_position[3];
-	robotODE.imu.getIMUposition(robot_position);
+	robsim::float_type robot_position[3];
+	robotODE->getPosition(robot_position);
 	rec_robot_platform.savePosition(robot_position[0],robot_position[1],robot_position[2]);
 	//nagranie orientacji platformy
-	float robot_orientation[3];
-	robotODE.imu.getIMUorientation(robot_orientation);
+	robsim::float_type robot_orientation[3];
+	robotODE->getRPY(robot_orientation);
 	rec_robot_orientation.savePosition(robot_orientation[0],robot_orientation[1],robot_orientation[2]);
 	//pobranie pozycji stopy
-	dReal Dpos[3];
+	CPunctum feet_pose;
 	for (int i=0;i<6;i++) {
-		robotODE.getFootPosition(i, Dpos);
-		rec_robot_leg[i].savePosition(Dpos[0],Dpos[1],Dpos[2]); // nagranie pozycji stopy
+		robotODE->getFootPosition(i, feet_pose);
+		rec_robot_leg[i].savePosition(feet_pose.getElement(1,4),feet_pose.getElement(2,4),feet_pose.getElement(3,4)); // nagranie pozycji stopy
 	}
 	checkFootContatcs();
 	
@@ -193,29 +194,29 @@ void COdeWorld::DrawObjects()
 { //rysuje wszystkie figury na scenie
 	if (show_geoms)
 	{
-		DrawGeom(robotODE.Object[0].Geom[0], 0, 0, 1); //rysuje obiekt
+		DrawGeom(robotODE->getGeomId(0), 0, 0, 1); //rysuje obiekt
 		for (int i=0;i<6;i++) 
 		{
-			DrawGeom(robotODE.Object[i*3+1].Geom[0], 0, 0, 0, 1); //ogniwo1
-			DrawGeom(robotODE.Object[i*3+2].Geom[0], 0, 0, 0, 2); //ogniwo2
-			DrawGeom(robotODE.Object[i*3+3].Geom[0], 0, 0, 0, 3); //ogniwo3
+			DrawGeom(robotODE->getGeomId(i*3+1), 0, 0, 0, 1); //ogniwo1
+			DrawGeom(robotODE->getGeomId(i*3+2), 0, 0, 0, 2); //ogniwo2
+			DrawGeom(robotODE->getGeomId(i*3+1), 0, 0, 0, 3); //ogniwo3
 		}
 		for (int bodies = 19;bodies<25;bodies++)
 		{//rysowanie obiektow
-			DrawGeom(robotODE.Object[bodies].Geom[0], 0, 0, 0, 4); //prawa stopa
+			DrawGeom(robotODE->getGeomId(bodies), 0, 0, 0, 4); //prawa stopa
 		}
 	}
 	else 
 	{
 		for (int bodies = 19;bodies<25;bodies++)//rysowanie obiektow
-			DrawGeom(robotODE.Object[bodies].Geom[0], 0, 0); //rysuje obiekt
+			DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
 	}
 
 	ground->DrawMesh(foot_groundx,foot_groundy,foot_groundx_def, foot_groundy_def,tx,ty); //rysuje ziemie
 	
 	rec_robot_platform.plot(0,1,0,4,'o');
 	for (int i=0;i<6;i++) {
-		if (robotODE.getContact(i)==1)
+		if (robotODE->getContact(i)==1)
 			rec_robot_leg[i].plot(1,0,0,5,'o');
 		else
 			rec_robot_leg[i].plot(0,1,0,5,'o');
@@ -264,9 +265,8 @@ void COdeWorld::InitODE(double dt, bool ct, int sizex, int sizey) /// inicjaliza
 	plane_c=&plane;
 
 	// definicja robota w ode
-	robotODE.ODEcreateRobot(World, Space, jointgroup);
-	robotODE.imu.setDT(stepDT);
-	robot_collision = &robotODE;
+	robotODE->ODEcreateRobot(World, Space, jointgroup, stepDT);
+	robot_collision = (HexRobot*) robotODE;
 }
 
 /// zamyka i niszczy swiat ODE
@@ -281,10 +281,10 @@ void COdeWorld::CloseODE()
 /// odczytuje pozycje robota
 void COdeWorld::showRobotPosition()
 {
-	float robot_position[3];//pozycja platformy
-	robotODE.imu.getIMUposition(robot_position);
-	float robot_orientation[3];//orientacja platformy
-	robotODE.imu.getIMUorientation(robot_orientation);
+	robsim::float_type robot_position[3];//pozycja platformy
+	robotODE->getPosition(robot_position);
+	robsim::float_type robot_orientation[3];//orientacja platformy
+	robotODE->getRPY(robot_orientation);
 	robot_position[0]=0.0;
 	robot_position[1]=0.0;
 	robot_position[2]=0.0;
@@ -294,11 +294,12 @@ void COdeWorld::showRobotPosition()
 }
 
 void COdeWorld::checkFootContatcs(void) {
-	float pos[3], max;
+	float max;
+	CPunctum pos;
 	int pos_int[3];
 	for (int leg_no=0;leg_no<6;leg_no++) {
-		this->robotODE.getFootPosition(leg_no, pos);
-		ground->CalculateGroundCoordinates(pos[0],pos[1],pos_int);
+		this->robotODE->getFootPosition(leg_no, pos);
+		ground->CalculateGroundCoordinates(pos.getElement(1,4),pos.getElement(2,4),pos_int);
 		max=-10;
 		int i=0,j=0;
 		//for (int i=-1;i<2;i++){
@@ -307,9 +308,9 @@ void COdeWorld::checkFootContatcs(void) {
 					max=ground->points[pos_int[0]+i][pos_int[1]+j][2]+0.003;
 			//}
 		//}
-		if (max+0.00>pos[2]||robotODE.contact[leg_no])
-			robotODE.filtered_contact[leg_no]=true;
+		if (max+0.00>pos.getElement(3,4)||((HexRobot*)robotODE)->contact[leg_no])
+			robotODE->setContact(leg_no,true);
 		else
-			robotODE.filtered_contact[leg_no]=false;
+			robotODE->setContact(leg_no,false);
 	}
 }

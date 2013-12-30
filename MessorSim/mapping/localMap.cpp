@@ -1060,8 +1060,10 @@ float CLocalMap::ComputeSphericalVariance(int size, int x, int y){
 //rysowanie mapy mierzonej przez robota
 void CLocalMap::DrawLocalMap(void)
 {
+	robsim::float_type pos[3];
 	//pobieranie pozycji robota celem przesuwania mapy wraz ze zmianą położenia robota
-	map->dynamicWorld->robotODE.imu.getIMUposition(draw_robot_position);
+	map->dynamicWorld->robotODE->getRPY(pos);
+	draw_robot_position[0] = pos[0]; draw_robot_position[1] = pos[1]; draw_robot_position[2] = pos[2];
 
 	// mapa zbudowana z prostopadłościanów bez dolnych ścianek - celem przyspieszenia rysowania
 	for (int i=0; i<getXnumPoints(); i++)

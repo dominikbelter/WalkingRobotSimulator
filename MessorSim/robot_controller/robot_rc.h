@@ -22,7 +22,7 @@ public:
 	///ustawia poczatkowe wartosci katow w stawie [45, 24, -114, 0 24 -114, -45 24 -114,-45, 24, -114, 0 24 -114, 45 24 -114]
 	void setInitZeroAngle();
 	/// oblicza predkosci w wezlach danej nogi
-	double computeLegSpeed(char leg_no, float speed, short int *leg_speed);
+	double computeLegSpeed(char leg_no, float speed, std::vector<robsim::float_type>& leg_speed);
 
 	//obliczenia wynikajace z kinematyki
 	/// funkcja obliczajaca zmiane katów przy ruchu platformy robota, kazda noga zadaje inny ruch (w odniesieniu do pozycji neutralnej)

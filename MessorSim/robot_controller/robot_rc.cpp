@@ -383,34 +383,34 @@ bool CRobot_RC::changeLegAngles(unsigned char leg_no, float alpha, float beta, f
 }
 
 /// oblicza predkosci w wezlach danej nogi
-double CRobot_RC::computeLegSpeed(char leg_no, float speed, short int *leg_speed){
+double CRobot_RC::computeLegSpeed(char leg_no, float speed, std::vector<robsim::float_type>& leg_speed){
 	float delta_angle[3];
 	unsigned char max;
 	for(int i=0;i<3;i++) {delta_angle[i]=fabs(leg[leg_no].getAngle(i)-leg[leg_no].getPreviousAngle(i));}
 	float max_value;
 	max = findMax(delta_angle, 3, &max_value);
 	for (int i=0;i<3;i++) {
-		leg_speed[i] = short(((delta_angle[i]/delta_angle[max])*speed)*MAX_SPEED_RC)+1;
+		leg_speed[i] = (robsim::float_type)(((delta_angle[i]/delta_angle[max])*speed)*MAX_SPEED_RC)+1;
 	}
 	return 0;
 }
 
 /// przeksztalca i wysyla wartosci zadane dla serwomechanizmow
 double CRobot_RC::sendAngles(float speed){
-	float leg_deg[3];
-	short int leg_speed[3];
+	std::vector<robsim::float_type> leg_ref(3,0);
+	std::vector<robsim::float_type> leg_speed(3,0);
 	computeLegSpeed(0,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(0, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(0, leg_speed);
 	computeLegSpeed(1,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(1, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(1, leg_speed);
 	computeLegSpeed(2,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(2, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(2, leg_speed);
 	computeLegSpeed(3,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(3, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(3, leg_speed);
 	computeLegSpeed(4,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(4, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(4, leg_speed);
 	computeLegSpeed(5,speed, leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(5, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
 
 	float Q_ref[18];
 	for (int i=0;i<6;i++){
@@ -419,63 +419,62 @@ double CRobot_RC::sendAngles(float speed){
 		Q_ref[i*3+2] = getAngle(i,2);
 	}
 	bool collision_table[44];
-	float rob_pos[3];
-	dynamicWorld->robotODE.imu.getIMUposition(rob_pos);
-	float orientation[3];
-	dynamicWorld->robotODE.imu.getIMUorientation(orientation);
+	robsim::float_type rob_pos[3];
+	dynamicWorld->robotODE->getPosition(rob_pos);
+	robsim::float_type orientation[3];
+	dynamicWorld->robotODE->getRPY(orientation);
 	int offset[2];
 	dynamicWorld->ground->CalculateGroundCoordinates(rob_pos[0],rob_pos[1],offset);
 	if (robot_structure->checkCollision(rob_pos[0],rob_pos[1],rob_pos[2],orientation[0],orientation[1],orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,offset[0],offset[1])) 
 		return 1;//collision exist
 
-	leg_deg[0] = getAngle(0, 0);
-	leg_deg[1] = getAngle(0, 1);
-	leg_deg[2] = getAngle(0, 2);
-	dynamicWorld->robotODE.setLeg(0, leg_deg);
+	leg_ref[0] = getAngle(0, 0);
+	leg_ref[1] = getAngle(0, 1);
+	leg_ref[2] = getAngle(0, 2);
+	dynamicWorld->robotODE->setLegAngles(0, leg_ref);
 
-	leg_deg[0] = getAngle(1, 0);
-	leg_deg[1] = getAngle(1, 1);
-	leg_deg[2] = getAngle(1, 2);
-	dynamicWorld->robotODE.setLeg(1, leg_deg);
+	leg_ref[0] = getAngle(1, 0);
+	leg_ref[1] = getAngle(1, 1);
+	leg_ref[2] = getAngle(1, 2);
+	dynamicWorld->robotODE->setLegAngles(1, leg_ref);
 
-	leg_deg[0] = getAngle(2, 0);
-	leg_deg[1] = getAngle(2, 1);
-	leg_deg[2] = getAngle(2, 2);
-	dynamicWorld->robotODE.setLeg(2, leg_deg);
+	leg_ref[0] = getAngle(2, 0);
+	leg_ref[1] = getAngle(2, 1);
+	leg_ref[2] = getAngle(2, 2);
+	dynamicWorld->robotODE->setLegAngles(2, leg_ref);
 
-	leg_deg[0] = getAngle(3, 0);
-	leg_deg[1] = getAngle(3, 1);
-	leg_deg[2] = getAngle(3, 2);
-	dynamicWorld->robotODE.setLeg(3, leg_deg);
+	leg_ref[0] = getAngle(3, 0);
+	leg_ref[1] = getAngle(3, 1);
+	leg_ref[2] = getAngle(3, 2);
+	dynamicWorld->robotODE->setLegAngles(3, leg_ref);
 
-	leg_deg[0] = getAngle(4, 0);
-	leg_deg[1] = getAngle(4, 1);
-	leg_deg[2] = getAngle(4, 2);
-	dynamicWorld->robotODE.setLeg(4, leg_deg);
+	leg_ref[0] = getAngle(4, 0);
+	leg_ref[1] = getAngle(4, 1);
+	leg_ref[2] = getAngle(4, 2);
+	dynamicWorld->robotODE->setLegAngles(4, leg_ref);
 
-	leg_deg[0] = getAngle(5, 0);
-	leg_deg[1] = getAngle(5, 1);
-	leg_deg[2] = getAngle(5, 2);
-	dynamicWorld->robotODE.setLeg(5, leg_deg);
+	leg_ref[0] = getAngle(5, 0);
+	leg_ref[1] = getAngle(5, 1);
+	leg_ref[2] = getAngle(5, 2);
+	dynamicWorld->robotODE->setLegAngles(5, leg_ref);
 	return 0;
 }
 
 /// przeksztalca i wysyla wartosci zadane dla serwomechanizmow
 double CRobot_RC::sendAngles(float * speed){
-	float leg_deg[3];
-	short int leg_speed[3];
+	std::vector<robsim::float_type> leg_speed(3,0);
 	computeLegSpeed(0,speed[0], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(0, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(0, leg_speed);
 	computeLegSpeed(1,speed[1], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(1, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(1, leg_speed);
 	computeLegSpeed(2,speed[2], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(2, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(2, leg_speed);
 	computeLegSpeed(3,speed[3], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(3, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(3, leg_speed);
 	computeLegSpeed(4,speed[4], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(4, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(4, leg_speed);
 	computeLegSpeed(5,speed[5], leg_speed);
-	dynamicWorld->robotODE.setLegSpeed(5, leg_speed);
+	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
 
 	float Q_ref[18];
 	for (int i=0;i<6;i++){
@@ -484,44 +483,45 @@ double CRobot_RC::sendAngles(float * speed){
 		Q_ref[i*3+2] = getAngle(i,2);
 	}
 	bool collision_table[44];
-	float rob_pos[3];
-	dynamicWorld->robotODE.imu.getIMUposition(rob_pos);
-	float orientation[3];
-	dynamicWorld->robotODE.imu.getIMUorientation(orientation);
+	robsim::float_type rob_pos[3];
+	dynamicWorld->robotODE->getPosition(rob_pos);
+	robsim::float_type orientation[3];
+	dynamicWorld->robotODE->getRPY(orientation);
 	int offset[2];
 	dynamicWorld->ground->CalculateGroundCoordinates(rob_pos[0],rob_pos[1],offset);
 	if (robot_structure->checkCollision(rob_pos[0],rob_pos[1],rob_pos[2],orientation[0],orientation[1],orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,offset[0],offset[1])) 
 		return 1;//collision exist
 
-	leg_deg[0] = getAngle(0, 0);
-	leg_deg[1] = getAngle(0, 1);
-	leg_deg[2] = getAngle(0, 2);
-	dynamicWorld->robotODE.setLeg(0, leg_deg);
+	std::vector<robsim::float_type> leg_ref(3,0);
+	leg_ref[0] = getAngle(0, 0);
+	leg_ref[1] = getAngle(0, 1);
+	leg_ref[2] = getAngle(0, 2);
+	dynamicWorld->robotODE->setLegAngles(0, leg_ref);
 
-	leg_deg[0] = getAngle(1, 0);
-	leg_deg[1] = getAngle(1, 1);
-	leg_deg[2] = getAngle(1, 2);
-	dynamicWorld->robotODE.setLeg(1, leg_deg);
+	leg_ref[0] = getAngle(1, 0);
+	leg_ref[1] = getAngle(1, 1);
+	leg_ref[2] = getAngle(1, 2);
+	dynamicWorld->robotODE->setLegAngles(1, leg_ref);
 
-	leg_deg[0] = getAngle(2, 0);
-	leg_deg[1] = getAngle(2, 1);
-	leg_deg[2] = getAngle(2, 2);
-	dynamicWorld->robotODE.setLeg(2, leg_deg);
+	leg_ref[0] = getAngle(2, 0);
+	leg_ref[1] = getAngle(2, 1);
+	leg_ref[2] = getAngle(2, 2);
+	dynamicWorld->robotODE->setLegAngles(2, leg_ref);
 
-	leg_deg[0] = getAngle(3, 0);
-	leg_deg[1] = getAngle(3, 1);
-	leg_deg[2] = getAngle(3, 2);
-	dynamicWorld->robotODE.setLeg(3, leg_deg);
+	leg_ref[0] = getAngle(3, 0);
+	leg_ref[1] = getAngle(3, 1);
+	leg_ref[2] = getAngle(3, 2);
+	dynamicWorld->robotODE->setLegAngles(3, leg_ref);
 
-	leg_deg[0] = getAngle(4, 0);
-	leg_deg[1] = getAngle(4, 1);
-	leg_deg[2] = getAngle(4, 2);
-	dynamicWorld->robotODE.setLeg(4, leg_deg);
+	leg_ref[0] = getAngle(4, 0);
+	leg_ref[1] = getAngle(4, 1);
+	leg_ref[2] = getAngle(4, 2);
+	dynamicWorld->robotODE->setLegAngles(4, leg_ref);
 
-	leg_deg[0] = getAngle(5, 0);
-	leg_deg[1] = getAngle(5, 1);
-	leg_deg[2] = getAngle(5, 2);
-	dynamicWorld->robotODE.setLeg(5, leg_deg);
+	leg_ref[0] = getAngle(5, 0);
+	leg_ref[1] = getAngle(5, 1);
+	leg_ref[2] = getAngle(5, 2);
+	dynamicWorld->robotODE->setLegAngles(5, leg_ref);
 	return 0;
 }
 
@@ -548,11 +548,11 @@ void CRobot_RC::getLegCurrent(char leg_no, float current[3]){
 
 /// odczytuje i odbiera wartosci rzeczywiste katow w stawach dla nogi leg_no
 void CRobot_RC::readLegAngles(char leg_no){
-	short int read_angles[3];
-	dynamicWorld->robotODE.readLegPosition(leg_no, read_angles);
-	leg[leg_no].setPreviousAngle(0, deg2rad(read_angles[0]));
-	leg[leg_no].setPreviousAngle(1, deg2rad(read_angles[1]));
-	leg[leg_no].setPreviousAngle(2, deg2rad(read_angles[2]));
+	std::vector<robsim::float_type> read_angles(3,0);
+	dynamicWorld->robotODE->readLegAngles(leg_no, read_angles);
+	leg[leg_no].setPreviousAngle(0, read_angles[0]);
+	leg[leg_no].setPreviousAngle(1, read_angles[1]);
+	leg[leg_no].setPreviousAngle(2, read_angles[2]);
 }
 
 /// odczytuje i odbiera wartosci rzeczywiste katow w stawach
@@ -560,9 +560,9 @@ double CRobot_RC::readRobotAngles(){
 	for (int i=0;i<6;i++){
 		readLegAngles(i);
 	}
-	short int read_angles[3];
+	std::vector<robsim::float_type> read_angles(3,0);
 	for (int i=0;i<6;i++){
-		dynamicWorld->robotODE.readLegPosition(i, read_angles);
+		dynamicWorld->robotODE->readLegAngles(i, read_angles);
 	}
 	return 0;
 }
@@ -599,9 +599,9 @@ CPunctum CRobot_RC::getRobotState()
 {
 	CPunctum robot_pos;
 	float angles[3];
-	float position[3];
+	robsim::float_type position[3];
 	getRotAngles(angles);
-	dynamicWorld->robotODE.imu.getIMUposition(position);
+	dynamicWorld->robotODE->getPosition(position);
 	robot_pos.createTRMatrix( angles[0],angles[1],angles[2],position[0],position[1],position[2]);
 	robot_pos.orientation[0]=angles[0]; robot_pos.orientation[1]=angles[1]; robot_pos.orientation[2]=angles[2];
 	return robot_pos;
@@ -609,7 +609,9 @@ CPunctum CRobot_RC::getRobotState()
 }
 void CRobot_RC::getRotAngles(float *angles)
 {
-	dynamicWorld->robotODE.imu.getIMUorientation(angles);
+	robsim::float_type _angles[3];
+	dynamicWorld->robotODE->getRPY(_angles);
+	angles[0] = (float)_angles[0]; angles[1] = (float)_angles[1]; angles[2] = (float)_angles[2];//remove this conversion
 }
 /// ustawia pozycje stopy w ukladzie globalnym
 bool CRobot_RC::setFootPositionGlobal(double globalx, double globaly, double globalz, int legnumber)
@@ -752,7 +754,7 @@ bool CRobot_RC::isStable(CPunctum body, CPunctum * feet){
 	int support_no=0;
 	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
 		//if (feet[i].isFoothold()){
-		if (this->dynamicWorld->robotODE.getContact(i)) {
+		if (dynamicWorld->robotODE->getContact(i)) {
 			vertices[support_no][0]=feet[i].getElement(1,4); 
 			vertices[support_no][1]=feet[i].getElement(2,4);
 			support_no++;
@@ -857,7 +859,7 @@ void CRobot_RC::react(float * curr_pos, float * dest_pos, float d_z, float speed
 	int stycznik[6]={0,0,0,0,0,0};
 	bool stable=true;
 	for (int i=0;i<6;i++){
-		if (dynamicWorld->robotODE.getContact(i))
+		if (dynamicWorld->robotODE->getContact(i))
 			stycznik[i]=1;
 		else
 			stable = false;
@@ -1171,7 +1173,7 @@ bool CRobot_RC::Placefeet(float dz, int legs, float speed){
 	float moove[3]={dz,dz,dz};
 	do {
 		for (int i=legs; i<6;i+=2){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
-			if (dynamicWorld->robotODE.getContact(i)==1) moove[int(i/2.0)]=0;
+			if (dynamicWorld->robotODE->getContact(i)==1) moove[int(i/2.0)]=0;
 			x_leg[i]=0;
 			y_leg[i]=0;
 			if (i<3)
@@ -1194,7 +1196,7 @@ bool CRobot_RC::Placefeet(float dz, float speed){
 	float moove[6]={dz,dz,dz,dz,dz,dz};
 	do {
 		for (int i=0; i<6;i++){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
-			if (dynamicWorld->robotODE.getContact(i)==1) moove[i]=0;
+			if (dynamicWorld->robotODE->getContact(i)==1) moove[i]=0;
 			x_leg[i]=0;
 			y_leg[i]=0;
 			if (i<3)
@@ -1293,7 +1295,7 @@ bool CRobot_RC::changePlatformRobotSense(float x, float y, float z, float alpha,
 	float _beta[6]={0,0,0,0,0,0};
 	float _gamma[6]={0,0,0,0,0,0};
 	for (int i=0;i<6;i++){
-		if (dynamicWorld->robotODE.getContact(i)==1){
+		if (dynamicWorld->robotODE->getContact(i)==1){
 			_x[i]=x; _y[i]=y; _z[i]=z;
 			_alpha[i]=alpha; _beta[i]=beta; _gamma[i]=gamma;
 		}

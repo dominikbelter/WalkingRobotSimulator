@@ -8,14 +8,14 @@ CRobotStructure::CRobotStructure(void)
 		angles[i]=0;
 	angles[0]=45*3.14/180;
 	angles[1]=-45*3.14/180;
-	robot_model.ObjLoad("model/korpus_dol.3ds");
-	robot_model.ObjLoad("model/korpus_gora.3ds");
-	robot_model.ObjLoad("model/noga_blacha_1.3ds"); //zawias (ceownik)
-	robot_model.ObjLoad("model/noga_blacha_2.3ds"); //³¹cznik
-	robot_model.ObjLoad("model/noga_1_3ds_poprzeczka.3ds");//udo
-	robot_model.ObjLoad("model/noga_3ds_poprzeczka.3ds");//goleñ
-	robot_model.ObjLoad("model/podstawka.3ds");
-	robot_model.ObjLoad("model/stopka.3ds");
+	robot_model.ObjLoad("resources/Messor_model/korpus_dol.3ds");
+	robot_model.ObjLoad("resources/Messor_model/korpus_gora.3ds");
+	robot_model.ObjLoad("resources/Messor_model/noga_blacha_1.3ds"); //zawias (ceownik)
+	robot_model.ObjLoad("resources/Messor_model/noga_blacha_2.3ds"); //³¹cznik
+	robot_model.ObjLoad("resources/Messor_model/noga_1_3ds_poprzeczka.3ds");//udo
+	robot_model.ObjLoad("resources/Messor_model/noga_3ds_poprzeczka.3ds");//goleñ
+	robot_model.ObjLoad("resources/Messor_model/podstawka.3ds");
+	robot_model.ObjLoad("resources/Messor_model/stopka.3ds");
 	
 //	InitializeTerrain();
 	robot_model.CollisionModels();	// Init Collision Models

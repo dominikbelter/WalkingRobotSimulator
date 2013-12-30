@@ -126,8 +126,11 @@ int CPureScan::scan(float min, float max, int scan_no, bool source)
 
 		else 
 		{
-			map->dynamicWorld->robotODE.imu.getIMUposition(robot_position);
-			map->dynamicWorld->robotODE.imu.getIMUorientation(robot_orientation);
+			robsim::float_type pos[3];
+			map->dynamicWorld->robotODE->getPosition(pos);
+			robot_position[0] = pos[0]; robot_position[1] = pos[1]; robot_position[2] = pos[2];
+			map->dynamicWorld->robotODE->getRPY(pos);
+			robot_orientation[0] = pos[0]; robot_orientation[1] = pos[1]; robot_orientation[2] = pos[2];
 			hrf->rangefinding(min,max,robot_position,robot_orientation,&data,&kat_radiany);
 			n=data.size();
 		}

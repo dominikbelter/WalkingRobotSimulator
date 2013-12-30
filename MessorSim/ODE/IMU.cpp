@@ -30,38 +30,38 @@ void CIMU::setDT(float DT){
 }
 
 ///odczytuje pozycje robota
-void CIMU::getIMUposition(float position[]){
+void CIMU::getIMUposition(float position[]) {
 	measure();
 	for (int i=0;i<3;i++)
 		position[i]=pos[i];
 }
 
 ///odczytuje predkosc robota
-void CIMU::getIMUdposition(float speed[]){
+void CIMU::getIMUdposition(float speed[]) const{
 	for (int i=0;i<3;i++)
 		speed[i]=dpos[i];
 }
 
 ///odczytuje przyspieszenie robota
-void CIMU::getIMUddposition(float accel[]){
+void CIMU::getIMUddposition(float accel[]) const {
 	for (int i=0;i<3;i++)
 		accel[i]=ddpos[i];
 }
 
 ///odczytuje orientacje robota
-void CIMU::getIMUorientation(float orientation[]){
+void CIMU::getIMUorientation(float orientation[]) const {
 	for (int i=0;i<3;i++)
 		orientation[i]=rot[i];
 }
 
 ///odczytuje predkosc katowa robota
-void CIMU::getIMUdorientation(float dorientation[]){
+void CIMU::getIMUdorientation(float dorientation[]) const {
 	for (int i=0;i<3;i++)
 		dorientation[i]=drot[i];
 }
 
 ///odczytuje przyspieszenie katowe robota
-void CIMU::getIMUddorientation(float ddorientation[]){
+void CIMU::getIMUddorientation(float ddorientation[]) const {
 	for (int i=0;i<3;i++)
 		ddorientation[i]=ddrot[i];
 }
@@ -115,8 +115,7 @@ void CIMU::measure(void){
 
 
 /// odczytuje katy Eulera na podstawie macierzy rotacji
-void CIMU::get_euler(const dReal * matrix,dReal &kx,dReal &ky,dReal &kz)
-{
+void CIMU::get_euler(const dReal * matrix,dReal &kx,dReal &ky,dReal &kz) const {
   float Element[9];
   Element[0]  = matrix[0]; Element[1]  = matrix[8]; Element[2]  = -matrix[4]; 
   Element[3]  = matrix[2]; Element[4]  = matrix[10]; Element[5]  = matrix[6]; 
