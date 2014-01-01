@@ -4,7 +4,7 @@
 	dWorldID World;             // the ode simulation world 
 	dJointGroupID contactgroup; // wykorzystywane w kolizjach
 	dGeomID *plane_c; //robot - wykrywanie kontaktu
-	HexRobot* robot_collision; //robot - wykrywanie kontaktu
+	SimRobot* robot_collision; //robot - wykrywanie kontaktu
 
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
@@ -32,17 +32,10 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
     if (int numc = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom, sizeof(dContact)))
     {
-		if ((b1!=robot_collision->Object[3].Body)&&(b1!=robot_collision->Object[6].Body)&&(b1!=robot_collision->Object[9].Body)&&(b1!=robot_collision->Object[12].Body)&&(b1!=robot_collision->Object[15].Body)&&(b1!=robot_collision->Object[18].Body)&&(b2!=robot_collision->Object[3].Body)&&(b2!=robot_collision->Object[6].Body)&&(b2!=robot_collision->Object[9].Body)&&(b2!=robot_collision->Object[12].Body)&&(b2!=robot_collision->Object[15].Body)&&(b2!=robot_collision->Object[16].Body))
+		if (robot_collision->collide(b1,b2))
+		//if ((b1!=robot_collision->Object[3].Body)&&(b1!=robot_collision->Object[6].Body)&&(b1!=robot_collision->Object[9].Body)&&(b1!=robot_collision->Object[12].Body)&&(b1!=robot_collision->Object[15].Body)&&(b1!=robot_collision->Object[18].Body)&&(b2!=robot_collision->Object[3].Body)&&(b2!=robot_collision->Object[6].Body)&&(b2!=robot_collision->Object[9].Body)&&(b2!=robot_collision->Object[12].Body)&&(b2!=robot_collision->Object[15].Body)&&(b2!=robot_collision->Object[16].Body))
 		{
-			for (int it=0;it<6;it++)
-			{
-				if (b1==robot_collision->Object[19+it].Body&&b2==g||b1==g&&b2==robot_collision->Object[19+it].Body)
-				{
-					if (it==3) robot_collision->contact[5]=1;
-					else if (it==5) robot_collision->contact[3]=1;
-					else robot_collision->contact[it]=1;
-				}
-			}
+			robot_collision->setODEContacts(b1,b2,g);
 			for (i = 0; i < numc; i++)
 			{
 				dJointID c = dJointCreateContact(World, contactgroup, contact + i);
@@ -54,7 +47,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 COdeWorld::COdeWorld(int sizex, int sizey)
 {
-	robotODE = createSimRobotHexapod();
+	//robotODE = createSimRobotHexapod();
+	robotODE = createSimStarlETH();
 
 	ground = new CGround(5.99,5.99,sizex,sizey,0.36);
 	rec_robot_platform.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie
@@ -154,8 +148,8 @@ void COdeWorld::DrawGeom(dGeomID g, const dReal *pos, const dReal *R, char corp,
 // Simulation loop
 void COdeWorld::SimStep()
 {
-	for (int i=0;i<6;i++)
-		((HexRobot*)robotODE)->contact[i] = false;
+	for (int i=0;i<robotODE->getLegsNo();i++)
+		robotODE->setODEContact(i,false);
     dSpaceCollide(Space, 0, &nearCallback);//ustawia sprawdzanie kolizji
 	//if (time<100) //kopniecie robota
 	//	dBodySetForce  (robotODE.Object[1].Body, 2, 1, 0);
@@ -163,7 +157,7 @@ void COdeWorld::SimStep()
     dWorldQuickStep(World, stepDT); //wykonuje krok symulacji
     dJointGroupEmpty(contactgroup);
 	actual_time += stepDT;//uplywajacy czas symulacji
-
+	
 	//if (((actual_time>0.1))&&(actual_time<0.2))
 	//	dBodySetForce(robotODE.Object[0].Body, 0, 100, -50);
 	// ustawia wszystkie serwa zgodnie z wartosciami zadanymi
@@ -178,7 +172,7 @@ void COdeWorld::SimStep()
 	rec_robot_orientation.savePosition(robot_orientation[0],robot_orientation[1],robot_orientation[2]);
 	//pobranie pozycji stopy
 	CPunctum feet_pose;
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<robotODE->getLegsNo();i++) {
 		robotODE->getFootPosition(i, feet_pose);
 		rec_robot_leg[i].savePosition(feet_pose.getElement(1,4),feet_pose.getElement(2,4),feet_pose.getElement(3,4)); // nagranie pozycji stopy
 	}
@@ -195,27 +189,27 @@ void COdeWorld::DrawObjects()
 	if (show_geoms)
 	{
 		DrawGeom(robotODE->getGeomId(0), 0, 0, 1); //rysuje obiekt
-		for (int i=0;i<6;i++) 
+		for (int i=0;i<robotODE->getLegsNo();i++) 
 		{
 			DrawGeom(robotODE->getGeomId(i*3+1), 0, 0, 0, 1); //ogniwo1
 			DrawGeom(robotODE->getGeomId(i*3+2), 0, 0, 0, 2); //ogniwo2
 			DrawGeom(robotODE->getGeomId(i*3+1), 0, 0, 0, 3); //ogniwo3
 		}
-		for (int bodies = 19;bodies<25;bodies++)
+		for (int bodies = robotODE->getObjectsNo()-robotODE->getLegsNo();bodies<robotODE->getObjectsNo();bodies++)
 		{//rysowanie obiektow
 			DrawGeom(robotODE->getGeomId(bodies), 0, 0, 0, 4); //prawa stopa
 		}
 	}
 	else 
 	{
-		for (int bodies = 19;bodies<25;bodies++)//rysowanie obiektow
+		for (int bodies = 0;bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
 			DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
 	}
 
 	ground->DrawMesh(foot_groundx,foot_groundy,foot_groundx_def, foot_groundy_def,tx,ty); //rysuje ziemie
 	
 	rec_robot_platform.plot(0,1,0,4,'o');
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<robotODE->getLegsNo();i++) {
 		if (robotODE->getContact(i)==1)
 			rec_robot_leg[i].plot(1,0,0,5,'o');
 		else
@@ -228,7 +222,7 @@ void COdeWorld::DrawObjects()
 			glTranslatef(body.getElement(1,4)*10, body.getElement(3,4)*10, -body.getElement(2,4)*10);
 			glutSolidSphere(.03*thickness,5,5);
 	glPopMatrix();
-	for (int i=0;i<6;i++){
+	for (int i=0;i<robotODE->getLegsNo();i++){
 		glPushMatrix();
 			glTranslatef(feet[i].getElement(1,4)*10, feet[i].getElement(3,4)*10, -feet[i].getElement(2,4)*10);
 			glutSolidSphere(.03*thickness,5,5);
@@ -266,7 +260,7 @@ void COdeWorld::InitODE(double dt, bool ct, int sizex, int sizey) /// inicjaliza
 
 	// definicja robota w ode
 	robotODE->ODEcreateRobot(World, Space, jointgroup, stepDT);
-	robot_collision = (HexRobot*) robotODE;
+	robot_collision = robotODE;
 }
 
 /// zamyka i niszczy swiat ODE
@@ -297,8 +291,8 @@ void COdeWorld::checkFootContatcs(void) {
 	float max;
 	CPunctum pos;
 	int pos_int[3];
-	for (int leg_no=0;leg_no<6;leg_no++) {
-		this->robotODE->getFootPosition(leg_no, pos);
+	for (int leg_no=0;leg_no<robotODE->getLegsNo();leg_no++) {
+		robotODE->getFootPosition(leg_no, pos);
 		ground->CalculateGroundCoordinates(pos.getElement(1,4),pos.getElement(2,4),pos_int);
 		max=-10;
 		int i=0,j=0;
@@ -308,7 +302,7 @@ void COdeWorld::checkFootContatcs(void) {
 					max=ground->points[pos_int[0]+i][pos_int[1]+j][2]+0.003;
 			//}
 		//}
-		if (max+0.00>pos.getElement(3,4)||((HexRobot*)robotODE)->contact[leg_no])
+		if (max+0.00>pos.getElement(3,4)||robotODE->getODEContact(leg_no))
 			robotODE->setContact(leg_no,true);
 		else
 			robotODE->setContact(leg_no,false);

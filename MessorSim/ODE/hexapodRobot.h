@@ -1,4 +1,9 @@
-#pragma once
+/** @file hexapodRobot.h
+ *
+ * Messor robot
+ *
+ */
+
 #include "../SimDefs/simDefs.h"
 #include "../math/punctum.h"
 #include "../math/vector.h"
@@ -9,14 +14,7 @@
 
 // some constants
 #define DENSITY (0.5)        // density of all objects
-#define GEOMSPERBODY 1       // maximum number of geometries per body
 #define MAX_CONTACTS 2048      // maximum number of contact points per body
-
-typedef struct MyObject //struktura reprezentujaca obiekty
-{
-	dBodyID Body;                     // the dynamics body
-	dGeomID Geom[GEOMSPERBODY];       // geometries representing this body
-} MyObject;
 
 #define PI 3.14159265
 const double width_max = 0.13;  ///odleglosc od srodka robota do srodkowej nogi
@@ -44,50 +42,16 @@ public:
 	/// Pointer
 	typedef std::unique_ptr<HexRobot> Ptr;
 
+	static const uint_fast8_t MESSOR_LEGS = 6;
+	static const uint_fast8_t MESSOR_JOINTS_NO = 18 + MESSOR_LEGS;
+	static const uint_fast8_t MESSOR_SERVOS_PER_LEG = 3;
+	static const uint_fast8_t MESSOR_LINKS_NO = MESSOR_SERVOS_PER_LEG * MESSOR_LEGS + MESSOR_LEGS + 1;//+ body
+
 	HexRobot(void);
 	~HexRobot(void);
 		
-		/// Name of the robot
-		const std::string& getName() const;
-
 		/// Set initial pose of the robot
 		void setInitialPosition(robsim::float_type x, robsim::float_type y, robsim::float_type z, robsim::float_type alpha=0, robsim::float_type beta=0, robsim::float_type gamma=0);
-
-		/// Set reference values for each leg
-		void setAngles(const std::vector<robsim::float_type>& _refAngles);
-
-		/// set reference values for leg
-		void setLegAngles(uint_fast8_t legNo, const std::vector<robsim::float_type>& legAngles);
-
-		/// set reference rotation speed
-		void setSpeed(const std::vector<robsim::float_type>& _refSpeed);
-
-		/// set reference rotation speed
-		void setLegSpeed(uint_fast8_t legNo, const std::vector<robsim::float_type>& legSpeed);
-
-		/// set max load
-		void setLoad(const std::vector<robsim::float_type>& maxLoad);
-
-		/// set max load
-		void setLegLoad(uint_fast8_t legNo, const std::vector<robsim::float_type>& maxLoad);
-	
-		/// Get reference values for each leg
-		const std::vector<robsim::float_type>& getAngles(void) const;
-
-		/// Get reference values for leg
-		void HexRobot::getLegAngles(uint_fast8_t legNo, std::vector<robsim::float_type>& legAngles) const;
-
-		/// Get reference rotation speed
-		const std::vector<robsim::float_type>& getSpeed(void) const;
-
-		/// Get reference rotation speed
-		void HexRobot::getLegSpeed(uint_fast8_t legNo, std::vector<robsim::float_type>& legSpeed) const;
-
-		/// Get max load
-		const std::vector<robsim::float_type>& getLoad(void) const;
-
-		/// Get max load
-		void HexRobot::getLegLoad(uint_fast8_t legNo, std::vector<robsim::float_type>& legLoad) const;
 
 		/// read current joint positions
 		void readAngles(std::vector<robsim::float_type>& currentAngles) const;
@@ -128,12 +92,6 @@ public:
 		/// feet position
 		void getFootPosition(uint_fast8_t foot, CPunctum& pose) const;
 
-		/// check if leg touches ground
-		bool getContact(uint_fast8_t legNo) const;
-
-		/// Set info about contact with ground
-		void setContact(uint_fast8_t legNo, bool state);
-
 		/// set all servos using selected controller (P/PI/PID)
 		void setAllServos();
 
@@ -142,6 +100,22 @@ public:
 
 		/// Get ODE geom id
 		const dGeomID getGeomId(uint_fast8_t partNo) const;
+
+		/// Check if considered parts should collide
+		bool collide(dBodyID& b1, dBodyID& b2) const;
+
+		/// Set info about ODE collisions
+		void setODEContacts(dBodyID& b1, dBodyID& b2, dBodyID& groundId);
+
+		/// Get objects number
+		std::uint_fast8_t getObjectsNo(void) const {
+			return MESSOR_LINKS_NO;
+		}
+
+		/// Get legss number
+		std::uint_fast8_t getLegsNo(void) const {
+			return MESSOR_LEGS;
+		}
 
 private:
 	/*-----*/
@@ -171,7 +145,5 @@ public:
 	dJointID Joints[24];
 	//IMU
 	CIMU imu;
-	/// styczniki
-	char contact[6];
 	char filtered_contact[6]; 
 };

@@ -13,7 +13,7 @@ RPCCaller::RPCCaller(const char* host,int port,COdeWorld* dynamicWorld,CRobotStr
 {
 	control = new CGaits_RC(dynamicWorld,robot_structure);
 	this->local_map=local_map;
-	control->robot_rc->initializeRealRobot();
+	//control->robot_rc->initializeRealRobot();
 	strcpy(this->host,host);
 	this->port=port;
 

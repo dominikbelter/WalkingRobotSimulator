@@ -14,6 +14,7 @@ HexRobot::HexRobot(void) : SimRobot("Hexapod Robot")
 	refAngles.resize(SERVOMOTORS_NO); //18 servomotors
 	refLoad.resize(SERVOMOTORS_NO); //18 servomotors
 	groundContact.resize(LEGS);
+	ODEgroundContact.resize(LEGS);
 	imu.setInitialPosition(0.023,0,0);
 	for (int i=0;i<6;i++) {
 		groundContact[i]=0;
@@ -37,79 +38,9 @@ HexRobot::~HexRobot(void)
 {
 }
 
-const std::string& HexRobot::getName() const {
-	return name;
-}
-
 ///ustawia poczatkowa pozycje i orientacje robota
 void HexRobot::setInitialPosition(robsim::float_type x, robsim::float_type y, robsim::float_type z, robsim::float_type alpha, robsim::float_type beta, robsim::float_type gamma){
 	imu.setInitialPosition(x,y,z,alpha,beta,gamma);
-}
-
-/// Get reference values for each leg
-const std::vector<robsim::float_type>& HexRobot::getAngles(void) const{
-	return refAngles;
-}
-
-/// Get reference values for leg
-void HexRobot::getLegAngles(uint_fast8_t legNo, std::vector<robsim::float_type>& legAngles) const{
-	legAngles.assign(refAngles.begin()+legNo*SERVOS_PER_LEG, refAngles.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
-}
-
-/// Get reference rotation speed
-const std::vector<robsim::float_type>& HexRobot::getSpeed(void) const{
-	return refSpeed;
-}
-
-/// Get reference rotation speed
-void HexRobot::getLegSpeed(uint_fast8_t legNo, std::vector<robsim::float_type>& legSpeed) const{
-	legSpeed.assign(refSpeed.begin()+legNo*SERVOS_PER_LEG, refSpeed.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
-}
-
-/// Get max load
-const std::vector<robsim::float_type>& HexRobot::getLoad(void) const{
-	return refLoad;
-}
-
-/// Get max load
-void HexRobot::getLegLoad(uint_fast8_t legNo, std::vector<robsim::float_type>& legLoad) const{
-	legLoad.assign(refLoad.begin()+legNo*SERVOS_PER_LEG, refLoad.begin()+legNo*SERVOS_PER_LEG+SERVOS_PER_LEG);
-}
-
-/// ustawia predkosc zadana dla konczyny
-void HexRobot::setLegSpeed(uint_fast8_t legNo, const std::vector<robsim::float_type>& legSpeed){
-	refSpeed[legNo*SERVOS_PER_LEG]=(legSpeed[0])/114.0;
-	refSpeed[legNo*SERVOS_PER_LEG+1]=(legSpeed[1])/114.0;
-	refSpeed[legNo*SERVOS_PER_LEG+2]=(legSpeed[2])/114.0;
-}
-
-/// Set reference values for each leg
-void HexRobot::setAngles(const std::vector<robsim::float_type>& _refAngles) {
-	refAngles = _refAngles;
-}
-
-/// set reference rotation speed
-void HexRobot::setSpeed(const std::vector<robsim::float_type>& _refSpeed) {
-	refSpeed = _refSpeed;
-}
-
-/// set max load
-void HexRobot::setLoad(const std::vector<robsim::float_type>& maxLoad) {
-	refLoad = maxLoad;
-}
-
-/// set max load
-void HexRobot::setLegLoad(uint_fast8_t legNo, const std::vector<robsim::float_type>& maxLoad) {
-	refLoad[legNo*SERVOS_PER_LEG]=(maxLoad[0])/114.0;
-	refLoad[legNo*SERVOS_PER_LEG+1]=(maxLoad[1])/114.0;
-	refLoad[legNo*SERVOS_PER_LEG+2]=(maxLoad[2])/114.0;
-}
-
-/// set reference values for leg
-void HexRobot::setLegAngles(uint_fast8_t legNo, const std::vector<robsim::float_type>& legAngles){
-	refAngles[legNo*SERVOS_PER_LEG]=legAngles[0];
-	refAngles[legNo*SERVOS_PER_LEG+1]=legAngles[1];
-	refAngles[legNo*SERVOS_PER_LEG+2]=legAngles[2];
 }
 
 /// read current joint positions
@@ -174,7 +105,7 @@ const robsim::float_type& HexRobot::getRefLoad(uint_fast8_t leg, uint_fast8_t jo
 /// ODE - symulacja regulatora w serwomechanizmie
 void HexRobot::setServo(uint_fast8_t servoNo, robsim::float_type value) {
 	dReal Gain = (dReal) 55.1465;
-	dReal v_max = (dReal) refSpeed[servoNo]*max_servo_speed;
+	dReal v_max = (dReal) (refSpeed[servoNo]/114.0)*max_servo_speed;
 	dReal MaxForce = (dReal)13.0;
 
 	dReal TruePosition = dJointGetHingeAngle(Joints[servoNo]);
@@ -867,19 +798,29 @@ void HexRobot::getPosition(robsim::float_type (&position)[3]){
 	imu.getIMUposition(robot_position);
 	position[0] = robot_position[0]; position[1] = robot_position[1]; position[2] = robot_position[2];
 }
-/// odczytuje stan przycisku w stopie
-bool HexRobot::getContact(uint_fast8_t legNo) const {
-	return groundContact[legNo];
-}
-
-/// Set info about contact with ground
-void HexRobot::setContact(uint_fast8_t legNo, bool state) {
-	groundContact[legNo] = state;
-}
 
 /// Get ODE geom id
-const dGeomID HexRobot::getGeomId(uint_fast8_t partNo) const{
+const dGeomID HexRobot::getGeomId(uint_fast8_t partNo) const {
 	return Object[partNo].Geom[0];
+}
+
+/// Check if considered parts should collide
+bool HexRobot::collide(dBodyID& b1, dBodyID& b2) const {
+	if ((b1!=Object[3].Body)&&(b1!=Object[6].Body)&&(b1!=Object[9].Body)&&(b1!=Object[12].Body)&&(b1!=Object[15].Body)&&(b1!=Object[18].Body)&&(b2!=Object[3].Body)&&(b2!=Object[6].Body)&&(b2!=Object[9].Body)&&(b2!=Object[12].Body)&&(b2!=Object[15].Body)&&(b2!=Object[16].Body))
+		return true;
+	else
+		return false;
+}
+
+/// Set info about ODE collisions
+void HexRobot::setODEContacts(dBodyID& b1, dBodyID& b2, dBodyID& groundId) {
+	for (int it=0;it<LEGS;it++)	{
+		if (b1==Object[19+it].Body&&b2==groundId||b1==groundId&&b2==Object[19+it].Body) {
+			if (it==3) setODEContact(5,true);
+			else if (it==5) setODEContact(3,true);
+			else setODEContact(it,true);
+		}
+	}
 }
 
 robsim::SimRobot* robsim::createSimRobotHexapod(void) {

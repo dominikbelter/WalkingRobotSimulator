@@ -122,21 +122,21 @@ void openGLview::rysuj_figury(void)
 		p[i]=(float)pos[i]*10;
 
 	//rysowanie robota
-	if (!dynamicWorld->show_geoms)
-		robot_structure->GLDrawRobot(p,r,Q_ref[0],Q_ref[1],Q_ref[2],Q_ref[3],Q_ref[4],Q_ref[5],Q_ref[6],Q_ref[7],Q_ref[8],Q_ref[9],Q_ref[10],Q_ref[11],Q_ref[12],Q_ref[13],Q_ref[14],Q_ref[15],Q_ref[16],Q_ref[17]);
+	//if (!dynamicWorld->show_geoms)
+		//robot_structure->GLDrawRobot(p,r,Q_ref[0],Q_ref[1],Q_ref[2],Q_ref[3],Q_ref[4],Q_ref[5],Q_ref[6],Q_ref[7],Q_ref[8],Q_ref[9],Q_ref[10],Q_ref[11],Q_ref[12],Q_ref[13],Q_ref[14],Q_ref[15],Q_ref[16],Q_ref[17]);
 
 	//rysowanie zaplanowanych trajektorii platformy i nóg robota
 	if (dynamicWorld->draw_path)
 	{
 		if(!motion_planner->robot_platform_traj.plot_stop) //je¿eli rysowanie dozwolone (œcie¿ka nie jest zapisywana do pliku)
 			motion_planner->robot_platform_traj.plot(0.2,0.8,0.9,3,'o');
-		for (int i=0;i<6;i++)
+		for (int i=0;i<dynamicWorld->robotODE->getLegsNo();i++)
 		{
 			if(!motion_planner->legs_traj[i].plot_stop) 
 				motion_planner->legs_traj[i].plot(0.7,0.9,0.8,3,'o');
 		}
 	}
-	motion_planner->rpccaller->control->robot_rc->show_center_of_mass();
+	//motion_planner->rpccaller->control->robot_rc->show_center_of_mass();
 	//rysowanie drzew planowania ruchu RRT
 	motion_planner->rrt_begin->drawTree(0.2,0.9,0.2,3,'o');
 	motion_planner->rrt_finish->drawTree(0.9,0.2,0.2,3,'o');

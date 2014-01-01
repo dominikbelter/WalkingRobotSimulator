@@ -85,7 +85,7 @@ void* controller(void*)
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
 	rpccaller->tripodStep(0.1,0.0,0,0,0,0.0,0.1,1);
 	rpccaller->tripodStepFinish(0.1,0.0,0,0,0,0,0.1);
-	*/
+	
 	float pos_end[3] = {0.0,0.7,0.13};
 	float rot_end[3] = {0.0,0,0.0};
 	float distance2ground = 0.035;//the distance of feet to the ground
@@ -108,7 +108,7 @@ void* controller(void*)
 	}
 	dynamicWorld->rec_robot_platform.savePosition2file("real_trajectory_pos.m");
 	dynamicWorld->rec_robot_orientation.savePosition2file("real_trajectory_rot.m");
-
+	*/
 	while(1)
 	{//pêtla SimStep - symulacja fizyki po zakoñczeniu symulacji kroczenia robota
 		dynamicWorld->SimStep();
@@ -127,7 +127,7 @@ int main(void)
 	//stworzenie œwiata ODE (sizex x sizey)
 	dynamicWorld = new COdeWorld(sizex,sizey);
 	//ustalenie pozycji fizycznego robota na scenie (x, y, z, rot_x, rot_y, rot_z)
-	dynamicWorld->robotODE->setInitialPosition(0.0,-1.0,0.185,0,0,0);
+	dynamicWorld->robotODE->setInitialPosition(0.0,0.0,0.55,0,0,0);
 	//zainicjowanie œwiata ODE (krok ca³kowania, wczytanie mapy z pliku true/false, sizex x sizey)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 

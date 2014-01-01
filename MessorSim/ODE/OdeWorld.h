@@ -5,6 +5,7 @@
 #include "Ground.h"
 #include "OdeGeom.h"
 #include "hexapodRobot.h"
+#include "StarlETH.h"
 #include "../resource.h"
 
 //#include "../openGL/openGL1Dlg.h"
