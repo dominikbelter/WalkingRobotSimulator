@@ -9,26 +9,24 @@
 //#include <gl\glaux.h>
 #include "types.h"
 #include "3dsloader.h"
-#include "coldet.h"
 #include "terrain.h"
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
 class CObjects3DS {
 public:
 	CObjects3DS();
-public:
 	~CObjects3DS();
-public:
 	
 	void Object3DS(int obj_qty);
 	char ObjLoad(char *p_object_name);
-	void CollisionModels(void);
-	void TerrainCollisionModels(void);
-
 
 	obj_type object[MAX_OBJECTS];
 	int obj_qty;
 
-	CollisionModel3D* stopka_1_model;
+
+	/*CollisionModel3D* stopka_1_model;
 	CollisionModel3D* stopka_2_model;
 	CollisionModel3D* stopka_3_model;
 	CollisionModel3D* stopka_4_model;
@@ -67,10 +65,6 @@ public:
 	CollisionModel3D* przegub_typu_C_4;
 	CollisionModel3D* przegub_typu_C_5;
 	CollisionModel3D* przegub_typu_C_6;
-
-	CollisionModel3D* teren_1_model;
-	CollisionModel3D* teren_2_model;
-
-	CTerrain ground;
+	*/
 };
 #endif // 

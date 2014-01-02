@@ -127,6 +127,8 @@ class CMat44
     void invThis(void);
     /// creates translation and rotation matrix
     void createTRMatrix(float alpha, float beta, float gamma, float trans_x, float trans_y, float trans_z);
+	/// brief makes 4x4 transform matrix
+	CMat44& makeTransformMatrix(const char * type, float value);
     /// show matrix
     void showMatrix(void);
     ///export to file

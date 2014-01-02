@@ -11,7 +11,7 @@ class openGLview
 {
 public:
 	openGLview(void);
-	openGLview(COdeWorld* dynamicWorld, CRobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map);
+	openGLview(COdeWorld* dynamicWorld, RobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map);
 public:
 	~openGLview(void);
 	void display(int value);
@@ -22,7 +22,7 @@ public:
 	void drawText(int x, int y, char *string);
 
 	COdeWorld * dynamicWorld; //swiat symulujacy dynamike i kolizje pomiedzy obiektami
-	CRobotStructure * robot_structure; //fizyczna struktura robota
+	RobotStructure * robot_structure; //fizyczna struktura robota
 	CMotionPlanner * motion_planner; //modu³ planowania ruchu
 	CLocalMap* local_map; //mapa tworzona przez robota
 

@@ -158,16 +158,17 @@ void HexRobot::setAllServos()
 
 /// read current joint positions
 void HexRobot::readAngles(std::vector<robsim::float_type>& currentAngles) const{
+	currentAngles.clear();
 	for (int i=0;i<18;i++) {
 		if (i<9){
-			if (i%3==1) currentAngles[i]=-dJointGetHingeAngle(Joints[i])+24*3.14/180;
-			else if (i%3==2) currentAngles[i]=-dJointGetHingeAngle(Joints[i])-114*3.14/180;
-			else if (i%3==0) currentAngles[i]=-dJointGetHingeAngle(Joints[i]);
+			if (i%3==1) currentAngles.push_back(-dJointGetHingeAngle(Joints[i])+24*3.14/180);
+			else if (i%3==2) currentAngles.push_back(-dJointGetHingeAngle(Joints[i])-114*3.14/180);
+			else if (i%3==0) currentAngles.push_back(-dJointGetHingeAngle(Joints[i]));
 		}
 		else {
-			if (i%3==1) currentAngles[i]=dJointGetHingeAngle(Joints[i])+24*3.14/180;
-			else if (i%3==2) currentAngles[i]=dJointGetHingeAngle(Joints[i])-114*3.14/180;
-			else if (i%3==0) currentAngles[i]=dJointGetHingeAngle(Joints[i]);
+			if (i%3==1) currentAngles.push_back(dJointGetHingeAngle(Joints[i])+24*3.14/180);
+			else if (i%3==2) currentAngles.push_back(dJointGetHingeAngle(Joints[i])-114*3.14/180);
+			else if (i%3==0) currentAngles.push_back(dJointGetHingeAngle(Joints[i]));
 		}
 	}
 	currentAngles[0]+=45*3.14/180;

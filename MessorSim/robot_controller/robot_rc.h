@@ -16,7 +16,7 @@ class CRobot_RC
 {
 	//funkcje
 public:
-	CRobot_RC(COdeWorld* dynamicWorld, CRobotStructure* robot_structure);
+	CRobot_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure);
 	~CRobot_RC(void);
 	// pomocnicze
 	///ustawia poczatkowe wartosci katow w stawie [45, 24, -114, 0 24 -114, -45 24 -114,-45, 24, -114, 0 24 -114, 45 24 -114]
@@ -221,5 +221,5 @@ public:
 	/// robot rzeczywisty - ODE
 	COdeWorld * dynamicWorld;
 	/// collision detection
-	CRobotStructure * robot_structure;
+	RobotStructure * robot_structure;
 };

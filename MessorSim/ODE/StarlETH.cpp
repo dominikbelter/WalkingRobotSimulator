@@ -1,7 +1,7 @@
 #include "StarlETH.h"
 #include <math.h>
 
-/// A single instance of Kinect grabber
+/// A single instance of StarlETH robot
 StarlETH::Ptr robot;
 
 StarlETH::StarlETH(void) : SimRobot("StarlETH Robot") {
@@ -23,14 +23,14 @@ StarlETH::StarlETH(void) : SimRobot("StarlETH Robot") {
 		refLoad[i] = 0;
 	}
 
-	refAngles[1]=(robsim::float_type)deg2rad((float)25);
-	refAngles[2]=(robsim::float_type)deg2rad((float)-25);
-	refAngles[4]=(robsim::float_type)deg2rad((float)-25);
-	refAngles[5]=(robsim::float_type)deg2rad((float)25);
-	refAngles[7]=(robsim::float_type)deg2rad((float)-25);
-	refAngles[8]=(robsim::float_type)deg2rad((float)25);
-	refAngles[10]=(robsim::float_type)deg2rad((float)25);
-	refAngles[11]=(robsim::float_type)deg2rad((float)-25);
+	refAngles[1]=(robsim::float_type)deg2rad(25.0);
+	refAngles[2]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[4]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[5]=(robsim::float_type)deg2rad(25.0);
+	refAngles[7]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[8]=(robsim::float_type)deg2rad(25.0);
+	refAngles[10]=(robsim::float_type)deg2rad(25.0);
+	refAngles[11]=(robsim::float_type)deg2rad(-25.0);
 }
 
 StarlETH::~StarlETH(void)
@@ -90,7 +90,7 @@ const robsim::float_type& StarlETH::getRefLoad(uint_fast8_t leg, uint_fast8_t jo
 /// ODE - symulacja regulatora w serwomechanizmie
 void StarlETH::setServo(uint_fast8_t servoNo, robsim::float_type value) {
 	dReal Gain = (dReal) 55.1465;
-	dReal v_max = (dReal) (refSpeed[servoNo]/114.0)*STARLETH_MAX_SERVO_SPEED;
+	dReal v_max = (dReal) ((dReal)refSpeed[servoNo]/114.0)*STARLETH_MAX_SERVO_SPEED;
 	dReal MaxForce = (dReal)13.0;
 
 	dReal TruePosition = dJointGetHingeAngle(Joints[servoNo]);
@@ -126,8 +126,9 @@ void StarlETH::setAllServos() {
 
 /// read current joint positions
 void StarlETH::readAngles(std::vector<robsim::float_type>& currentAngles) const{
+	currentAngles.clear();
 	for (int i=0;i<STARLETH_JOINTS_NO;i++) {
-		currentAngles[i]=dJointGetHingeAngle(Joints[i]);
+		currentAngles.push_back(dJointGetHingeAngle(Joints[i]));
 	}
 }
 
@@ -136,15 +137,15 @@ void StarlETH::createODEObject(dSpaceID& space, uint_fast8_t objectId, robsim::f
 	dMass m;
     dBodySetLinearVel(Object[objectId].Body, 0, 0, 0);
 	dMatrix3 R, R1, R2, R3;
-    dRFromAxisAndAngle(R1, 1, 0, 0, rot[0]);
-	dRFromAxisAndAngle(R2, 0, 1, 0, rot[1]);
-	dRFromAxisAndAngle(R3, 0, 0, 1, rot[2]);
+    dRFromAxisAndAngle(R1, 1, 0, 0, (dReal)rot[0]);
+	dRFromAxisAndAngle(R2, 0, 1, 0, (dReal)rot[1]);
+	dRFromAxisAndAngle(R3, 0, 0, 1, (dReal)rot[2]);
 	dMultiply0 (R, R2, R1, 3, 3, 3);
 	dMultiply0 (R, R, R3, 3, 3, 3);
 	dBodySetRotation(Object[objectId].Body, R);
     dBodySetPosition(Object[objectId].Body, pose.getElement(1,4), pose.getElement(3,4), -pose.getElement(2,4));
-	dMassSetBoxTotal(&m, mass, sides[0], sides[1], sides[2]);
-    Object[objectId].Geom[0] = dCreateBox(space, sides[0], sides[1], sides[2]);
+	dMassSetBoxTotal(&m, (dReal)mass, (dReal)sides[0], (dReal)sides[1], (dReal)sides[2]);
+    Object[objectId].Geom[0] = dCreateBox(space, (dReal)sides[0], (dReal)sides[1], (dReal)sides[2]);
     dGeomSetBody(Object[objectId].Geom[0], Object[objectId].Body);
     dBodySetMass(Object[objectId].Body, &m);
 }
@@ -164,7 +165,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	
     dReal sides[3];
     dMass m;
-    dMatrix3 R; // macierz rotacji
     CVector tempVect(0.0, 0.0, 0.0);
 	double mass=mass_corp;
 	double leg_ref[3]={0*PI/180,(-25)*PI/180,(50)*PI/180};
@@ -250,7 +250,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	robsim::float_type rot2[3] = {0,leg_ref[0],leg_ref[1]};
 	robsim::float_type side2[3] = {sides[0],sides[1],sides[2]};
 	createODEObject(space, 2, rot2, tmp, mass, side2);
-	dMatrix3 R1, R2;
 	
 	mass=mass_tibia;
 	tmp = platform*leg1start*a1*a2*a3*a4half;

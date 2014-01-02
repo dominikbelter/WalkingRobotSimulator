@@ -28,7 +28,7 @@ class RPCCaller
 {
 
   public:
-    RPCCaller(const char* host,int port,COdeWorld* dynamicWorld,CRobotStructure* robot_struct, CLocalMap* local_map);
+    RPCCaller(const char* host,int port,COdeWorld* dynamicWorld, RobotStructure* robot_struct, CLocalMap* local_map);
     ~RPCCaller();
 
   public:

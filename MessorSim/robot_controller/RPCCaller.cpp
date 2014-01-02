@@ -9,7 +9,7 @@ In general, you do not need to modify it.
 
 #include <string.h>
 
-RPCCaller::RPCCaller(const char* host,int port,COdeWorld* dynamicWorld,CRobotStructure* robot_structure, CLocalMap* local_map)
+RPCCaller::RPCCaller(const char* host,int port,COdeWorld* dynamicWorld, RobotStructure* robot_structure, CLocalMap* local_map)
 {
 	control = new CGaits_RC(dynamicWorld,robot_structure);
 	this->local_map=local_map;

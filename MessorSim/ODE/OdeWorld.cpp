@@ -47,8 +47,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 COdeWorld::COdeWorld(int sizex, int sizey)
 {
-	//robotODE = createSimRobotHexapod();
-	robotODE = createSimStarlETH();
+	robotODE = createSimRobotHexapod();
+	//robotODE = createSimStarlETH();
 
 	ground = new CGround(5.99,5.99,sizex,sizey,0.36);
 	rec_robot_platform.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie
@@ -177,11 +177,6 @@ void COdeWorld::SimStep()
 		rec_robot_leg[i].savePosition(feet_pose.getElement(1,4),feet_pose.getElement(2,4),feet_pose.getElement(3,4)); // nagranie pozycji stopy
 	}
 	checkFootContatcs();
-	
-//	if ((actual_time>0.1)&&(actual_time<0.11))
-//		dBodyAddTorque(robotODE.Object[0].Body,50,0,0);
-//	if ((actual_time>0.11)&&(actual_time<0.12))
-//		dBodyAddTorque(robotODE.Object[0].Body,0,50,0);
 }
 
 void COdeWorld::DrawObjects()
@@ -202,7 +197,7 @@ void COdeWorld::DrawObjects()
 	}
 	else 
 	{
-		for (int bodies = 0;bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
+		for (int bodies = robotODE->getObjectsNo()-robotODE->getLegsNo();bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
 			DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
 	}
 

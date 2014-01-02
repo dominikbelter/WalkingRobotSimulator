@@ -8,6 +8,7 @@
 //modu³y
 #include "ODE/OdeWorld.h"
 #include "collision_detection/RobotStructure.h"
+#include "collision_detection/MessorStructure.h"
 #include "openGL/openGLmain.h"
 #include "robot_controller/RPCCaller.h"
 #include "motion_planner/motion_planner.h"
@@ -22,7 +23,7 @@ using namespace std;
 //œwiat fizyczny ODE
 COdeWorld* dynamicWorld;
 //struktura fizuczna robota
-CRobotStructure* robot_structure;
+RobotStructure* robot_structure;
 //RPCCaller
 RPCCaller* rpccaller;
 //mapa idealna - teren po którym porusza siê robot
@@ -132,7 +133,7 @@ int main(void)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 
 	//stworzenie fizycznej struktury robota 
-	robot_structure = new CRobotStructure;
+	robot_structure = createMessorRobotStructure();
 
 	//stworzenie idealnej mapy terenu - œrodowiska w którym porusza siê robot
 	map = new CIdealMap(dynamicWorld);
@@ -162,7 +163,6 @@ int main(void)
 	delete rpccaller;
 	delete local_map;
 	delete map;
-	delete robot_structure;
 	dynamicWorld->CloseODE();
 	delete dynamicWorld;
 }

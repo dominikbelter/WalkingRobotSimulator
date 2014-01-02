@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 
-CRobot_RC::CRobot_RC(COdeWorld* dynamicWorld, CRobotStructure* robot_structure)
+CRobot_RC::CRobot_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure)
 : accel_x(0)
 , accel_y(0)
 {
@@ -412,7 +412,7 @@ double CRobot_RC::sendAngles(float speed){
 	computeLegSpeed(5,speed, leg_speed);
 	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
 
-	float Q_ref[18];
+	robsim::float_type Q_ref[18];
 	for (int i=0;i<6;i++){
 		Q_ref[i*3] = getAngle(i,0);
 		Q_ref[i*3+1] = getAngle(i,1);
@@ -425,7 +425,7 @@ double CRobot_RC::sendAngles(float speed){
 	dynamicWorld->robotODE->getRPY(orientation);
 	int offset[2];
 	dynamicWorld->ground->CalculateGroundCoordinates(rob_pos[0],rob_pos[1],offset);
-	if (robot_structure->checkCollision(rob_pos[0],rob_pos[1],rob_pos[2],orientation[0],orientation[1],orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,offset[0],offset[1])) 
+	if (robot_structure->checkCollision(rob_pos, orientation, Q_ref,collision_table)) 
 		return 1;//collision exist
 
 	leg_ref[0] = getAngle(0, 0);
@@ -476,7 +476,7 @@ double CRobot_RC::sendAngles(float * speed){
 	computeLegSpeed(5,speed[5], leg_speed);
 	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
 
-	float Q_ref[18];
+	robsim::float_type Q_ref[18];
 	for (int i=0;i<6;i++){
 		Q_ref[i*3] = getAngle(i,0);
 		Q_ref[i*3+1] = getAngle(i,1);
@@ -489,7 +489,7 @@ double CRobot_RC::sendAngles(float * speed){
 	dynamicWorld->robotODE->getRPY(orientation);
 	int offset[2];
 	dynamicWorld->ground->CalculateGroundCoordinates(rob_pos[0],rob_pos[1],offset);
-	if (robot_structure->checkCollision(rob_pos[0],rob_pos[1],rob_pos[2],orientation[0],orientation[1],orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,offset[0],offset[1])) 
+	if (robot_structure->checkCollision(rob_pos, orientation, Q_ref,collision_table)) 
 		return 1;//collision exist
 
 	std::vector<robsim::float_type> leg_ref(3,0);
@@ -1679,7 +1679,7 @@ void CRobot_RC::getFullRobotState(CPunctum *body, CPunctum * feet){
 
 /// check collisions
 bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * feet){
-	float Q_ref[18];
+	robsim::float_type Q_ref[18];
 	int part;
 	CPunctum pos;
 	for (int i=0;i<6;i++) {
@@ -1692,7 +1692,9 @@ bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * feet){
 			return true;
 	}
 	bool collision_table[44];
-	if (robot_structure->checkCollision(body.getElement(1,4),body.getElement(2,4),body.getElement(3,4),body.orientation[0],body.orientation[1],body.orientation[2], Q_ref,collision_table,false,dynamicWorld->ground->points,-1,-1)) 
+	robsim::float_type _pos[3] = {body.getElement(1,4), body.getElement(2,4), body.getElement(3,4)};
+	robsim::float_type _rot[3] = {body.orientation[0], body.orientation[1], body.orientation[2]};
+	if (robot_structure->checkCollision(_pos, _rot, Q_ref,collision_table)) 
 		return true; //collision exist
 	else
 		return false;

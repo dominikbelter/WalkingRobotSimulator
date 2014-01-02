@@ -98,6 +98,65 @@ void CMat44::createTRMatrix(float alpha, float beta, float gamma, float trans_x,
 	orientation[0]=alpha; orientation[1]=beta; orientation[2]=gamma;
 }
 
+/// brief makes 4x4 transform matrix
+CMat44& CMat44::makeTransformMatrix(const char * type, float value){
+  setEye();
+  float x,y,z;
+  if (!strcmp(type,"x")){
+     pos[0]=value;
+  }
+  else if (!strcmp(type,"y")){
+     pos[1]=value;
+  }
+  else if (!strcmp(type,"z")){
+     pos[2]=value;
+  }
+  else if (!strcmp(type,"alpha")){
+	  x=1;
+	  y=0;
+	  z=0;
+	  rot[0][0]=x*x*(1-cos(value))+cos(value);
+	  rot[0][1]=x*y*(1-cos(value))-z*sin(value);
+	  rot[0][2]=x*z*(1-cos(value))+y*sin(value);
+
+	  rot[1][0]=y*x*(1-cos(value))+z*sin(value);
+	  rot[1][1]=y*y*(1-cos(value))+cos(value);
+	  rot[1][2]=y*z*(1-cos(value))-x*sin(value);
+
+	  rot[2][0]=x*z*(1-cos(value))-y*sin(value);
+	  rot[2][1]=y*z*(1-cos(value))+x*sin(value);
+	  rot[2][2]=z*z*(1-cos(value))+cos(value);
+  }
+  else if (!strcmp(type,"beta")){
+	  y=1; z=0; x=0;
+	  rot[0][0] = x*x*(1-cos(value))+cos(value);
+	  rot[0][1] = x*y*(1-cos(value))-z*sin(value);
+	  rot[0][2] = x*z*(1-cos(value))+y*sin(value);
+
+	  rot[1][0] = y*x*(1-cos(value))+z*sin(value);
+	  rot[1][1] = y*y*(1-cos(value))+cos(value);
+	  rot[1][2] = y*z*(1-cos(value))-x*sin(value);
+
+	  rot[2][0] = x*z*(1-cos(value))-y*sin(value);
+	  rot[2][1] = y*z*(1-cos(value))+x*sin(value);
+	  rot[2][2] = z*z*(1-cos(value))+cos(value);
+  }
+  else if (!strcmp(type,"gamma")){
+	  z=1; x=0; y=0;
+	  rot[0][0]=x*x*(1-cos(value))+cos(value);
+	  rot[0][1]=x*y*(1-cos(value))-z*sin(value);
+	  rot[0][2]=x*z*(1-cos(value))+y*sin(value);
+
+	  rot[1][0]=y*x*(1-cos(value))+z*sin(value);
+	  rot[1][1]=y*y*(1-cos(value))+cos(value);
+	  rot[1][2]=y*z*(1-cos(value))-x*sin(value);
+
+	  rot[2][0]=x*z*(1-cos(value))-y*sin(value);
+	  rot[2][1]=y*z*(1-cos(value))+x*sin(value);
+	  rot[2][2]=z*z*(1-cos(value))+cos(value);
+  }
+  return *this;
+}
 /// inverse of matrix
 CMat44 CMat44::inv(void){
     CMat44 temp;

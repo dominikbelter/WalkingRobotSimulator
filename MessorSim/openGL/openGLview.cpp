@@ -8,7 +8,7 @@ openGLview::openGLview(void)
 {
 }
 
-openGLview::openGLview(COdeWorld* dynamicWorld, CRobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map)
+openGLview::openGLview(COdeWorld* dynamicWorld, RobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map)
 {
 	// Lights
 	GL_LIGHT[0] = GL_LIGHT0; GL_LIGHT[1] = GL_LIGHT1; GL_LIGHT[2] = GL_LIGHT2; GL_LIGHT[3] = GL_LIGHT3;    // Represent GL lights in a conveniant array
@@ -103,7 +103,7 @@ void openGLview::rysuj_figury(void)
 	//rysowanie obiektów ODE
 	dynamicWorld->DrawObjects();
 
-	std::vector<robsim::float_type> Q_ref(18,0);
+	std::vector<robsim::float_type> Q_ref;
 	dynamicWorld->robotODE->readAngles(Q_ref);
 	robsim::float_type position[3];
 	dynamicWorld->robotODE->getPosition(position);
@@ -114,16 +114,16 @@ void openGLview::rysuj_figury(void)
 	const dReal * R;
     R = dGeomGetRotation(dynamicWorld->robotODE->getGeomId(0)); //pobiera orientacje obiektu
 
-	float p[3];
-	float r[12];
+	robsim::float_type p[3];
+	robsim::float_type r[12];
 	for (int i=0;i<11;i++)
 		r[i]=(float)R[i];
 	for (int i=0;i<3;i++)
 		p[i]=(float)pos[i]*10;
 
 	//rysowanie robota
-	//if (!dynamicWorld->show_geoms)
-		//robot_structure->GLDrawRobot(p,r,Q_ref[0],Q_ref[1],Q_ref[2],Q_ref[3],Q_ref[4],Q_ref[5],Q_ref[6],Q_ref[7],Q_ref[8],Q_ref[9],Q_ref[10],Q_ref[11],Q_ref[12],Q_ref[13],Q_ref[14],Q_ref[15],Q_ref[16],Q_ref[17]);
+	if (!dynamicWorld->show_geoms)
+		robot_structure->GLDrawRobot(p,r,Q_ref);
 
 	//rysowanie zaplanowanych trajektorii platformy i nóg robota
 	if (dynamicWorld->draw_path)

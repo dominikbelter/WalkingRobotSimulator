@@ -1,7 +1,7 @@
 #include "gaits_rc.h"
 #include <math.h>
 
-CGaits_RC::CGaits_RC(COdeWorld* dynamicWorld, CRobotStructure* robot_structure)
+CGaits_RC::CGaits_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure)
 {
 	robot_rc = new CRobot_RC(dynamicWorld,robot_structure);
 	setInitZeroAngle();

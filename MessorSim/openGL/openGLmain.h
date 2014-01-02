@@ -7,7 +7,7 @@
 //#include "../motion_planner/RPCCaller.h"
 #include "../functions.h"
 
-void openGLinit(COdeWorld* dynamicWorld, CRobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map);
+void openGLinit(COdeWorld* dynamicWorld, RobotStructure* robot_structure, CMotionPlanner* motion_planner, CLocalMap* local_map);
 void animacja(int value);
 void display(void);
 void resize(int w, int h);

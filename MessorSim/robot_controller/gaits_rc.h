@@ -18,7 +18,7 @@
 class CGaits_RC
 {
 public:
-	CGaits_RC(COdeWorld* dynamicWorld, CRobotStructure* robot_structure);
+	CGaits_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure);
 	~CGaits_RC(void);
 	/// ustawia poczatkowa konfiguracje neutralna dla robota (0, 24, -114)
 	void setInitZeroAngle();
