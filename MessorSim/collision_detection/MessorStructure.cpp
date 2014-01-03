@@ -6,10 +6,10 @@ MessorStructure::Ptr messorStructure;
 
 MessorStructure::MessorStructure(void) : RobotStructure("Messor Robot Structure")
 {
-	for (int i=0;i<18;i++)
-		angles[i]=0;
-	angles[0]=45*3.14/180;
-	angles[1]=-45*3.14/180;
+	//for (int i=0;i<18;i++)
+//		angles[i]=0;
+//	angles[0]=45*3.14/180;
+//	angles[1]=-45*3.14/180;
 	robot_model.ObjLoad("resources/Messor_model/korpus_dol.3ds");
 	robot_model.ObjLoad("resources/Messor_model/korpus_gora.3ds");
 	robot_model.ObjLoad("resources/Messor_model/noga_blacha_1.3ds"); //zawias (ceownik)
@@ -26,7 +26,7 @@ MessorStructure::MessorStructure(void) : RobotStructure("Messor Robot Structure"
 //	InitializeTerrain();
 	CollisionModels();	// Init Collision Models
 //	robot_model.TerrainCollisionModels();	// Init Collision Models
-	init_structures();
+	initStructures();
 }
 
 MessorStructure::~MessorStructure(void)
@@ -76,7 +76,7 @@ void MessorStructure::CollisionModels(void)
 	initCollisionModel(2, *meshModel[LINK_C6]); // przegub_typu_C_6
 }
 
-void MessorStructure::init_structures(void)
+void MessorStructure::initStructures(void)
 {
 	structPlatformBottom();
 	structPlatformTop();

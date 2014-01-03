@@ -9,6 +9,7 @@
 #include "ODE/OdeWorld.h"
 #include "collision_detection/RobotStructure.h"
 #include "collision_detection/MessorStructure.h"
+#include "collision_detection/StarlETHStructure.h"
 #include "openGL/openGLmain.h"
 #include "robot_controller/RPCCaller.h"
 #include "motion_planner/motion_planner.h"
@@ -34,7 +35,7 @@ CMotionPlanner* motion_planner;
 CLocalMap* local_map;
 
 //rozmiar mapy terenu
-int sizex = 600, sizey = 600;
+int sizex = 400, sizey = 400;
 
 //////////////////////////////////////
 
@@ -128,12 +129,13 @@ int main(void)
 	//stworzenie œwiata ODE (sizex x sizey)
 	dynamicWorld = new COdeWorld(sizex,sizey);
 	//ustalenie pozycji fizycznego robota na scenie (x, y, z, rot_x, rot_y, rot_z)
-	dynamicWorld->robotODE->setInitialPosition(0.0,0.0,0.55,0,0,0);
+	dynamicWorld->robotODE->setInitialPosition(0.0,0.6,0.5,0,0,0);
 	//zainicjowanie œwiata ODE (krok ca³kowania, wczytanie mapy z pliku true/false, sizex x sizey)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 
 	//stworzenie fizycznej struktury robota 
-	robot_structure = createMessorRobotStructure();
+	//robot_structure = createMessorRobotStructure();
+	robot_structure = createStarlETHRobotStructure();
 
 	//stworzenie idealnej mapy terenu - œrodowiska w którym porusza siê robot
 	map = new CIdealMap(dynamicWorld);

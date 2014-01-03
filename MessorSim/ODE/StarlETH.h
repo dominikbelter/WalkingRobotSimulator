@@ -26,7 +26,6 @@ static const robsim::float_type STARLETH_SEGMENT1 = 0.0685; //lenght pierwszego 
 static const robsim::float_type STARLETH_SEGMENT2 = 0.2;  //lenght drugiego segmentu
 static const robsim::float_type STARLETH_SEGMENT3 = 0.2350;  //lenght trzeciego segmentu
 static const robsim::float_type STARLETH_FOOT_LENGTH = 0.02;  //dlugosc stopy
-static const robsim::float_type STARLETH_OFFSET3 = 0.0;	//przsuniecie d w ostatnim jointie
 static const robsim::float_type STARLETH_MAX_SERVO_SPEED = 12000.1568;	//przsuniecie d w ostatnim jointie
 
 namespace robsim {
@@ -145,5 +144,8 @@ public:
 	//IMU
 	CIMU imu;
 	char filtered_contact[6]; 
+private:
+	/// init reference values (angles)
+	std::vector<robsim::float_type> initAngles;
 };
 

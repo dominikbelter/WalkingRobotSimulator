@@ -19,7 +19,7 @@ public:
 	CObjects3DS();
 	~CObjects3DS();
 	
-	void Object3DS(int obj_qty);
+	void Object3DS(int obj_qty, float scale = 1.0);
 	char ObjLoad(char *p_object_name);
 
 	obj_type object[MAX_OBJECTS];

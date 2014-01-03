@@ -47,8 +47,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 COdeWorld::COdeWorld(int sizex, int sizey)
 {
-	robotODE = createSimRobotHexapod();
-	//robotODE = createSimStarlETH();
+	//robotODE = createSimRobotHexapod();
+	robotODE = createSimStarlETH();
 
 	ground = new CGround(5.99,5.99,sizex,sizey,0.36);
 	rec_robot_platform.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie
@@ -158,6 +158,7 @@ void COdeWorld::SimStep()
     dJointGroupEmpty(contactgroup);
 	actual_time += stepDT;//uplywajacy czas symulacji
 	
+	//_sleep(1000000);
 	//if (((actual_time>0.1))&&(actual_time<0.2))
 	//	dBodySetForce(robotODE.Object[0].Body, 0, 100, -50);
 	// ustawia wszystkie serwa zgodnie z wartosciami zadanymi
@@ -190,26 +191,26 @@ void COdeWorld::DrawObjects()
 			DrawGeom(robotODE->getGeomId(i*3+2), 0, 0, 0, 2); //ogniwo2
 			DrawGeom(robotODE->getGeomId(i*3+1), 0, 0, 0, 3); //ogniwo3
 		}
-		for (int bodies = robotODE->getObjectsNo()-robotODE->getLegsNo();bodies<robotODE->getObjectsNo();bodies++)
+		for (int bodies = 0/*robotODE->getObjectsNo()-robotODE->getLegsNo()*/;bodies<robotODE->getObjectsNo();bodies++)
 		{//rysowanie obiektow
 			DrawGeom(robotODE->getGeomId(bodies), 0, 0, 0, 4); //prawa stopa
 		}
 	}
 	else 
 	{
-		for (int bodies = robotODE->getObjectsNo()-robotODE->getLegsNo();bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
+		for (int bodies = 0/*robotODE->getObjectsNo()-robotODE->getLegsNo()*/;bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
 			DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
 	}
 
 	ground->DrawMesh(foot_groundx,foot_groundy,foot_groundx_def, foot_groundy_def,tx,ty); //rysuje ziemie
 	
-	rec_robot_platform.plot(0,1,0,4,'o');
+	/*rec_robot_platform.plot(0,1,0,4,'o');
 	for (int i=0;i<robotODE->getLegsNo();i++) {
 		if (robotODE->getContact(i)==1)
 			rec_robot_leg[i].plot(1,0,0,5,'o');
 		else
 			rec_robot_leg[i].plot(0,1,0,5,'o');
-	}
+	}*/
 
 	glColor3f(1, 1, 0);
 	float thickness = 3;

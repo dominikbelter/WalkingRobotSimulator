@@ -4,8 +4,8 @@
  *
  *********************************************************/
 #pragma once
-#define MAX_VERTICES 10000	// Max number of vertices (for each object) old - 10000
-#define MAX_POLYGONS 10000	// Max number of polygons (for each object) old - 10000
+#define MAX_VERTICES 40000	// Max number of vertices (for each object) old - 10000
+#define MAX_POLYGONS 40000	// Max number of polygons (for each object) old - 10000
 #define MAX_OBJECTS 100		// Max number of objects 
 
 

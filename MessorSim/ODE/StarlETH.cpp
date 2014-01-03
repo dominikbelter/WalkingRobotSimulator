@@ -8,6 +8,7 @@ StarlETH::StarlETH(void) : SimRobot("StarlETH Robot") {
 	refSpeed.resize(STARLETH_LINKS_NO); //12 servomotors
 	refAngles.resize(STARLETH_LINKS_NO); //12 servomotors
 	refLoad.resize(STARLETH_LINKS_NO); //12 servomotors
+	initAngles.resize(STARLETH_LINKS_NO); //12 servomotors
 	groundContact.resize(STARLETH_LEGS);
 	ODEgroundContact.resize(STARLETH_LEGS);
 	imu.setInitialPosition(0.023,0,0);
@@ -15,6 +16,7 @@ StarlETH::StarlETH(void) : SimRobot("StarlETH Robot") {
 		groundContact[i]=0;
 		for (int j=0;j<STARLETH_SERVOS_PER_LEG;j++) {
 			refAngles[i*STARLETH_SERVOS_PER_LEG + j]=0;
+			initAngles[i*STARLETH_SERVOS_PER_LEG + j]=0;
 		}
 	}
 
@@ -23,14 +25,23 @@ StarlETH::StarlETH(void) : SimRobot("StarlETH Robot") {
 		refLoad[i] = 0;
 	}
 
-	refAngles[1]=(robsim::float_type)deg2rad(25.0);
-	refAngles[2]=(robsim::float_type)deg2rad(-25.0);
-	refAngles[4]=(robsim::float_type)deg2rad(-25.0);
-	refAngles[5]=(robsim::float_type)deg2rad(25.0);
-	refAngles[7]=(robsim::float_type)deg2rad(-25.0);
-	refAngles[8]=(robsim::float_type)deg2rad(25.0);
-	refAngles[10]=(robsim::float_type)deg2rad(25.0);
-	refAngles[11]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[1]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[2]=(robsim::float_type)deg2rad(50.0);
+	refAngles[4]=(robsim::float_type)deg2rad(25.0);
+	refAngles[5]=(robsim::float_type)deg2rad(-50.0);
+	refAngles[7]=(robsim::float_type)deg2rad(25.0);
+	refAngles[8]=(robsim::float_type)deg2rad(-50.0);
+	refAngles[10]=(robsim::float_type)deg2rad(-25.0);
+	refAngles[11]=(robsim::float_type)deg2rad(50.0);
+
+	initAngles[1]=(robsim::float_type)deg2rad(-25.0);
+	initAngles[2]=(robsim::float_type)deg2rad(50.0);
+	initAngles[4]=(robsim::float_type)deg2rad(25.0);
+	initAngles[5]=(robsim::float_type)deg2rad(-50.0);
+	initAngles[7]=(robsim::float_type)deg2rad(25.0);
+	initAngles[8]=(robsim::float_type)deg2rad(-50.0);
+	initAngles[10]=(robsim::float_type)deg2rad(-25.0);
+	initAngles[11]=(robsim::float_type)deg2rad(50.0);
 }
 
 StarlETH::~StarlETH(void)
@@ -121,14 +132,14 @@ void StarlETH::setServo(uint_fast8_t servoNo, robsim::float_type value) {
 /// set all servos using selected controller (P/PI/PID)
 void StarlETH::setAllServos() {
 	for (int i =0;i<STARLETH_JOINTS_NO;i++)
-		setServo(i, refAngles[i]);
+		setServo(i, initAngles[i] - refAngles[i]);
 }
 
 /// read current joint positions
 void StarlETH::readAngles(std::vector<robsim::float_type>& currentAngles) const{
 	currentAngles.clear();
 	for (int i=0;i<STARLETH_JOINTS_NO;i++) {
-		currentAngles.push_back(dJointGetHingeAngle(Joints[i]));
+		currentAngles.push_back(dJointGetHingeAngle(Joints[i])+initAngles[i]);
 	}
 }
 
@@ -231,9 +242,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	leg4start.createTRMatrix(0,PI/2.0,0,STARLETH_LENGTH,STARLETH_WIDTH,0);
 	CPunctum tmp;
 	tmp = platform*leg1start*a1*a2half;
-	platform.showMatrix();
-	cout << "leg 1a: " << endl;
-	tmp.showMatrix();
 	mass=mass_coxa;
 	// Set up for static object - hip
     sides[0] = 0.03;    sides[1] = 0.03;    sides[2] = 0.03;
@@ -242,8 +250,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	createODEObject(space, 1, rot1, tmp, mass, side1);
 
 	tmp = platform*leg1start*a1*a2*a3half;
-	cout << "leg 1b: " << endl;
-	tmp.showMatrix();
 	mass=mass_femur;
 	// Set up for static object - thigh
     sides[0] = 0.03;    sides[1] = 0.03;    sides[2] = 0.03;
@@ -253,8 +259,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	
 	mass=mass_tibia;
 	tmp = platform*leg1start*a1*a2*a3*a4half;
-	cout << "leg 1c: " << endl;
-	tmp.showMatrix();
 	// Set up for static object - shank
 	sides[0] = 0.02;    sides[1] = 0.02;    sides[2] = 0.02;
 	robsim::float_type rot3[3] = {0,0,leg_ref[1]+leg_ref[2]};
@@ -271,7 +275,7 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	mass=mass_coxa;
 	// Set up for static object - shank leg 2
     sides[0] = 0.03;    sides[1] = 0.03;    sides[2] = 0.03;
-	robsim::float_type rot4[3] = {0,0,0};
+	robsim::float_type rot4[3] = {0,leg_ref[0],0};
 	robsim::float_type side4[3] = {sides[0],sides[1],sides[2]};
 	createODEObject(space, 4, rot4, tmp, mass, side4);
 
@@ -279,7 +283,7 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	mass=mass_femur;
 	// Set up for static object - drugi czlon nogi 2
     sides[0] = 0.03;    sides[1] = 0.03;    sides[2] = 0.03;
-	robsim::float_type rot5[3] = {0,0,leg_ref[1]};
+	robsim::float_type rot5[3] = {0,leg_ref[0],leg_ref[1]};
 	robsim::float_type side5[3] = {sides[0],sides[1],sides[2]};
 	createODEObject(space, 5, rot5, tmp, mass, side5);
 
@@ -345,8 +349,6 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 	createODEObject(space, 12, rot12, tmp, mass, side12);
 
 	tmp = platform*leg1start*a1*a2*a3*a4;
-	cout << "foot 1: " << endl;
-	tmp.showMatrix();
 	mass=mass_foot;
 	// Set up for static object - stopa nogi 1
     sides[0] = 0.015;    sides[1] = 0.005;    sides[2] = 0.015;
@@ -455,7 +457,7 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
     dJointSetHingeParam(Joints[7], dParamHiStop, PI/2);
 
 	// zlacze pomiedzy 2, a 3 elementem nogi 3 
-	tmp = platform*leg3start*a1*a3;
+	tmp = platform*leg3start*a1*a2*a3;
     Joints[8] = dJointCreateHinge(world, jointgroup);
     dJointAttach(Joints[8], Object[8].Body, Object[9].Body);
     dJointSetHingeAnchor(Joints[8], tmp.getElement(1,4), tmp.getElement(3,4), -tmp.getElement(2,4));

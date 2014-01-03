@@ -27,7 +27,7 @@ namespace robsim {
 		}
 
 		/// Initialize robot structure
-		virtual void init_structures(void) = 0;
+		virtual void initStructures(void) = 0;
 
 		/// Draw robot using openGL
 		virtual void GLDrawRobot(robsim::float_type *pos, robsim::float_type * rot, std::vector<robsim::float_type> config) const = 0;
