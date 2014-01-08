@@ -45,10 +45,8 @@ CGround::CGround(double length_x, double length_y, int size_x, int size_y, doubl
 
 CGround::~CGround(void)
 {
-	for (int i=0;i<mesh_x_size;i++)
-    {
-		for (int j=0; j<mesh_y_size;j++)
-		{
+	for (int i=0;i<mesh_x_size;i++) {
+		for (int j=0; j<mesh_y_size;j++) {
 			delete points[i][j];
 		}
 		delete [] points[i];
@@ -59,8 +57,7 @@ CGround::~CGround(void)
 
 
 //draw lines - siatka
-void CGround::DrawGrid(void)
-{
+void CGround::DrawGrid(void) {
     glPushMatrix();
 
     float Line = -10;

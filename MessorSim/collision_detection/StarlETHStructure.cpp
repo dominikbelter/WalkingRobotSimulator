@@ -18,7 +18,7 @@ StarlETHStructure::StarlETHStructure(void) : RobotStructure("StarlETH Robot Stru
 	//angles[0]=45*3.14/180;
 	//angles[1]=-45*3.14/180;
 	robot_model.ObjLoad("resources/StarlETH_model/StarlETH_base.3ds");
-	//robot_model.ObjLoad("resources/StarlETH_model/StarlETH_hip.3ds");
+	robot_model.ObjLoad("resources/StarlETH_model/StarlETH_hip.3ds");
 	robot_model.ObjLoad("resources/StarlETH_model/StarlETH_thigh.3ds");
 	robot_model.ObjLoad("resources/StarlETH_model/StarlETH_shank.3ds");
 	
@@ -50,26 +50,26 @@ void StarlETHStructure::CollisionModels(void)
 {
 	initCollisionModel(0, *meshModel[PLATFORM]); // robot's platform
 
-	/*initCollisionModel(6, *meshModel[HIP1]); 
-	initCollisionModel(6, *meshModel[HIP2]); 
-	initCollisionModel(6, *meshModel[HIP3]); 
-	initCollisionModel(6, *meshModel[HIP4]); */
+	initCollisionModel(1, *meshModel[HIP1]); 
+	initCollisionModel(1, *meshModel[HIP2]); 
+	initCollisionModel(1, *meshModel[HIP3]); 
+	initCollisionModel(1, *meshModel[HIP4]); 
 
-	initCollisionModel(1, *meshModel[THIGH1]); 
-	initCollisionModel(1, *meshModel[THIGH2]);
-	initCollisionModel(1, *meshModel[THIGH3]);
-	initCollisionModel(1, *meshModel[THIGH4]); 
+	initCollisionModel(2, *meshModel[THIGH1]); 
+	initCollisionModel(2, *meshModel[THIGH2]);
+	initCollisionModel(2, *meshModel[THIGH3]);
+	initCollisionModel(2, *meshModel[THIGH4]); 
 
-	initCollisionModel(2, *meshModel[SHANK1]); 
-	initCollisionModel(2, *meshModel[SHANK2]); 
-	initCollisionModel(2, *meshModel[SHANK3]); 
-	initCollisionModel(2, *meshModel[SHANK4]); 
+	initCollisionModel(3, *meshModel[SHANK1]); 
+	initCollisionModel(3, *meshModel[SHANK2]); 
+	initCollisionModel(3, *meshModel[SHANK3]); 
+	initCollisionModel(3, *meshModel[SHANK4]); 
 }
 
 void StarlETHStructure::initStructures(void)
 {
 	structPlatform();
-	//structLegHip();
+	structLegHip();
 	structLegThigh();
 	structLegShank();
 }
@@ -78,26 +78,26 @@ void StarlETHStructure::structPlatform(void)
 {
 	glNewList(GL_PLATFORM, GL_COMPILE);
 	glColor3f(0.5,0.5,0.5);
-	//glRotatef(90,0,0,1);
+	glRotatef(180,1,0,0);
 	robot_model.Object3DS(0,0.001/0.0254);
 	glEndList();
 }
 
-/*void StarlETHStructure::structHip(void)
+void StarlETHStructure::structLegHip(void)
 {
 	glNewList(GL_HIP, GL_COMPILE);
 	glColor3f(0.6,0.6,0.6);
-	glScalef(0.0254,0.0254,0.0254);
-	robot_model.Object3DS(1);
+	//glScalef(0.0254,0.0254,0.0254);
+	robot_model.Object3DS(1,100*0.001/0.0254);
 	glEndList();
-}*/
+}
 
 void StarlETHStructure::structLegThigh(void)
 {
 	glNewList(GL_THIGH, GL_COMPILE);
 	glColor3f(0.6,0.6,0.6);
 	//glScalef(0.0254,0.0254,0.0254);
-	robot_model.Object3DS(1,0.001/0.0254);
+	robot_model.Object3DS(2,100*0.001/0.0254);
 	glEndList();
 }
 
@@ -106,7 +106,7 @@ void StarlETHStructure::structLegShank(void)
 	glNewList(GL_SHANK, GL_COMPILE);
 	glColor3f(0.6,0.6,0.6);
 	//glScalef(0.0254,0.0254,0.0254);
-	robot_model.Object3DS(2,0.001/0.0254);
+	robot_model.Object3DS(3,0.001/0.0254);
 	glEndList();
 }
 
@@ -257,14 +257,11 @@ void StarlETHStructure::Leg4(float Qn_1, float Qn_2, float Qn_3, CPunctum * m_no
 
 void StarlETHStructure::GLLeg1(float Qn_1, float Qn_2, float Qn_3) const {
 	glRotatef(Qn_1,1,0,0);
-	/*glPushMatrix();
-		glCallList(GL_LEG_SHEET1);
-		glTranslatef(-2.14*0.254,0,0.49*0.254);
-		glRotatef(90,1,0,0);
-		glRotatef(180,0,1,0);
-		glRotatef(90,0,0,1);
-		glCallList(GL_LEG_SHEET2);
-	glPopMatrix();*/
+	glPushMatrix();
+		glTranslatef(0,0,0.-0.3*0.254);
+		glRotatef(-90,0,1,0);
+		glCallList(GL_HIP);
+	glPopMatrix();
 
 	glRotatef(90,1,0,0);
 	glRotatef(90,0,0,1);
@@ -273,16 +270,10 @@ void StarlETHStructure::GLLeg1(float Qn_1, float Qn_2, float Qn_3) const {
 	glPushMatrix();
 		glCallList(GL_THIGH);
 		glTranslatef(STARLETH_SEGMENT2*10,0,-0);
-		glRotatef(Qn_3-90,0,0,1);
+		glRotatef(180,0,1,0);
+		glRotatef(Qn_3,0,0,1);
 		glPushMatrix();
 			glCallList(GL_SHANK);
-			/*glTranslatef(0,0,1.61*0.254);
-			glTranslatef(-7.90*0.254,-0.03*0.254,-0.81*0.254);
-			glRotatef(90,0,1,0);
-			glRotatef(-28.6,1,0,0);
-			glCallList(GL_BASE);
-			glTranslatef(0,0,-0.45*0.254);
-			glCallList(GL_FOOT);*/
 		glPopMatrix();
 	glPopMatrix();
 }
@@ -290,14 +281,11 @@ void StarlETHStructure::GLLeg1(float Qn_1, float Qn_2, float Qn_3) const {
 void StarlETHStructure::GLLeg2(float Qn_1, float Qn_2, float Qn_3) const {
 	glRotatef(180,0,0,1);
 	glRotatef(Qn_1,1,0,0);
-	/*glPushMatrix();
-		glCallList(GL_LEG_SHEET1);
-		glTranslatef(-2.14*0.254,0,0.49*0.254);
-		glRotatef(90,1,0,0);
-		glRotatef(180,0,1,0);
-		glRotatef(90,0,0,1);
-		glCallList(GL_LEG_SHEET2);
-	glPopMatrix();*/
+	glPushMatrix();
+		glTranslatef(0,0,0.-0.3*0.254);
+		glRotatef(-90,0,1,0);
+		glCallList(GL_HIP);
+	glPopMatrix();
 
 	glRotatef(90,1,0,0);
 	glRotatef(90,0,0,1);
@@ -306,16 +294,10 @@ void StarlETHStructure::GLLeg2(float Qn_1, float Qn_2, float Qn_3) const {
 	glPushMatrix();
 		glCallList(GL_THIGH);
 		glTranslatef(STARLETH_SEGMENT2*10,0,-0);
-		glRotatef(Qn_3-90,0,0,1);
+		glRotatef(180,0,1,0);
+		glRotatef(Qn_3,0,0,1);
 		glPushMatrix();
 			glCallList(GL_SHANK);
-			/*glTranslatef(0,0,1.61*0.254);	
-			glTranslatef(-7.90*0.254,-0.03*0.254,-0.81*0.254);
-			glRotatef(90,0,1,0);
-			glRotatef(-28.6,1,0,0);
-			glCallList(GL_BASE);
-			glTranslatef(0,0,-0.45*0.254);
-			glCallList(GL_FOOT);*/
 		glPopMatrix();
 	glPopMatrix();
 }
@@ -323,14 +305,11 @@ void StarlETHStructure::GLLeg2(float Qn_1, float Qn_2, float Qn_3) const {
 void StarlETHStructure::GLLeg3(float Qn_1, float Qn_2, float Qn_3) const {
 	glRotatef(180,0,0,1);
 	glRotatef(Qn_1,1,0,0);
-	/*glPushMatrix();
-		glCallList(GL_LEG_SHEET1);
-		glTranslatef(-2.14*0.254,0,0.49*0.254);
-		glRotatef(90,1,0,0);
-		glRotatef(180,0,1,0);
-		glRotatef(90,0,0,1);
-		glCallList(GL_LEG_SHEET2);
-	glPopMatrix();*/
+	glPushMatrix();
+		glTranslatef(0,0,0.-0.3*0.254);
+		glRotatef(-90,0,1,0);
+		glCallList(GL_HIP);
+	glPopMatrix();
 	
 	glRotatef(90,1,0,0);
 	glRotatef(90,0,0,1);
@@ -339,30 +318,21 @@ void StarlETHStructure::GLLeg3(float Qn_1, float Qn_2, float Qn_3) const {
 	glPushMatrix();
 		glCallList(GL_THIGH);
 		glTranslatef(STARLETH_SEGMENT2*10,0,-0);
-		glRotatef(Qn_3-90,0,0,1);
+		glRotatef(180,0,1,0);
+		glRotatef(Qn_3,0,0,1);
 		glPushMatrix();
 			glCallList(GL_SHANK);
-			/*glTranslatef(0,0,1.57*0.254);
-			glTranslatef(-7.90*0.254,-0.03*0.254,-0.81*0.254);
-			glRotatef(90,0,1,0);
-			glRotatef(-28.6,1,0,0);
-			glCallList(GL_BASE);
-			glTranslatef(0,0,-0.45*0.254);
-			glCallList(GL_FOOT);*/
 		glPopMatrix();
 	glPopMatrix();
 }
 
 void StarlETHStructure::GLLeg4(float Qn_1, float Qn_2, float Qn_3) const {
 	glRotatef(Qn_1,1,0,0);
-	/*glPushMatrix();
-		glCallList(GL_LEG_SHEET1);
-		glTranslatef(-2.14*0.254,0,0.49*0.254);
-		glRotatef(90,1,0,0);
-		glRotatef(180,0,1,0);
-		glRotatef(90,0,0,1);
-		glCallList(GL_LEG_SHEET2);
-	glPopMatrix();*/
+	glPushMatrix();
+		glTranslatef(0,0,0.-0.3*0.254);
+		glRotatef(-90,0,1,0);
+		glCallList(GL_HIP);
+	glPopMatrix();
 
 	glRotatef(90,1,0,0);
 	glRotatef(90,0,0,1);
@@ -371,16 +341,10 @@ void StarlETHStructure::GLLeg4(float Qn_1, float Qn_2, float Qn_3) const {
 	glPushMatrix();
 		glCallList(GL_THIGH);
 		glTranslatef(STARLETH_SEGMENT2*10,0,-0);
-		glRotatef(Qn_3-90,0,0,1);
+		glRotatef(180,0,1,0);
+		glRotatef(Qn_3,0,0,1);
 		glPushMatrix();
 			glCallList(GL_SHANK);
-			/*glTranslatef(0,0,1.61*0.254);
-			glTranslatef(-7.90*0.254,-0.03*0.254,-0.81*0.254);
-			glRotatef(90,0,1,0);
-			glRotatef(-28.6,1,0,0);
-			glCallList(GL_BASE);
-			glTranslatef(0,0,-0.45*0.254);
-			glCallList(GL_FOOT);*/
 		glPopMatrix();
 	glPopMatrix();
 }

@@ -129,7 +129,7 @@ int main(void)
 	//stworzenie œwiata ODE (sizex x sizey)
 	dynamicWorld = new COdeWorld(sizex,sizey);
 	//ustalenie pozycji fizycznego robota na scenie (x, y, z, rot_x, rot_y, rot_z)
-	dynamicWorld->robotODE->setInitialPosition(0.0,0.6,0.5,0,0,0);
+	dynamicWorld->robotODE->setInitialPosition(-0.6,1.3,0.53,0,0,0);
 	//zainicjowanie œwiata ODE (krok ca³kowania, wczytanie mapy z pliku true/false, sizex x sizey)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 

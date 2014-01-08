@@ -148,7 +148,7 @@ void COdeWorld::DrawGeom(dGeomID g, const dReal *pos, const dReal *R, char corp,
 // Simulation loop
 void COdeWorld::SimStep()
 {
-	for (int i=0;i<robotODE->getLegsNo();i++)
+	/*for (int i=0;i<robotODE->getLegsNo();i++)
 		robotODE->setODEContact(i,false);
     dSpaceCollide(Space, 0, &nearCallback);//ustawia sprawdzanie kolizji
 	//if (time<100) //kopniecie robota
@@ -157,8 +157,9 @@ void COdeWorld::SimStep()
     dWorldQuickStep(World, stepDT); //wykonuje krok symulacji
     dJointGroupEmpty(contactgroup);
 	actual_time += stepDT;//uplywajacy czas symulacji
+	*/
 	
-	//_sleep(1000000);
+	_sleep(1000000);
 	//if (((actual_time>0.1))&&(actual_time<0.2))
 	//	dBodySetForce(robotODE.Object[0].Body, 0, 100, -50);
 	// ustawia wszystkie serwa zgodnie z wartosciami zadanymi
@@ -198,8 +199,8 @@ void COdeWorld::DrawObjects()
 	}
 	else 
 	{
-		for (int bodies = 0/*robotODE->getObjectsNo()-robotODE->getLegsNo()*/;bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
-			DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
+		//for (int bodies = 0/*robotODE->getObjectsNo()-robotODE->getLegsNo()*/;bodies<robotODE->getObjectsNo();bodies++)//rysowanie obiektow
+			//DrawGeom(robotODE->getGeomId(bodies), 0, 0); //rysuje obiekt
 	}
 
 	ground->DrawMesh(foot_groundx,foot_groundy,foot_groundx_def, foot_groundy_def,tx,ty); //rysuje ziemie

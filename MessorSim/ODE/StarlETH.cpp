@@ -538,7 +538,7 @@ void StarlETH::ODEcreateRobot(dWorldID& world, dSpaceID& space, dJointGroupID& j
 		dJointSetUniversalParam(Joints[STARLETH_JOINTS_NO+i], dParamHiStop2, 0.00001*PI/180);
 		dJointSetUniversalParam(Joints[STARLETH_JOINTS_NO+i], dParamFudgeFactor, 0.1);
 		dJointSetUniversalParam(Joints[STARLETH_JOINTS_NO+i], dParamFudgeFactor2, 0.1);
-		dJointSetUniversalParam(Joints[STARLETH_JOINTS_NO+i], dParamFMax, 30.0);
+		dJointSetUniversalParam(Joints[STARLETH_JOINTS_NO+i], dParamFMax, 10.0);
 	}
 
 }
