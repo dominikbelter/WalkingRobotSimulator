@@ -134,8 +134,8 @@ int main(void)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 
 	//stworzenie fizycznej struktury robota 
-	//robot_structure = createMessorRobotStructure();
-	robot_structure = createStarlETHRobotStructure();
+	robot_structure = createMessorRobotStructure();
+	//robot_structure = createStarlETHRobotStructure();
 
 	//stworzenie idealnej mapy terenu - œrodowiska w którym porusza siê robot
 	map = new CIdealMap(dynamicWorld);

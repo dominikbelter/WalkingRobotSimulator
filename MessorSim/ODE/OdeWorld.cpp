@@ -47,8 +47,8 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 COdeWorld::COdeWorld(int sizex, int sizey)
 {
-	//robotODE = createSimRobotHexapod();
-	robotODE = createSimStarlETH();
+	robotODE = createSimRobotHexapod();
+	//robotODE = createSimStarlETH();
 
 	ground = new CGround(5.99,5.99,sizex,sizey,0.36);
 	rec_robot_platform.setDelay(1);//czas co jaki ma byc wywolywane nagrywanie

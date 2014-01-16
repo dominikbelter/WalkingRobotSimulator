@@ -3,8 +3,8 @@
 
 //#define mapa_adres "F:/uczelnia/badania/mapy_symulator/powiekszone300x300/mapa_big1.dat"
 //#define mapa_adres "C:/NOWY_DYSK/uczelnia/badania/mapy_symulator/powiekszone300x300/mapa_big1.dat"
-#define mapa_adres "C:/NOWY_DYSK/uczelnia/badania/mapy_symulator/offlineMap10kalman1.dat"
-//#define mapa_adres ""
+//#define mapa_adres "C:/NOWY_DYSK/uczelnia/badania/mapy_symulator/offlineMap10kalman1.dat"
+#define mapa_adres ""
 #define mapa2_adres ""//"D:/MessorSim/MessorSim/mapy_symulator/powiekszone300x300/mapa5-wiarygodnosc.dat"
 #define mapa3_adres ""//"D:/MessorSim/MessorSim/mapy_symulator/powiekszone300x300/mapa5-wysokosc_pomiar.dat"
 
