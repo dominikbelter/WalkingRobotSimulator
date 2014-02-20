@@ -26,25 +26,25 @@ public:
 
 	//obliczenia wynikajace z kinematyki
 	/// funkcja obliczajaca zmiane katów przy ruchu platformy robota, kazda noga zadaje inny ruch (w odniesieniu do pozycji neutralnej)
-	bool computeRobotKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle);
+	bool computeRobotKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca zmiane katów przy ruchu platformy robota (w odniesieniu do pozycji neutralnej)
-	bool computeRobotKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma,float *angle);
+	bool computeRobotKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca zmiane katow przy ruchu platformy robota, kazda noga zadaje inny ruch
-	bool computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle,float foot_up, int legs);
+	bool computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle,float foot_up, int legs);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ (wzgledem pozycji neutralnej)
-	bool robotKinematic(float x, float y, float z, float alpha, float beta, float gamma,float * angle);
+	bool robotKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ (wzgledem pozycji neutralnej), kazda konczyna moze zadawac inny ruch
-	bool robotKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float * angle);
+	bool robotKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca zmiane katow przy ruchu platformy robota
-	bool computeRobotRelativeKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma,float *angle);
+	bool computeRobotRelativeKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca zmiane katów przy ruchu platformy robota, kazda noga zadaje inny ruch
-	bool computeRobotRelativeKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle);
+	bool computeRobotRelativeKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne
-	bool robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma,float angle[]);
+	bool robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-	bool robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float * angle);
+	bool robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-	bool robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs,float * angle);
+	bool robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs, std::vector<float>& angle);
 	/// przesuwa stope we wspolrzednych globalnych
 	bool setFootPositionGlobal(double globalx, double globaly, double globalz, int legnumber);
 	/// ustawia pozycje stopy w ukladzie konczyny
@@ -54,9 +54,9 @@ public:
 	
 	// ustawienie/odczytanie wartosci zmiennych
 	/// ustawia wartosci katow we wszystkich stawach
-	void setLegs(float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l, float m, float n, float o, float p, float r, float s);
-	/// ustawia wartosci katow we wszystkich stawach
 	void setLegs(float * angles);
+	/// ustawia wartosci katow we wszystkich stawach
+	void setLegs(const std::vector<float> angles);
 	/// ustawia wartosc (value) kata w nodze leg_number i zlaczu joint number
 	void setAngle(unsigned char leg_number, unsigned char joint_number, double value);
 	/// pobiera wartosc kata w nodze leg_number i zlaczu joint_number

@@ -120,7 +120,7 @@ double CRobot_RC::getNeutralAngle(unsigned char leg_number, unsigned char joint_
 }
 
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota, kazda noga zadaje inny ruch (w odniesieniu do pozycji neutralnej)
-bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle)
+bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle)
 {
 //rotacja i translacja platformy
 	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
@@ -155,9 +155,8 @@ bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z,
 	    if ((i==0)||(i==5)) prosta[i] = leg[i].forward_kinematic(0.785,0.41867,-1.9887,part);
 	    if ((i==1)||(i==4)) prosta[i] = leg[i].forward_kinematic(0,0.41867,-1.9887,part);
 	    if ((i==2)||(i==3)) prosta[i] = leg[i].forward_kinematic(-0.785,0.41867,-1.9887,part);
-	    p[i]=inverse*leg[i].start*prosta[i]-prosta[i];
-	    a=prosta[i]+p[i];
-	    if (!leg[i].inverse_kinematic(a.getElement(1,4),a.getElement(2,4),a.getElement(3,4),part,angleTemp))
+	    p[i]=inverse*leg[i].start*prosta[i];
+	    if (!leg[i].inverse_kinematic(p[i].getElement(1,4),p[i].getElement(2,4),p[i].getElement(3,4),part,angleTemp))
 			return false;
 	    angle[i*3]=angleTemp[0]-getAngle(i,0);	angle[i*3+1]=angleTemp[1]-getAngle(i,1);	angle[i*3+2]=angleTemp[2]-getAngle(i,2);
 	}
@@ -165,7 +164,7 @@ bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z,
 }
 
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota (w odniesieniu do pozycji neutralnej)
-bool CRobot_RC::computeRobotKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma,float *angle)
+bool CRobot_RC::computeRobotKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle)
 {
 	float x_ref[6],y_ref[6],z_ref[6],alpha_ref[6],beta_ref[6],gamma_ref[6];
 	for (int i=0;i<6;i++){
@@ -178,7 +177,7 @@ bool CRobot_RC::computeRobotKinematicDeltaAngle(float x, float y, float z, float
 }
 
 /// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ (wzgledem pozycji neutralnej)
-bool CRobot_RC::robotKinematic(float x, float y, float z, float alpha, float beta, float gamma,float * angle)
+bool CRobot_RC::robotKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle)
 {
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
@@ -189,7 +188,7 @@ bool CRobot_RC::robotKinematic(float x, float y, float z, float alpha, float bet
 }
 
 /// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ (wzgledem pozycji neutralnej), kazda konczyna moze zadawac inny ruch
-bool CRobot_RC::robotKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float * angle)
+bool CRobot_RC::robotKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle)
 {
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
@@ -200,7 +199,7 @@ bool CRobot_RC::robotKinematic(float * x, float * y, float * z, float * alpha, f
 }
 
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota
-bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma,float *angle)
+bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle)
 {
 	float x_ref[6],y_ref[6],z_ref[6],alpha_ref[6],beta_ref[6],gamma_ref[6];
 	for (int i=0;i<6;i++){
@@ -214,7 +213,7 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float x, float y, float 
 
 
 /// funkcja obliczajaca zmiane katow przy ruchu platformy robota, kazda noga zadaje inny ruch
-bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle,float foot_up, int legs) {
+bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle,float foot_up, int legs) {
 	//rotacja i translacja platformy
 	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
 
@@ -271,7 +270,7 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float 
 
 
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota, kazda noga zadaje inny ruch
-bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float *angle)
+bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle)
 {
 //rotacja i translacja platformy
 	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
@@ -303,10 +302,7 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, fl
 		inverse = ruch[i]*leg[i].start;
 	    inverse=inverse.inv();
 	    prosta[i] = leg[i].forward_kinematic(getAngle(i,0),getAngle(i,1),getAngle(i,2),part);
-		p[i]=inverse*leg[i].start*prosta[i];//-prosta[i];
-
-//	    a=leg[i].forward_kinematic(getAngle(i,0),getAngle(i,1),getAngle(i,2),part);
-//	    a=a+p[i];
+		p[i]=inverse*leg[i].start*prosta[i];
 	    if (!leg[i].inverse_kinematic(p[i].getElement(1,4),p[i].getElement(2,4),p[i].getElement(3,4),part,angleTemp))
 			return false;
 	    angle[i*3]=angleTemp[0]-getAngle(i,0);	angle[i*3+1]=angleTemp[1]-getAngle(i,1);	angle[i*3+2]=angleTemp[2]-getAngle(i,2);
@@ -315,7 +311,7 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, fl
 }
 
 /// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ
-bool CRobot_RC::robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma,float angle[]){
+bool CRobot_RC::robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle){
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
 	for (int i=0;i<6;i++)
@@ -325,7 +321,7 @@ bool CRobot_RC::robotRelativeKinematic(float x, float y, float z, float alpha, f
 }
 
 /// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-bool CRobot_RC::robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float * angle){
+bool CRobot_RC::robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle){
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
 	for (int i=0;i<6;i++)
@@ -336,7 +332,7 @@ bool CRobot_RC::robotRelativeKinematic(float * x, float * y, float * z, float * 
 
 
 /// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-bool CRobot_RC::robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs, float * angle){
+bool CRobot_RC::robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs, std::vector<float>& angle){
 /*	if (!computeRobotRelativeKinematicDeltaAngleNeutral(x, y, z, alpha, beta, gamma, angle, legs))
 		return false;
 	for (int i=0;i<6;i++)
@@ -347,16 +343,14 @@ bool CRobot_RC::robotRelativeKinematicNeutral(float * x, float * y, float * z, f
 }
 
 /// ustawia wartosci katow we wszystkich stawach
-void CRobot_RC::setLegs(float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l, float m, float n, float o, float p, float r, float s)
-{
-	float control[18]={a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,r,s};
+void CRobot_RC::setLegs(float * angles){
 	for (int i=0;i<6;i++)
 		for (int j=0;j<3;j++)
-			setAngle(i, j, control[i*3+j]);
+			setAngle(i, j, angles[i*3+j]);
 }
 
 /// ustawia wartosci katow we wszystkich stawach
-void CRobot_RC::setLegs(float * angles){
+void CRobot_RC::setLegs(const std::vector<float> angles){
 	for (int i=0;i<6;i++)
 		for (int j=0;j<3;j++)
 			setAngle(i, j, angles[i*3+j]);
@@ -886,7 +880,7 @@ void CRobot_RC::react(float * curr_pos, float * dest_pos, float d_z, float speed
 	///----koniec obliczen wartosci zadanych
 
 	float zeros[6]={0,0,0,0,0,0};
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	///----uwzglednienie rotacji
 	float rota[3];
@@ -911,7 +905,7 @@ void CRobot_RC::react(float * curr_pos, float * dest_pos, float d_z, float speed
 	}
 
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
 
 	float delta_t = max_delta_angle/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
 	int iterator = (int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
@@ -1212,59 +1206,21 @@ bool CRobot_RC::Placefeet(float dz, float speed){
 
 /// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota
 bool CRobot_RC::changePlatformRobot(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel){
-	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
-	bool end=true;
-	do {
-		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
-		if (s_increase*2<max_delta_angle) {//jezeli droga pokonana podczas rozpedzania i chamowania jest mniejsza od calej drogi - profil trapezowy
-			delta_t = (max_delta_angle-s_increase*2)/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
-			end = false;
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
+	float delta_t = max_delta_angle/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
+	int iter_no = delta_t/SERVO_DELAY_RC;
+	for (int i=1;i<=iter_no;i++){
+		if (!robotRelativeKinematic(x/float(iter_no), y/float(iter_no), z/float(iter_no), alpha/float(iter_no), beta/float(iter_no), gamma/float(iter_no), delta_angle)){
+			return false;
 		}
-		else
-			accel-=1;
-	} while(end);
-	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
-	int iterator = 2*(accel-1)+(int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
-	float accel_speed=speed/float(accel);
-	float s=0; float delta_s=0;
-//	double deltay=0;
-	for (int i=0; i<accel-1;i++){//rozpedzanie
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotRelativeKinematic(x*s/max_delta_angle, y*s/max_delta_angle, z*s/max_delta_angle, alpha*s/max_delta_angle, beta*s/max_delta_angle, gamma*s/max_delta_angle, delta_angle))
-			return false;
 		setLegs(delta_angle);
-		sendAngles(accel_speed);
+		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
-		accel_speed+=speed/float(accel);
-		delta_s+=s;
-//		deltay+=y*s/max_delta_angle;
-	}
-	if (iterator-2*(accel-1)==0) iterator++;//aby przesunac o brakujaca reszte z dzielenie (problem z rzutowaniem int)
-	float dividor = (max_delta_angle-2*delta_s)/float(iterator-2*(accel-1));//rozwiazanie problemu rzutowania na int
-	for (int i=0; i<iterator-2*(accel-1);i++){//MAX_SPEED_RC
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotRelativeKinematic(x*dividor/max_delta_angle, y*dividor/max_delta_angle, z*dividor/max_delta_angle, alpha*dividor/max_delta_angle, beta*dividor/max_delta_angle, gamma*dividor/max_delta_angle, delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-//		deltay+=y*dividor/max_delta_angle;
-	}
-	for (int i=0; i<accel-1;i++){//hamowanie
-		accel_speed-=speed/float(accel);
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotRelativeKinematic(x*s/max_delta_angle, y*s/max_delta_angle, z*s/max_delta_angle, alpha*s/max_delta_angle, beta*s/max_delta_angle, gamma*s/max_delta_angle, delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-//		deltay+=y*s/max_delta_angle;
 	}
 	return true;
 }
@@ -1307,80 +1263,40 @@ bool CRobot_RC::changePlatformRobotSense(float x, float y, float z, float alpha,
 
 /// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 bool CRobot_RC::changePlatformRobot(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel){
-	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
-	bool end=true;
-	do {
-		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
-		if (s_increase*2<max_delta_angle) {//jezeli droga pokonana podczas rozpedzania i chamowania jest mniejsza od calej drogi - profil trapezowy
-			delta_t = (max_delta_angle-s_increase*2)/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
-			end = false;
-		}
-		else
-			accel-=1;
-	} while(end);
-	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
-	int iterator = 2*(accel-1)+(int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
-	float accel_speed=speed/float(accel);
-	float s=0; float delta_s=0;
-	float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
-	for (int i=0; i<accel-1;i++){//rozpedzanie
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
+	float delta_t = max_delta_angle/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
+	int iter_no = delta_t/SERVO_DELAY_RC;
+	for (int i=1;i<=iter_no;i++){
+		float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
 		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=x[j]*s/max_delta_angle; y_zad[j]=y[j]*s/max_delta_angle; z_zad[j]=z[j]*s/max_delta_angle;
-			alpha_zad[j]=alpha[j]*s/max_delta_angle; beta_zad[j]=beta[j]*s/max_delta_angle; gamma_zad[j]=gamma[j]*s/max_delta_angle;
+			x_zad[j]=x[j]/float(iter_no); y_zad[j]=y[j]/float(iter_no); z_zad[j]=z[j]/float(iter_no);
+			alpha_zad[j]=alpha[j]/float(iter_no); beta_zad[j]=beta[j]/float(iter_no); gamma_zad[j]=gamma[j]/float(iter_no);
 		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
+		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle)){
 			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-		accel_speed+=speed/float(accel);
-		delta_s+=s;
-	}
-	if (iterator-2*(accel-1)==0) iterator++;//aby przesunac o brakujaca reszte z dzielenie (problem z rzutowaniem int)
-	float dividor = (max_delta_angle-2*delta_s)/float(iterator-2*(accel-1));//rozwiazanie problemu rzutowania na int
-	for (int i=0; i<iterator-2*(accel-1);i++){//MAX_SPEED_RC
-		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=x[j]*dividor/max_delta_angle; y_zad[j]=y[j]*dividor/max_delta_angle; z_zad[j]=z[j]*dividor/max_delta_angle;
-			alpha_zad[j]=alpha[j]*dividor/max_delta_angle; beta_zad[j]=beta[j]*dividor/max_delta_angle; gamma_zad[j]=gamma[j]*dividor/max_delta_angle;
 		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
 		setLegs(delta_angle);
-		sendAngles(accel_speed);
+		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
 	}
-	for (int i=0; i<accel-1;i++){//hamowanie
-		accel_speed-=speed/float(accel);
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=x[j]*s/max_delta_angle; y_zad[j]=y[j]*s/max_delta_angle; z_zad[j]=z[j]*s/max_delta_angle;
-			alpha_zad[j]=alpha[j]*s/max_delta_angle; beta_zad[j]=beta[j]*s/max_delta_angle; gamma_zad[j]=gamma[j]*s/max_delta_angle;
-		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-	}	return true;
+	return true;
 }
 
 /// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 /// konczyny, ktore sa w powietrzu poruszaja sie wzgledem pozycji neutralnej
 bool CRobot_RC::changePlatformRobotNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float foot_up, int legs, float speed, int accel){
 	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotRelativeKinematicDeltaAngleNeutral(x, y, z, alpha, beta, gamma, delta_angle,foot_up,legs)) //obliczenie drogi katowej
 		return false;
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
 	bool end=true;
 	do {
 		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
@@ -1513,53 +1429,24 @@ bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum 
 /// uwaga nie używać naprzemiennie wersji jedno i wielowymiarowej - nie będzie dzialalo poprawnie
 /// ze wzgledu na brak znajomosci poprzedniej pozycji platformy (TODO) lub nalezy konczyc ruch w pozycji neutralnej
 bool CRobot_RC::changePlatform(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel){
-	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
-	bool end=true;
-	do {
-		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
-		if (s_increase*2<max_delta_angle) {//jezeli droga pokonana podczas rozpedzania i chamowania jest mniejsza od calej drogi - profil trapezowy
-			delta_t = (max_delta_angle-s_increase*2)/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
-			end = false;
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
+	float delta_t = max_delta_angle/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
+	int iter_no = delta_t/SERVO_DELAY_RC;
+	for (int i=1;i<=iter_no;i++){
+		float div = float(i)/float(iter_no);
+		if (!robotKinematic(x*div + robot_platform_pos[0]*(1-div), y*div + robot_platform_pos[1]*(1-div), z*div + robot_platform_pos[2]*(1-div), alpha*div + robot_platform_pos[3]*(1-div), beta*div + robot_platform_pos[4]*(1-div), gamma*div + robot_platform_pos[5]*(1-div), delta_angle)){
+			div = float(i-1)/float(iter_no);
+			robot_platform_pos[0]=x*div + robot_platform_pos[0]*(1-div); robot_platform_pos[1]=y*div + robot_platform_pos[1]*(1-div); robot_platform_pos[2]=z*div + robot_platform_pos[2]*(1-div);
+			robot_platform_pos[3]=alpha*div + robot_platform_pos[3]*(1-div); robot_platform_pos[4]=beta*div + robot_platform_pos[4]*(1-div); robot_platform_pos[5]=gamma*div + robot_platform_pos[5]*(1-div);
+			return false;
 		}
-		else
-			accel-=1;
-	} while(end);
-	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
-	int iterator = 2*(accel-1)+(int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
-	float accel_speed=speed/float(accel);
-	float s=0; float delta_s=0;
-	for (int i=0; i<accel-1;i++){//rozpedzanie
-		s+=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotKinematic((x*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[0], (y*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[1], (z*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[2], (alpha*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[3], (beta*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[4], (gamma*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[5], delta_angle))
-			return false;
 		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-		accel_speed+=speed/float(accel);
-	}
-	if (iterator-2*(accel-1)==0) iterator++;//aby przesunac o brakujaca reszte z dzielenie (problem z rzutowaniem int)
-	float dividor = (max_delta_angle-2*s)/float(iterator-2*(accel-1));//rozwiazanie problemu rzutowania na int
-	for (int i=0; i<iterator-2*(accel-1);i++){//MAX_SPEED_RC
-		s+=dividor;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotKinematic(x*s/max_delta_angle+(1-(s/max_delta_angle))*robot_platform_pos[0], (y*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[1], (z*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[2], (alpha*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[3], (beta*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[4], (gamma*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[5], delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-	}
-	for (int i=0; i<accel-1;i++){//hamowanie
-		accel_speed-=speed/float(accel);
-		s+=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		if (!robotKinematic(x*s/max_delta_angle+(1-(s/max_delta_angle))*robot_platform_pos[0], (y*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[1], (z*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[2], (alpha*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[3], (beta*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[4], (gamma*s/max_delta_angle)+(1-(s/max_delta_angle))*robot_platform_pos[5], delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
+		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
 	}
 	robot_platform_pos[0]=x; robot_platform_pos[1]=y; robot_platform_pos[2]=z;
@@ -1581,72 +1468,32 @@ bool CRobot_RC::stabilizePlatform(float speed, int accel){
 /// uwaga nie używać naprzemiennie wersji jedno i wielowymiarowej - nie będzie dzialalo poprawnie
 /// ze wzgledu na brak znajomosci poprzedniej pozycji platformy (TODO) lub nalezy konczyc ruch w pozycji neutralnej
 bool CRobot_RC::changePlatform(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel){
-	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
-	bool end=true;
-	do {
-		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
-		if (s_increase*2<max_delta_angle) {//jezeli droga pokonana podczas rozpedzania i chamowania jest mniejsza od calej drogi - profil trapezowy
-			delta_t = (max_delta_angle-s_increase*2)/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
-			end = false;
-		}
-		else
-			accel-=1;
-	} while(end);
-	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
-	int iterator = 2*(accel-1)+(int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
-	float accel_speed=speed/float(accel);
-	float s=0; float delta_s=0;
-	float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
-	for (int i=0; i<accel-1;i++){//rozpedzanie
-		s+=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
+	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
+
+	float delta_t = max_delta_angle/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
+	int iter_no = delta_t/SERVO_DELAY_RC;
+	for (int i=1;i<=iter_no;i++){
+		float div = float(i)/float(iter_no);
+		float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
 		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=(x[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*x_ref_prev[j]; y_zad[j]=(y[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*y_ref_prev[j]; z_zad[j]=(z[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*z_ref_prev[j];
-			alpha_zad[j]=(alpha[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*alpha_ref_prev[j]; beta_zad[j]=(beta[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*beta_ref_prev[j]; gamma_zad[j]=(gamma[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*gamma_ref_prev[j];
+			x_zad[j]=x[j]*div; y_zad[j]=y[j]*div; z_zad[j]=z[j]*div;
+			alpha_zad[j]=alpha[j]*div; beta_zad[j]=beta[j]*div; gamma_zad[j]=gamma[j]*div;
 		}
 		if (!robotKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
 			return false;
 		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-		accel_speed+=speed/float(accel);
-	}
-	if (iterator-2*(accel-1)==0) iterator++;//aby przesunac o brakujaca reszte z dzielenie (problem z rzutowaniem int)
-	float dividor = (max_delta_angle-2*s)/float(iterator-2*(accel-1));//rozwiazanie problemu rzutowania na int
-	for (int i=0; i<iterator-2*(accel-1);i++){//MAX_SPEED_RC
-		s+=dividor;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=(x[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*x_ref_prev[j]; y_zad[j]=(y[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*y_ref_prev[j]; z_zad[j]=(z[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*z_ref_prev[j];
-			alpha_zad[j]=(alpha[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*alpha_ref_prev[j]; beta_zad[j]=(beta[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*beta_ref_prev[j]; gamma_zad[j]=(gamma[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*gamma_ref_prev[j];
-		}
-		if (!robotKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
+		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
 	}
-	for (int i=0; i<accel-1;i++){//hamowanie
-		accel_speed-=speed/float(accel);
-		s+=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=(x[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*x_ref_prev[j]; y_zad[j]=(y[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*y_ref_prev[j]; z_zad[j]=(z[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*z_ref_prev[j];
-			alpha_zad[j]=(alpha[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*alpha_ref_prev[j]; beta_zad[j]=(beta[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*beta_ref_prev[j]; gamma_zad[j]=(gamma[j]*s/max_delta_angle)+(1-(s/max_delta_angle))*gamma_ref_prev[j];
-		}
-		if (!robotKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
-		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-	}
-	for (int i=0;i<6;i++){
-		x_ref_prev[i]=x[i]; y_ref_prev[i]=y[i]; z_ref_prev[i]=z[i];
-		alpha_ref_prev[i]=alpha[i]; beta_ref_prev[i]=beta[i]; gamma_ref_prev[i]=gamma[i];
-	}
+	//for (int i=0;i<6;i++){
+	//	x_ref_prev[i]=x[i]; y_ref_prev[i]=y[i]; z_ref_prev[i]=z[i];
+	//	alpha_ref_prev[i]=alpha[i]; beta_ref_prev[i]=beta[i]; gamma_ref_prev[i]=gamma[i];
+	//}
 	return true;
 }
 

@@ -54,8 +54,6 @@ public:
 	
 	// ustawienie/odczytanie wartosci zmiennych
 	/// ustawia wartosci katow we wszystkich stawach
-	void setLegs(float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l, float m, float n, float o, float p, float r, float s);
-	/// ustawia wartosci katow we wszystkich stawach
 	void setLegs(float * angles);
 	/// ustawia wartosc (value) kata w nodze leg_number i zlaczu joint number
 	void setAngle(unsigned char leg_number, unsigned char joint_number, double value);

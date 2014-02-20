@@ -400,15 +400,6 @@ bool CRobot::robotRelativeKinematicNeutral(float * x, float * y, float * z, floa
 }
 
 /// ustawia wartosci katow we wszystkich stawach
-void CRobot::setLegs(float a, float b, float c, float d, float e, float f, float g, float h, float i, float j, float k, float l, float m, float n, float o, float p, float r, float s)
-{
-	float control[18]={a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,r,s};
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			setAngle(i, j, control[i*3+j]);
-}
-
-/// ustawia wartosci katow we wszystkich stawach
 void CRobot::setLegs(float * angles){
 	for (int i=0;i<6;i++)
 		for (int j=0;j<3;j++)

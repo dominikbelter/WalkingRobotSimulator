@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -33,6 +34,8 @@ float abs(float value);
 int findMax(float *max, int size, float * max_value);
 ///znajduje maksimum w tablicy float (wartosc bezwzgledna)
 int findAbsMax(float *table, int size, float * max_value);
+///znajduje maksimum w tablicy float (wartosc bezwzgledna)
+int findAbsMax(const std::vector<float>& table, float& max_value);
 ///znajduje minimum w tablicy float
 int findMin(float *table, int size, float * max_value);
 ///znajduje minimum w tablicy float (wartosc bezwzgledna)

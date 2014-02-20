@@ -73,6 +73,17 @@ int findAbsMax(float *table, int size, float * max_value){
 	return max_iter;
 }
 
+///znajduje maksimum w tablicy float (wartosc bezwzgledna)
+int findAbsMax(const std::vector<float>& table, float& max_value){
+	int max_iter=0;
+	for(size_t i=1;i<table.size();i++){
+		if (fabs(table[i])>fabs(table[max_iter]))
+			max_iter = i;
+	}
+	max_value=fabs(table[max_iter]);
+	return max_iter;
+}
+
 ///znajduje minimum w tablicy float
 int findMin(float *table, int size, float * max_value){
 	int min_iter=0;

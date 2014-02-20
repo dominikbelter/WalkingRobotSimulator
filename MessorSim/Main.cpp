@@ -60,9 +60,9 @@ void* controller(void*)
 
 	///------DEMO
 	//motion in neutral position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
-	/*rpccaller->movePlatform(0.1,0,0,0,0,0,0.15,1);
-	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.15,1);
-	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.15,1);
+	rpccaller->movePlatform(0.1,0,0,0,0,0,0.45,1);
+	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.45,1);
+	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.95,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
 
 	//motion in current position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
@@ -92,7 +92,7 @@ void* controller(void*)
 	float rot_end[3] = {0.0,0,0.0};
 	float distance2ground = 0.035;//the distance of feet to the ground
 	float map_boundaries[4]={-map->getXsize()/2,map->getXsize()/2,-map->getYsize()/2,map->getYsize()/2};
-	//motion_planner->rrtConnect(pos_end, rot_end, distance2ground, map_boundaries,20);
+	motion_planner->rrtConnect(pos_end, rot_end, distance2ground, map_boundaries,20);
 	motion_planner->robot_platform_traj.savePosition2file("body_path.m");
 	motion_planner->legs_traj[0].savePosition2file("foot0_path.m");
 	motion_planner->legs_traj[1].savePosition2file("foot1_path.m");
@@ -100,8 +100,8 @@ void* controller(void*)
 	motion_planner->legs_traj[3].savePosition2file("foot3_path.m");
 	motion_planner->legs_traj[4].savePosition2file("foot4_path.m");
 	motion_planner->legs_traj[5].savePosition2file("foot5_path.m");
-	//motion_planner->savePath2File("path.txt");
-	motion_planner->loadPathFromFile("path1.txt");
+	motion_planner->savePath2File("path.txt");
+	//motion_planner->loadPathFromFile("path1.txt");
 	motion_planner->executeTrajectory(0.1);
 	///!------DEMO
 
@@ -110,7 +110,7 @@ void* controller(void*)
 	}
 	dynamicWorld->rec_robot_platform.savePosition2file("real_trajectory_pos.m");
 	dynamicWorld->rec_robot_orientation.savePosition2file("real_trajectory_rot.m");
-	*/
+	
 	while(1)
 	{//pêtla SimStep - symulacja fizyki po zakoñczeniu symulacji kroczenia robota
 		dynamicWorld->SimStep();
@@ -129,7 +129,7 @@ int main(void)
 	//stworzenie œwiata ODE (sizex x sizey)
 	dynamicWorld = new COdeWorld(sizex,sizey);
 	//ustalenie pozycji fizycznego robota na scenie (x, y, z, rot_x, rot_y, rot_z)
-	dynamicWorld->robotODE->setInitialPosition(-0.6,1.3,0.53,0,0,0);
+	dynamicWorld->robotODE->setInitialPosition(-0.1,0.1,0.22,0,0,0);
 	//zainicjowanie œwiata ODE (krok ca³kowania, wczytanie mapy z pliku true/false, sizex x sizey)
 	dynamicWorld->InitODE(0.0001,true,sizex,sizey);
 
