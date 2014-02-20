@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{839D702F-AFAF-490E-B353-4EFF2CDF8F67}</ProjectGuid>
+    <RootNamespace>MessorSim</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glut32.lib;ode.lib;coldet.lib;pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="collision_detection\MessorStructure.cpp" />
+    <ClCompile Include="collision_detection\StarlETHStructure.cpp" />
+    <ClCompile Include="functions.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="math\CMat44.cpp" />
+    <ClCompile Include="math\CQuaternion.cpp" />
+    <ClCompile Include="ODE\Ground.cpp" />
+    <ClCompile Include="ODE\IMU.cpp" />
+    <ClCompile Include="ODE\OdeGeom.cpp" />
+    <ClCompile Include="ODE\hexapodRobot.cpp" />
+    <ClCompile Include="ODE\OdeWorld.cpp" />
+    <ClCompile Include="math\punctum.cpp" />
+    <ClCompile Include="math\vector.cpp" />
+    <ClCompile Include="collision_detection\3dsloader.cpp" />
+    <ClCompile Include="collision_detection\coldet.cpp" />
+    <ClCompile Include="collision_detection\objects3DS.cpp" />
+    <ClCompile Include="collision_detection\terrain.cpp" />
+    <ClCompile Include="ODE\StarlETH.cpp" />
+    <ClCompile Include="openGL\light.cpp" />
+    <ClCompile Include="openGL\object.cpp" />
+    <ClCompile Include="openGL\openGLmain.cpp" />
+    <ClCompile Include="openGL\openGLview.cpp" />
+    <ClCompile Include="openGL\zpr.cpp" />
+    <ClCompile Include="motion_planner\Crrt.cpp" />
+    <ClCompile Include="motion_planner\CrrtNode.cpp" />
+    <ClCompile Include="motion_planner\foot.cpp" />
+    <ClCompile Include="motion_planner\footPlanner.cpp" />
+    <ClCompile Include="motion_planner\joint.cpp" />
+    <ClCompile Include="motion_planner\leg.cpp" />
+    <ClCompile Include="motion_planner\micropather.cpp" />
+    <ClCompile Include="motion_planner\motion_planner.cpp" />
+    <ClCompile Include="motion_planner\pathPlanner.cpp" />
+    <ClCompile Include="motion_planner\robot.cpp" />
+    <ClCompile Include="robot_controller\foot_rc.cpp" />
+    <ClCompile Include="robot_controller\gaits_rc.cpp" />
+    <ClCompile Include="robot_controller\joint_rc.cpp" />
+    <ClCompile Include="robot_controller\leg_rc.cpp" />
+    <ClCompile Include="robot_controller\robot_rc.cpp" />
+    <ClCompile Include="robot_controller\RPCCaller.cpp" />
+    <ClCompile Include="mapping\idealMap.cpp" />
+    <ClCompile Include="mapping\laser_rangefinder.cpp" />
+    <ClCompile Include="mapping\localMap.cpp" />
+    <ClCompile Include="mapping\mapRPCCaller.cpp" />
+    <ClCompile Include="mapping\pureScan.cpp" />
+    <ClCompile Include="mapping\raytracing.cpp" />
+    <ClCompile Include="mapping\MapFilter\gridMap_filter.cpp" />
+    <ClCompile Include="mapping\MapFilter\pureScan_filter.cpp" />
+    <ClCompile Include="position_recorder\PositionRecorder.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="collision_detection\MessorStructure.h" />
+    <ClInclude Include="collision_detection\StarlETHStructure.h" />
+    <ClInclude Include="functions.h" />
+    <ClInclude Include="math\CMat44.h" />
+    <ClInclude Include="math\CQuaternion.h" />
+    <ClInclude Include="ODE\SimRobot.h" />
+    <ClInclude Include="ODE\StarlETH.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="ODE\Ground.h" />
+    <ClInclude Include="ODE\IMU.h" />
+    <ClInclude Include="ODE\OdeGeom.h" />
+    <ClInclude Include="ODE\hexapodRobot.h" />
+    <ClInclude Include="ODE\OdeWorld.h" />
+    <ClInclude Include="math\punctum.h" />
+    <ClInclude Include="math\vector.h" />
+    <ClInclude Include="collision_detection\3dsloader.h" />
+    <ClInclude Include="collision_detection\coldet.h" />
+    <ClInclude Include="collision_detection\objects3DS.h" />
+    <ClInclude Include="collision_detection\RobotStructure.h" />
+    <ClInclude Include="collision_detection\terrain.h" />
+    <ClInclude Include="collision_detection\types.h" />
+    <ClInclude Include="openGL\light.h" />
+    <ClInclude Include="openGL\object.h" />
+    <ClInclude Include="openGL\openGLmain.h" />
+    <ClInclude Include="openGL\openGLview.h" />
+    <ClInclude Include="openGL\zpr.h" />
+    <ClInclude Include="motion_planner\Crrt.h" />
+    <ClInclude Include="motion_planner\CrrtNode.h" />
+    <ClInclude Include="motion_planner\foot.h" />
+    <ClInclude Include="motion_planner\footPlanner.h" />
+    <ClInclude Include="motion_planner\joint.h" />
+    <ClInclude Include="motion_planner\leg.h" />
+    <ClInclude Include="motion_planner\micropather.h" />
+    <ClInclude Include="motion_planner\motion_planner.h" />
+    <ClInclude Include="motion_planner\pathPlanner.h" />
+    <ClInclude Include="motion_planner\robot.h" />
+    <ClInclude Include="robot_controller\foot_rc.h" />
+    <ClInclude Include="robot_controller\gaits_rc.h" />
+    <ClInclude Include="robot_controller\joint_rc.h" />
+    <ClInclude Include="robot_controller\leg_rc.h" />
+    <ClInclude Include="robot_controller\robot_rc.h" />
+    <ClInclude Include="robot_controller\RPCCaller.h" />
+    <ClInclude Include="mapping\idealMap.h" />
+    <ClInclude Include="mapping\laser_rangefinder.h" />
+    <ClInclude Include="mapping\localMap.h" />
+    <ClInclude Include="mapping\mapRPCCaller.h" />
+    <ClInclude Include="mapping\mapStruct.h" />
+    <ClInclude Include="mapping\pureScan.h" />
+    <ClInclude Include="mapping\raytracing.h" />
+    <ClInclude Include="mapping\MapFilter\gridMap_filter.h" />
+    <ClInclude Include="mapping\MapFilter\pureScan_filter.h" />
+    <ClInclude Include="position_recorder\PositionRecorder.h" />
+    <ClInclude Include="SimDefs\simDefs.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
