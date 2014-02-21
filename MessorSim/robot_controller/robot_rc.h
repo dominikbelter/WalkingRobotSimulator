@@ -11,6 +11,9 @@
 const unsigned char MAX_SPEED_RC = 114;  ///maksymalna predkosc serwomechanizmu (wartosc wysylana do serwa)
 const float SERVO_DELAY_RC = (const float) 0.029;  ///przerwa pomiedzy wysterowaniem tej samej nogi (czas wysterowania wszystkich nóg), wynika z wlasciwosci systemu sterowania, jezeli w kazdym cyklu odczytywany jest prad w konczynie ten czas sie wydluza
 const float MAX_SERVO_SPEED_RC = (const float) 4.1568; /// [rad/s] maksymalna predkosc serwomechanizmu przy napieciu 7.4V 
+const int LEGS_NO = 6; // number of legs
+const int JOINTS_PER_LEG = 3; // joints per leg
+const int JOINTS_NO = LEGS_NO*JOINTS_PER_LEG; // total joints no
 
 class CRobot_RC
 {
@@ -43,8 +46,6 @@ public:
 	bool robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
 	bool robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle);
-	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-	bool robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs, std::vector<float>& angle);
 	/// przesuwa stope we wspolrzednych globalnych
 	bool setFootPositionGlobal(double globalx, double globaly, double globalz, int legnumber);
 	/// ustawia pozycje stopy w ukladzie konczyny
@@ -105,8 +106,6 @@ public:
 	bool changePlatformRobot(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 	bool changePlatformRobot(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel);
-	/// konczyny, ktore sa w powietrzu poruszaja sie wzgledem pozycji neutralnej
-	bool changePlatformRobotNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float foot_up, int legs, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami parzystymi lub nieparzystymi
 	bool changePlatformRobotTripod(float x, float y, float z, float alpha, float beta, float gamma, int even, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami ktore znajduja sie na podlozu

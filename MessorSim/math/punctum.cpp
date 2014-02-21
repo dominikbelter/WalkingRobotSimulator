@@ -22,10 +22,10 @@ CPunctum CPunctum::operator= (CMat44 param){
 
 /// convert matrix to quaternion
 void CPunctum::mat2quat(){
-    q1 = sqrt( fmax( 0, 1 + m11 + m22 + m33 ) ) / 2;
-    q2 = sqrt( fmax( 0, 1 + m11 - m22 - m33 ) ) / 2;
-    q3 = sqrt( fmax( 0, 1 - m11 + m22 - m33 ) ) / 2;
-    q4 = sqrt( fmax( 0, 1 - m11 - m22 + m33 ) ) / 2;
+    q1 = sqrt( max( 0.0, 1.0 + m11 + m22 + m33 ) ) / 2;
+    q2 = sqrt( max( 0.0, 1.0 + m11 - m22 - m33 ) ) / 2;
+    q3 = sqrt( max( 0.0, 1.0 - m11 + m22 - m33 ) ) / 2;
+    q4 = sqrt( max( 0.0, 1.0 - m11 - m22 + m33 ) ) / 2;
 
     q2 = copySign( q2, m32 - m23 );
     q3 = copySign( q3, m13 - m31 );

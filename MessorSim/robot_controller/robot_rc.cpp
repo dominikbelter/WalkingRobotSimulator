@@ -10,7 +10,7 @@ CRobot_RC::CRobot_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure)
 	this->robot_structure=robot_structure;
 	//leg[0].reset(lenght,-width_min,0,0,0,0);
 	//wyrazenie poczatkow nog w ukladzie lokalnym robota
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		robot_platform_pos[i]=0;
 		x_ref_prev[i]=0; y_ref_prev[i]=0; z_ref_prev[i]=0;
 		alpha_ref_prev[i]=0; beta_ref_prev[i]=0; gamma_ref_prev[i]=0;
@@ -43,12 +43,16 @@ CRobot_RC::CRobot_RC(COdeWorld* dynamicWorld, RobotStructure* robot_structure)
 	leg[5].start.setElement(-width_min,1,4);
 	leg[5].start.setElement(lenght,2,4);
 
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 	    	if ((i==0)||(i==5)) leg[i].zero_angle[0]=(float)0.785;
 		if ((i==1)||(i==4)) leg[i].zero_angle[0]=(float)0;
 	    	if ((i==2)||(i==3)) leg[i].zero_angle[0]=(float)-0.785;
-		leg[i].zero_angle[1]=(float)0.31867;
-		leg[i].zero_angle[2]=(float)-1.4887;
+		leg[i].zero_angle[1]=(float)0.41867;
+		leg[i].zero_angle[2]=(float)-1.9887;
+	}
+	for (int i=0;i<LEGS_NO;i++){
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			leg[i].setAngle(j,leg[i].zero_angle[j]);
 	}
 
 	robot_position[0]=0;
@@ -79,15 +83,15 @@ CRobot_RC::~CRobot_RC(void)
 
 //real robot initialization
 void CRobot_RC::initializeRealRobot(){
-	float x[6]={-0.05,-0.05,-0.05,0.05,0.05,0.05};
-	float y[6]={0.0,0.0,0.0,0.0,0.0,0.0};
-	float z[6]={-0.18,-0.18,-0.18,-0.18,-0.18,-0.18};
-	float alfa[6]={0,0,0,0,0,0};
-	float beta[6]={0,0,0,0,0,0};
-	float gamma[6]={0,0,0,0,0,0};
+	float x[LEGS_NO]={-0.05,-0.05,-0.05,0.05,0.05,0.05};
+	float y[LEGS_NO]={0.0,0.0,0.0,0.0,0.0,0.0};
+	float z[LEGS_NO]={-0.18,-0.18,-0.18,-0.18,-0.18,-0.18};
+	float alfa[LEGS_NO]={0,0,0,0,0,0};
+	float beta[LEGS_NO]={0,0,0,0,0,0};
+	float gamma[LEGS_NO]={0,0,0,0,0,0};
 
 	//----------powolne ustawienie do pozycji neutralnej
-	float angles[18];
+	float angles[JOINTS_NO];
 	x[0]=0;x[1]=0;x[2]=0;x[3]=0;x[4]=0;x[5]=0;
 	y[0]=0;y[1]=0;y[2]=0;y[3]=0;y[4]=0;y[5]=0;
 	z[0]=0.05;z[1]=0;z[2]=0.05;z[3]=0;z[4]=0.05;z[5]=0;
@@ -123,9 +127,9 @@ double CRobot_RC::getNeutralAngle(unsigned char leg_number, unsigned char joint_
 bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle)
 {
 //rotacja i translacja platformy
-	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
+	CPunctum ruch[LEGS_NO],rotX[LEGS_NO],rotY[LEGS_NO],rotZ[LEGS_NO];
 
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<LEGS_NO;i++) {
 	    rotX[i].setIdentity();	rotY[i].setIdentity();	rotZ[i].setIdentity();
 
 	    rotX[i].setElement(cos(alpha[i]),2,2);	rotX[i].setElement(-sin(alpha[i]),2,3);
@@ -141,13 +145,13 @@ bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z,
 	    ruch[i].setElement(x[i],1,4);	ruch[i].setElement(y[i],2,4);	ruch[i].setElement(z[i],3,4);
 	}
 //position poczatkow nog po przemieszczeniu platformy
-	CPunctum p[6];
-	CPunctum inverse,prosta[6];
+	CPunctum p[LEGS_NO];
+	CPunctum inverse,prosta[LEGS_NO];
 	int part;
 	float angleTemp[3];
 	CPunctum a;
 
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 	    if (i<3) part = 1;
 	    else part = 0;
 		inverse = ruch[i]*leg[i].start;
@@ -166,11 +170,9 @@ bool CRobot_RC::computeRobotKinematicDeltaAngle(float * x, float * y, float * z,
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota (w odniesieniu do pozycji neutralnej)
 bool CRobot_RC::computeRobotKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle)
 {
-	float x_ref[6],y_ref[6],z_ref[6],alpha_ref[6],beta_ref[6],gamma_ref[6];
-	for (int i=0;i<6;i++){
-	    x_ref[i]=x; y_ref[i]=y; z_ref[i]=z;
-	    alpha_ref[i]=alpha; beta_ref[i]=beta; gamma_ref[i]=gamma;
-	}
+	float x_ref[LEGS_NO],y_ref[LEGS_NO],z_ref[LEGS_NO],alpha_ref[LEGS_NO],beta_ref[LEGS_NO],gamma_ref[LEGS_NO];
+	std::fill(&x_ref[0], &x_ref[LEGS_NO],x); std::fill(&y_ref[0], &y_ref[LEGS_NO],y); std::fill(&z_ref[0], &z_ref[LEGS_NO],z);
+	std::fill(&alpha_ref[0], &alpha_ref[LEGS_NO],alpha); std::fill(&beta_ref[0], &beta_ref[LEGS_NO],beta); std::fill(&gamma_ref[0], &gamma_ref[LEGS_NO],gamma);
 	if (!computeRobotKinematicDeltaAngle(x_ref, y_ref, z_ref, alpha_ref, beta_ref, gamma_ref, angle))
 		return false;
 	return true;
@@ -181,9 +183,9 @@ bool CRobot_RC::robotKinematic(float x, float y, float z, float alpha, float bet
 {
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			angle[i*3+j]+=getAngle(i,j);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			angle[i*JOINTS_PER_LEG+j]+=getAngle(i,j);
 	return true;
 }
 
@@ -192,20 +194,18 @@ bool CRobot_RC::robotKinematic(float * x, float * y, float * z, float * alpha, f
 {
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			angle[i*3+j]+=getAngle(i,j);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			angle[i*JOINTS_PER_LEG+j]+=getAngle(i,j);
 	return true;
 }
 
 /// funkcja obliczajaca zmiane katów przy ruchu platformy robota
 bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle)
 {
-	float x_ref[6],y_ref[6],z_ref[6],alpha_ref[6],beta_ref[6],gamma_ref[6];
-	for (int i=0;i<6;i++){
-	    x_ref[i]=x; y_ref[i]=y; z_ref[i]=z;
-	    alpha_ref[i]=alpha; beta_ref[i]=beta; gamma_ref[i]=gamma;
-	}
+	float x_ref[LEGS_NO],y_ref[LEGS_NO],z_ref[LEGS_NO],alpha_ref[LEGS_NO],beta_ref[LEGS_NO],gamma_ref[LEGS_NO];
+	std::fill(&x_ref[0], &x_ref[LEGS_NO],x); std::fill(&y_ref[0], &y_ref[LEGS_NO],y); std::fill(&z_ref[0], &z_ref[LEGS_NO],z);
+	std::fill(&alpha_ref[0], &alpha_ref[LEGS_NO],alpha); std::fill(&beta_ref[0], &beta_ref[LEGS_NO],beta); std::fill(&gamma_ref[0], &gamma_ref[LEGS_NO],gamma);
 	if (!computeRobotRelativeKinematicDeltaAngle(x_ref, y_ref, z_ref, alpha_ref, beta_ref, gamma_ref, angle))
 		return false;
 	return true;
@@ -215,9 +215,9 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float x, float y, float 
 /// funkcja obliczajaca zmiane katow przy ruchu platformy robota, kazda noga zadaje inny ruch
 bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle,float foot_up, int legs) {
 	//rotacja i translacja platformy
-	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
+	CPunctum ruch[LEGS_NO],rotX[LEGS_NO],rotY[LEGS_NO],rotZ[LEGS_NO];
 
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<LEGS_NO;i++) {
 	    rotX[i].setIdentity();	rotY[i].setIdentity();	rotZ[i].setIdentity();
 
 	    rotX[i].setElement(cos(alpha[i]),2,2);	rotX[i].setElement(-sin(alpha[i]),2,3);
@@ -233,13 +233,13 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float 
 	    ruch[i].setElement(x[i],1,4);	ruch[i].setElement(y[i],2,4);	ruch[i].setElement(z[i],3,4);
 	}
 //position startatkow nog po przemieszczeniu platformy
-	CPunctum p[6];
-	CPunctum inverse,prosta[6];
+	CPunctum p[LEGS_NO];
+	CPunctum inverse,prosta[LEGS_NO];
 	int part;
 	double angleTemp[3];
 	CPunctum a;
 
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 	    if (i<3) part=1;
 	    else part=0;
 		inverse = ruch[i]*leg[i].start;
@@ -273,7 +273,7 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngleNeutral(float * x, float 
 bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle)
 {
 //rotacja i translacja platformy
-	CPunctum ruch[6],rotX[6],rotY[6],rotZ[6];
+	CPunctum ruch[LEGS_NO],rotX[LEGS_NO],rotY[LEGS_NO],rotZ[LEGS_NO];
 
 	for (int i=0;i<6;i++) {
 	    rotX[i].setIdentity();	rotY[i].setIdentity();	rotZ[i].setIdentity();
@@ -291,12 +291,12 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, fl
 	    ruch[i].setElement(x[i],1,4);	ruch[i].setElement(y[i],2,4);	ruch[i].setElement(z[i],3,4);
 	}
 //position startatkow nog po przemieszczeniu platformy
-	CPunctum p[6];
-	CPunctum inverse,prosta[6];
+	CPunctum p[LEGS_NO];
+	CPunctum inverse,prosta[LEGS_NO];
 	int part;
 	double angleTemp[3];
 
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 	    if (i<3) part=1;
 	    else part=-1;
 		inverse = ruch[i]*leg[i].start;
@@ -314,9 +314,9 @@ bool CRobot_RC::computeRobotRelativeKinematicDeltaAngle(float * x, float * y, fl
 bool CRobot_RC::robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma, std::vector<float>& angle){
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			angle[i*3+j]+=getAngle(i, j);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			angle[i*JOINTS_PER_LEG+j]+=getAngle(i, j);
 	return true;
 }
 
@@ -324,36 +324,24 @@ bool CRobot_RC::robotRelativeKinematic(float x, float y, float z, float alpha, f
 bool CRobot_RC::robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, std::vector<float>& angle){
 	if (!computeRobotRelativeKinematicDeltaAngle(x, y, z, alpha, beta, gamma, angle))
 		return false;
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			angle[i*3+j]+=getAngle(i, j);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			angle[i*JOINTS_PER_LEG+j]+=getAngle(i, j);
 	return true;
-}
-
-
-/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-bool CRobot_RC::robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs, std::vector<float>& angle){
-/*	if (!computeRobotRelativeKinematicDeltaAngleNeutral(x, y, z, alpha, beta, gamma, angle, legs))
-		return false;
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			angle[i*3+j]+=getAngle(i, j);*/
-	return true;
-	
 }
 
 /// ustawia wartosci katow we wszystkich stawach
 void CRobot_RC::setLegs(float * angles){
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			setAngle(i, j, angles[i*3+j]);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			setAngle(i, j, angles[i*JOINTS_PER_LEG+j]);
 }
 
 /// ustawia wartosci katow we wszystkich stawach
 void CRobot_RC::setLegs(const std::vector<float> angles){
-	for (int i=0;i<6;i++)
-		for (int j=0;j<3;j++)
-			setAngle(i, j, angles[i*3+j]);
+	for (int i=0;i<LEGS_NO;i++)
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			setAngle(i, j, angles[i*JOINTS_PER_LEG+j]);
 }
 
 /// zmienia wartosci zadane w stawach danej konczyny, katy podawane sa w kolejnosci od korpusu
@@ -363,8 +351,7 @@ bool CRobot_RC::changeLegAngles(unsigned char leg_no, float alpha, float beta, f
 	leg[leg_no].computeMoveDeltaAngle(alpha,beta,gamma,delta_angle);
 	int max = findMax(delta_angle, 3, &max_value);
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
-	float delta_t = max_value/real_speed;
-	int iterator = (int)(delta_t/SERVO_DELAY_RC); // znajdujemsetServoy liczbe iteracji potrzebnych na wykonanie ruchu
+	int iterator = (int)((max_value/real_speed)/SERVO_DELAY_RC); // znajdujemsetServoy liczbe iteracji potrzebnych na wykonanie ruchu
 	for (int i=1; i<=iterator;i++){
 		leg[leg_no].setAngle(0,leg[leg_no].getAngle(0)+(delta_angle[0]/(float) iterator));		
 		leg[leg_no].setAngle(1,leg[leg_no].getAngle(1)+(delta_angle[1]/(float) iterator));		
@@ -378,12 +365,11 @@ bool CRobot_RC::changeLegAngles(unsigned char leg_no, float alpha, float beta, f
 
 /// oblicza predkosci w wezlach danej nogi
 double CRobot_RC::computeLegSpeed(char leg_no, float speed, std::vector<robsim::float_type>& leg_speed){
-	float delta_angle[3];
-	unsigned char max;
-	for(int i=0;i<3;i++) {delta_angle[i]=fabs(leg[leg_no].getAngle(i)-leg[leg_no].getPreviousAngle(i));}
+	std::vector<float> delta_angle(JOINTS_PER_LEG, 0);
+	for(int i=0;i<JOINTS_PER_LEG;i++) {delta_angle[i]=fabs(leg[leg_no].getAngle(i)-leg[leg_no].getPreviousAngle(i));}
 	float max_value;
-	max = findMax(delta_angle, 3, &max_value);
-	for (int i=0;i<3;i++) {
+	int max = findMax(delta_angle, max_value);
+	for (int i=0;i<JOINTS_PER_LEG;i++) {
 		leg_speed[i] = (robsim::float_type)(((delta_angle[i]/delta_angle[max])*speed)*MAX_SPEED_RC)+1;
 	}
 	return 0;
@@ -393,24 +379,15 @@ double CRobot_RC::computeLegSpeed(char leg_no, float speed, std::vector<robsim::
 double CRobot_RC::sendAngles(float speed){
 	std::vector<robsim::float_type> leg_ref(3,0);
 	std::vector<robsim::float_type> leg_speed(3,0);
-	computeLegSpeed(0,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(0, leg_speed);
-	computeLegSpeed(1,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(1, leg_speed);
-	computeLegSpeed(2,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(2, leg_speed);
-	computeLegSpeed(3,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(3, leg_speed);
-	computeLegSpeed(4,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(4, leg_speed);
-	computeLegSpeed(5,speed, leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
+	for (int i=0;i<LEGS_NO;i++){
+		computeLegSpeed(i,speed, leg_speed);
+		dynamicWorld->robotODE->setLegSpeed(i, leg_speed);
+	}
 
-	robsim::float_type Q_ref[18];
-	for (int i=0;i<6;i++){
-		Q_ref[i*3] = getAngle(i,0);
-		Q_ref[i*3+1] = getAngle(i,1);
-		Q_ref[i*3+2] = getAngle(i,2);
+	robsim::float_type Q_ref[JOINTS_NO];
+	for (int i=0;i<LEGS_NO;i++){
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			Q_ref[i*3+j] = getAngle(i,j);
 	}
 	bool collision_table[44];
 	robsim::float_type rob_pos[3];
@@ -422,59 +399,26 @@ double CRobot_RC::sendAngles(float speed){
 	if (robot_structure->checkCollision(rob_pos, orientation, Q_ref,collision_table)) 
 		return 1;//collision exist
 
-	leg_ref[0] = getAngle(0, 0);
-	leg_ref[1] = getAngle(0, 1);
-	leg_ref[2] = getAngle(0, 2);
-	dynamicWorld->robotODE->setLegAngles(0, leg_ref);
-
-	leg_ref[0] = getAngle(1, 0);
-	leg_ref[1] = getAngle(1, 1);
-	leg_ref[2] = getAngle(1, 2);
-	dynamicWorld->robotODE->setLegAngles(1, leg_ref);
-
-	leg_ref[0] = getAngle(2, 0);
-	leg_ref[1] = getAngle(2, 1);
-	leg_ref[2] = getAngle(2, 2);
-	dynamicWorld->robotODE->setLegAngles(2, leg_ref);
-
-	leg_ref[0] = getAngle(3, 0);
-	leg_ref[1] = getAngle(3, 1);
-	leg_ref[2] = getAngle(3, 2);
-	dynamicWorld->robotODE->setLegAngles(3, leg_ref);
-
-	leg_ref[0] = getAngle(4, 0);
-	leg_ref[1] = getAngle(4, 1);
-	leg_ref[2] = getAngle(4, 2);
-	dynamicWorld->robotODE->setLegAngles(4, leg_ref);
-
-	leg_ref[0] = getAngle(5, 0);
-	leg_ref[1] = getAngle(5, 1);
-	leg_ref[2] = getAngle(5, 2);
-	dynamicWorld->robotODE->setLegAngles(5, leg_ref);
+	for (int i=0;i<LEGS_NO;i++){
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			leg_ref[j] = getAngle(i, j);
+		dynamicWorld->robotODE->setLegAngles(i, leg_ref);
+	}
 	return 0;
 }
 
 /// przeksztalca i wysyla wartosci zadane dla serwomechanizmow
 double CRobot_RC::sendAngles(float * speed){
 	std::vector<robsim::float_type> leg_speed(3,0);
-	computeLegSpeed(0,speed[0], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(0, leg_speed);
-	computeLegSpeed(1,speed[1], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(1, leg_speed);
-	computeLegSpeed(2,speed[2], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(2, leg_speed);
-	computeLegSpeed(3,speed[3], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(3, leg_speed);
-	computeLegSpeed(4,speed[4], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(4, leg_speed);
-	computeLegSpeed(5,speed[5], leg_speed);
-	dynamicWorld->robotODE->setLegSpeed(5, leg_speed);
+		for (int i=0;i<LEGS_NO;i++){
+		computeLegSpeed(i,speed[i], leg_speed);
+		dynamicWorld->robotODE->setLegSpeed(i, leg_speed);
+	}
 
 	robsim::float_type Q_ref[18];
 	for (int i=0;i<6;i++){
-		Q_ref[i*3] = getAngle(i,0);
-		Q_ref[i*3+1] = getAngle(i,1);
-		Q_ref[i*3+2] = getAngle(i,2);
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			Q_ref[i*3+j] = getAngle(i,j);
 	}
 	bool collision_table[44];
 	robsim::float_type rob_pos[3];
@@ -487,35 +431,11 @@ double CRobot_RC::sendAngles(float * speed){
 		return 1;//collision exist
 
 	std::vector<robsim::float_type> leg_ref(3,0);
-	leg_ref[0] = getAngle(0, 0);
-	leg_ref[1] = getAngle(0, 1);
-	leg_ref[2] = getAngle(0, 2);
-	dynamicWorld->robotODE->setLegAngles(0, leg_ref);
-
-	leg_ref[0] = getAngle(1, 0);
-	leg_ref[1] = getAngle(1, 1);
-	leg_ref[2] = getAngle(1, 2);
-	dynamicWorld->robotODE->setLegAngles(1, leg_ref);
-
-	leg_ref[0] = getAngle(2, 0);
-	leg_ref[1] = getAngle(2, 1);
-	leg_ref[2] = getAngle(2, 2);
-	dynamicWorld->robotODE->setLegAngles(2, leg_ref);
-
-	leg_ref[0] = getAngle(3, 0);
-	leg_ref[1] = getAngle(3, 1);
-	leg_ref[2] = getAngle(3, 2);
-	dynamicWorld->robotODE->setLegAngles(3, leg_ref);
-
-	leg_ref[0] = getAngle(4, 0);
-	leg_ref[1] = getAngle(4, 1);
-	leg_ref[2] = getAngle(4, 2);
-	dynamicWorld->robotODE->setLegAngles(4, leg_ref);
-
-	leg_ref[0] = getAngle(5, 0);
-	leg_ref[1] = getAngle(5, 1);
-	leg_ref[2] = getAngle(5, 2);
-	dynamicWorld->robotODE->setLegAngles(5, leg_ref);
+	for (int i=0;i<LEGS_NO;i++){
+		for (int j=0;j<JOINTS_PER_LEG;j++)
+			leg_ref[j] = getAngle(i, j);
+		dynamicWorld->robotODE->setLegAngles(i, leg_ref);
+	}
 	return 0;
 }
 
@@ -527,17 +447,13 @@ short int CRobot_RC::getFootForce(char leg_no){
 /// odczytuje sile w stopie bazujac na czujnnikach pradu
 void CRobot_RC::getLegForce(char leg_no, unsigned int force[3]){
 	//TODO read force 
-	force[0]=0;
-	force[1]=0;
-	force[2]=0;
+	force[0]=0;	force[1]=0;	force[2]=0;
 }
 
 /// odczytuje prad pobierany przez silniki w stawach
 void CRobot_RC::getLegCurrent(char leg_no, float current[3]){
 	//TODO read current
-	current[0]=0;
-	current[1]=0;
-	current[2]=0;
+	current[0]=0;	current[1]=0;	current[2]=0;
 }
 
 /// odczytuje i odbiera wartosci rzeczywiste katow w stawach dla nogi leg_no
@@ -551,11 +467,11 @@ void CRobot_RC::readLegAngles(char leg_no){
 
 /// odczytuje i odbiera wartosci rzeczywiste katow w stawach
 double CRobot_RC::readRobotAngles(){
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		readLegAngles(i);
 	}
 	std::vector<robsim::float_type> read_angles(3,0);
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		dynamicWorld->robotODE->readLegAngles(i, read_angles);
 	}
 	return 0;
@@ -611,10 +527,7 @@ void CRobot_RC::getRotAngles(float *angles)
 bool CRobot_RC::setFootPositionGlobal(double globalx, double globaly, double globalz, int legnumber)
 {
 	int part;
-	if (legnumber>2){
-		part=-1;
-	}
-	else part=1;
+	(legnumber>2) ? part=-1 : part=1;
  	// macierz transformacji
 	CPunctum transform_matrix;
 	CPunctum robot_pos;//pozycja robota w ukladzie globalnym
@@ -622,59 +535,30 @@ bool CRobot_RC::setFootPositionGlobal(double globalx, double globaly, double glo
 	CPunctum point_leg;//szukana pozycja stopyw ukladzie konczyny
 
 	point.createTRMatrix(0,0,0,globalx,globaly,globalz);
-	//robot_pos.createTRMatrix(deg2rad(robot_orientation[0]),deg2rad(robot_orientation[1]),deg2rad(robot_orientation[2]),robot_position[0],robot_position[1],robot_position[2]);
-	//robot_pos.createTRMatrix(0,0,0,0,0,0);
-	//macierz przeksztalcenia uklad globalny->uklad poczatku nogi
-	//transform_matrix=robot_global_pos*leg[legnumber].start;
 	transform_matrix=CRobot_RC::getRobotState()*leg[legnumber].start;
 	transform_matrix.invThis();
 	//wyznaczenie punktu docelowego dla nogi we wspolrzednych globalnym
 	point_leg=transform_matrix*point;
-	//wykonanie ruchu nogi
-
-	//CPunctum s = leg[legnumber].forward_kinematic(leg[legnumber].getAngle(0),leg[legnumber].getAngle(1),leg[legnumber].getAngle(2),part);
-
-	//CPunctum wynik = robot_pos*leg[legnumber].start*s;
-
-	////obliczenie katow w stawach, ktore przeniosa stope do zadanego punktu
-	////double temp_angle[3];
-	////leg[legnumber].inverse_kinematic(point_leg.getElement(1,4),point_leg.getElement(2,4),point_leg.getElement(3,4), right, temp_angle);
 	//przeniesienie stopy do punktu we wspolrzednych nogi
 	if (!leg[legnumber].setFootPosition(point_leg.getElement(1,4),point_leg.getElement(2,4),point_leg.getElement(3,4),part))
 		return false;
-    //// wpisanie wartosci zadanych
-	////leg[legnumber].setAngle(0, temp_angle[0]);
-	////leg[legnumber].setAngle(1, temp_angle[1]);
-	////leg[legnumber].setAngle(2, temp_angle[2]);
 	return true;
 }
 
 /// sprawdza czy pozycja stopy jest osiagalna
 bool CRobot_RC::isFootPositionAvailableGlobal(CPunctum robot_pos, double globalx, double globaly, double globalz, int legnumber, float scale){
 	int part;
-		if (legnumber>2)
-		{
-			part=0;
-		}
-		else part=1;
+	(legnumber>2) ? part=0 : part=1;
 	 // macierz transformacji
 	CPunctum transform_matrix;
 	CPunctum point; //zadana pozycja punktu w ukladzie globalnym
 	CPunctum point_leg;//szukana pozycja stopyw ukladzie konczyny
 
 	point.createTRMatrix(0,0,0,globalx,globaly,globalz);
-	//robot_pos.createTRMatrix(deg2rad(robot_orientation[0]),deg2rad(robot_orientation[1]),deg2rad(robot_orientation[2]),robot_position[0],robot_position[1],robot_position[2]);
-	//robot_pos.createTRMatrix(0,0,0,0,0,0);
-	//macierz przeksztalcenia uklad globalny->uklad poczatku nogi
-	//transform_matrix=robot_global_pos*leg[legnumber].start;
 	transform_matrix=robot_pos*leg[legnumber].start;
 	transform_matrix.invThis();
 	//wyznaczenie punktu docelowego dla nogi we wspolrzednych globalnym
 	point_leg=transform_matrix*point;
-	//wykonanie ruchu nogą
-
-//	CPunctum s = leg[legnumber].forward_kinematic(leg[legnumber].getAngle(0)*180/PI,leg[legnumber].getAngle(1)*180/PI,leg[legnumber].getAngle(2)*180/PI,right);
-
 	//przeniesienie stopy do punktu we wspolrzednych nogi
 	if (leg[legnumber].isFootPositionAvailableLocal(point_leg.getElement(1,4),point_leg.getElement(2,4),point_leg.getElement(3,4),part,0,scale))
 		return true;
@@ -685,10 +569,10 @@ bool CRobot_RC::isFootPositionAvailableGlobal(CPunctum robot_pos, double globalx
 //check stability
 //stability margin 0(min)-1(max-normal)
 bool CRobot_RC::checkStability(CPunctum body, CPunctum * feet, float stability_margin){
-	float angles[18];
-	CPunctum leg_m[6], tmp;//masy konczyn w ukladzie globalnym
+	float angles[JOINTS_NO];
+	CPunctum leg_m[LEGS_NO], tmp;//masy konczyn w ukladzie globalnym
 	int part;
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 	    if (i<3) part=1;
 	    else part=0;
 		tmp = body*leg[i].start;
@@ -704,7 +588,7 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * feet, float stability_m
 	CPunctum com;
 	com.setIdentity();
 	float pos[3]={0,0,0};//wspolrzedne dla konczyn
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		pos[0]+=leg_m[i].getElement(1,4)*mass_leg;
 		pos[1]+=leg_m[i].getElement(2,4)*mass_leg;
 		pos[2]+=leg_m[i].getElement(3,4)*mass_leg;
@@ -714,7 +598,7 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * feet, float stability_m
 	com.setElement((body.getElement(3,4)*mass_body+pos[2])/(mass_leg*6+mass_body),3,4);
 	float a[2],b[2],c[2];//wierzcholki trojkata
 	float barycentrum[2];//srodek ciezkosci
-	float com2d[2]={com.getElement(1,4),com.getElement(2,4)};
+	float com2d[2] = {com.getElement(1,4), com.getElement(2,4)};
 	if (feet[0].isFoothold()){//trojkat podparcia na nieparzystych
 		a[0]=feet[0].getElement(1,4); a[1]=feet[0].getElement(2,4);
 		b[0]=feet[2].getElement(1,4); b[1]=feet[2].getElement(2,4);
@@ -740,13 +624,10 @@ bool CRobot_RC::checkStability(CPunctum body, CPunctum * feet, float stability_m
 //check stability
 bool CRobot_RC::isStable(CPunctum body, CPunctum * feet){
 	computeComPosition(body,feet);
-	float ** vertices;
-	vertices = new float *[6];
-	for (int i=0;i<6;i++)
-		vertices[i]=new float[2];
+    vector< vector<float> > vertices(LEGS_NO, vector<float>(2));
 	float com2d[2]={com.getElement(1,4),com.getElement(2,4)};
 	int support_no=0;
-	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
+	for (int i=0;i<LEGS_NO;i++){//wielokat podparcia na nieparzystych
 		//if (feet[i].isFoothold()){
 		if (dynamicWorld->robotODE->getContact(i)) {
 			vertices[support_no][0]=feet[i].getElement(1,4); 
@@ -757,29 +638,20 @@ bool CRobot_RC::isStable(CPunctum body, CPunctum * feet){
 	if (support_no<3)
 		return false;
 	computePolygonCentroid(vertices, support_no, &supp_centroid[0], &supp_centroid[1]);
-	if (polygonIncludePoint(vertices,com2d,support_no)){
-		for (int i=0;i<6;i++)
-			delete [] vertices[i];
-		delete [] vertices;
+	if (polygonIncludePoint(vertices,com2d,support_no))
 		return true;
-	}
-	else {
-		for (int i=0;i<6;i++)
-			delete [] vertices[i];
-		delete [] vertices;
+	else 
 		return false;
-	}
 }
 
 //check stability
 bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * feet){
-	float angles[18];
-	CPunctum leg_m[6], tmp;//masy konczyn w ukladzie globalnym
+	float angles[JOINTS_NO];
+	CPunctum leg_m[LEGS_NO], tmp;//masy konczyn w ukladzie globalnym
 	int part;
 	CPunctum foot_pos;
-	for (int i=0;i<6;i++){
-	    if (i<3) part=1;
-	    else part=0;
+	for (int i=0;i<LEGS_NO;i++){
+	    (i<3) ? part=1 : part=0;
 		tmp = body*leg[i].start;
 		tmp.invThis();
 		foot_pos = tmp * feet[i];
@@ -791,7 +663,7 @@ bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * feet){
 	float mass_body = 1.908;
 	com.setIdentity();
 	float pos[3]={0,0,0};//wspolrzedne dla konczyn
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		pos[0]+=leg_m[i].getElement(1,4)*mass_leg;
 		pos[1]+=leg_m[i].getElement(2,4)*mass_leg;
 		pos[2]+=leg_m[i].getElement(3,4)*mass_leg;
@@ -804,7 +676,7 @@ bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * feet){
 /// show com
 void CRobot_RC::show_center_of_mass(void) {
 	CPunctum body;
-	CPunctum feet[6];
+	CPunctum feet[LEGS_NO];
 	getFullRobotState(&body, feet);
 	this->isStable(body,feet);
 
@@ -824,7 +696,7 @@ void CRobot_RC::show_center_of_mass(void) {
 ///robot stabilization procedure
 void CRobot_RC::stabilizeRobot(void){
 	CPunctum body;
-	CPunctum feet[6];
+	CPunctum feet[LEGS_NO];
 	for (int i=0;i<80;i++){
 		getFullRobotState(&body, feet);
 		computeComPosition(body,feet);
@@ -923,6 +795,7 @@ void CRobot_RC::react(float * curr_pos, float * dest_pos, float d_z, float speed
 
 //	return true;
 }
+
 ///computes stability margin
 float CRobot_RC::computeStabilityMargin(CPunctum body, CPunctum * feet){
 	if (!isStable(body, feet))
@@ -941,16 +814,13 @@ float CRobot_RC::computeStabilityMargin(CPunctum body, CPunctum * feet){
 
 ///move body closer to stability center
 void CRobot_RC::increaseStabilityMargin(CPunctum *body, CPunctum * feet, float distance){
-	float ** vertices;
-	vertices = new float *[6];
-	for (int i=0;i<6;i++)
-		vertices[i]=new float[2];
-	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
+	vector< vector<float> > vertices(LEGS_NO, vector<float>(2));
+	for (int i=0;i<LEGS_NO;i++){//wielokat podparcia na nieparzystych
 		vertices[i][0]=feet[i].getElement(1,4); 
 		vertices[i][1]=feet[i].getElement(2,4);
 	}
 	float Cx,Cy;
-	computePolygonCentroid(vertices, 6, &Cx, &Cy);
+	computePolygonCentroid(vertices, LEGS_NO, &Cx, &Cy);
 	float movement[2];
 	movement[0]=Cx-body->getElement(1,4);
 	movement[1]=Cy-body->getElement(2,4);
@@ -964,20 +834,6 @@ void CRobot_RC::increaseStabilityMargin(CPunctum *body, CPunctum * feet, float d
 
 ///move body closer to stability center
 void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * feet, float distance){
-/*	float ** vertices;
-	vertices = new float *[6];
-	for (int i=0;i<6;i++)
-		vertices[i]=new float[2];
-	int ilokat=0;
-	for (int i=0;i<6;i++){//wielokat podparcia na nieparzystych
-		if (feet[i].isFoothold()){
-			vertices[ilokat][0]=feet[i].getElement(1,4); 
-			vertices[ilokat][1]=feet[i].getElement(2,4);
-			ilokat++;
-		}
-	}
-	float Cx,Cy;
-	computePolygonCentroid(vertices, ilokat, &Cx, &Cy);*/
 	CPunctum body_best, body_temp;
 	body_best=*body;
 	CPunctum C0;
@@ -992,10 +848,6 @@ void CRobot_RC::increaseStabilityMarginSwing(CPunctum *body, CPunctum * feet, fl
 			body_best=body_temp;
 		}
 	}
-	
-	//CPunctum C = body->inv(*body)*C0;
-	//C.setElement(0.0,2,4);
-	//* body = (* body)*C;
 	*body = body_best;
 }
 
@@ -1005,13 +857,12 @@ float CRobot_RC::computeKinematicMargin(CPunctum body, CPunctum * feet){
 	float marg;
 	CPunctum foot_pos, tmp;
 	int part;
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		tmp = body * leg[i].start;
 		foot_pos = tmp.inv()*feet[i];
 		if (i<3) part=1;
 		else part=-1;
 		marg = leg[i].computeKinematicMarginPos(foot_pos.getElement(1,4),foot_pos.getElement(2,4),foot_pos.getElement(3,4),part,0);
-
 		if (marg<margin)
 			margin=marg;
 	}
@@ -1022,7 +873,7 @@ float CRobot_RC::computeKinematicMargin(CPunctum body, CPunctum * feet){
 float CRobot_RC::computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bool only_stance){
 	float margin=1e10;
 	float marg;
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		if (!(only_stance&&!feet[i].isFoothold())){
 			marg = computeKinematicMarginApprox(&body, &feet[i], i);
 			if (marg<margin)
@@ -1053,12 +904,12 @@ float CRobot_RC::computeKinematicMarginApprox(CPunctum * body, CPunctum * foot, 
 /// zmienia katy w serwomechanizmach
 bool CRobot_RC::changeAngles(double * angles, float speed){
 	float max_delta_angle;
-	float delta_angles[18];
-	for (int i=0;i<18;i++){
+	float delta_angles[JOINTS_NO];
+	for (int i=0;i<JOINTS_NO;i++){
 		delta_angles[i]=angles[i];
 		delta_angles[i]=delta_angles[i]-leg[int(i/3)].getAngle(i%3);
 	}
-	findAbsMax(delta_angles, 18, &max_delta_angle);//znajdujemy najwiekszy kat
+	findAbsMax(delta_angles, JOINTS_NO, &max_delta_angle);//znajdujemy najwiekszy kat
 	float delta_t; //czas w jakim zostanie wykonany ruch
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	bool end=true;
@@ -1066,8 +917,8 @@ bool CRobot_RC::changeAngles(double * angles, float speed){
 	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
 	int iterator =(int)(delta_t/SERVO_DELAY_RC)+1; // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
 	for (int i=0; i<iterator;i++){//
-		for (int j=0; j<6;j++){
-			for (int k=0; k<3;k++){
+		for (int j=0; j<LEGS_NO;j++){
+			for (int k=0; k<JOINTS_PER_LEG;k++){
 				leg[j].setAngle(k,leg[j].getAngle(k)+(delta_angles[j*3+k]/float(iterator)));
 			}
 		}
@@ -1104,16 +955,16 @@ bool CRobot_RC::changeFoot(float x, float y, float z, unsigned char leg_no, floa
 bool CRobot_RC::changeAllfeet(float * x, float * y, float * z, float speed){
 	int part;
 	float delta_t; //czas w jakim zostanie wykonany ruch
-	float delta_angle[18]; //zmiany katow w stawach dla wszystkich konczyn
+	float delta_angle[JOINTS_NO]; //zmiany katow w stawach dla wszystkich konczyn
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
-	for (int i=0; i<6;i++){//znalezienie maksymalnego delta angle
+	for (int i=0; i<LEGS_NO;i++){//znalezienie maksymalnego delta angle
 		if (i<3) part=1;
 		else part=0;
 		if (!leg[i].computeMoveDeltaAngle(x[i], y[i], z[i], part, &delta_angle[i*3])) //obliczenie drogi
 			return false;
 	}
 	float max_delta_angle;
-	findAbsMax(delta_angle, 18, &max_delta_angle);//znajdujemy najwiekszy kat
+	findAbsMax(delta_angle, JOINTS_NO, &max_delta_angle);//znajdujemy najwiekszy kat
 	delta_t = max_delta_angle/real_speed;
 	int iterator = (int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
 	if (iterator==0) iterator=1;
@@ -1126,9 +977,7 @@ bool CRobot_RC::changeAllfeet(float * x, float * y, float * z, float speed){
 		}
 		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
-	//		this->sleepODE(5000);
 	}
-//	this->sleepODE(4);
 	return true;
 }
 
@@ -1141,17 +990,15 @@ bool CRobot_RC::changeFootRobot(float x, float y, float z, unsigned char leg_no,
 
 /// przesuwa wszystkie stopy o zadane odleglosci w ukladzie robota
 bool CRobot_RC::changeAllfeetRobot(float * x, float * y, float * z, float speed){
-    float x_leg[6],y_leg[6], z_leg[6];
+	float x_leg[LEGS_NO],y_leg[LEGS_NO], z_leg[LEGS_NO];
     CPunctum movement;//ruch w ukladzie robota
-    for (int i=0; i<3;i++){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
-		x_leg[i]=x[i];
-		y_leg[i]=y[i];
-		z_leg[i]=z[i];
-    }
-    for (int i=3; i<6;i++){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
-		x_leg[i]=-x[i];
-		y_leg[i]=y[i];
-		z_leg[i]=-z[i];
+	for (int i=0; i<LEGS_NO;i++){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
+		if (i<3) {
+			x_leg[i]=x[i];		y_leg[i]=y[i];		z_leg[i]=z[i];
+		}
+		else {
+			x_leg[i]=-x[i];		y_leg[i]=y[i];		z_leg[i]=-z[i];
+		}
     }
     if (!changeAllfeet(x_leg, y_leg, z_leg, speed)) 
 		return false;//wysterowanie wszystkich konczyn
@@ -1166,7 +1013,7 @@ bool CRobot_RC::Placefeet(float dz, int legs, float speed){
     CPunctum movement;//ruch w ukladzie robota
 	float moove[3]={dz,dz,dz};
 	do {
-		for (int i=legs; i<6;i+=2){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
+		for (int i=legs; i<LEGS_NO;i+=2){//obliczenie ruchu w ukladzie konczyny, pomijamy obliczenia na macierzach ze wzgledu na szybkosc dzialania
 			if (dynamicWorld->robotODE->getContact(i)==1) moove[int(i/2.0)]=0;
 			x_leg[i]=0;
 			y_leg[i]=0;
@@ -1287,89 +1134,6 @@ bool CRobot_RC::changePlatformRobot(float * x, float * y, float * z, float * alp
 	return true;
 }
 
-/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
-/// konczyny, ktore sa w powietrzu poruszaja sie wzgledem pozycji neutralnej
-bool CRobot_RC::changePlatformRobotNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float foot_up, int legs, float speed, int accel){
-	float delta_t; //czas w jakim zostanie wykonany ruch
-	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
-	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
-	if (!computeRobotRelativeKinematicDeltaAngleNeutral(x, y, z, alpha, beta, gamma, delta_angle,foot_up,legs)) //obliczenie drogi katowej
-		return false;
-	float max_delta_angle;
-	findAbsMax(delta_angle, max_delta_angle);//znajdujemy najwiekszy kat
-	bool end=true;
-	do {
-		float s_increase = (0.5*real_speed)*(accel-1)*SERVO_DELAY_RC;//droga pokonana podczas rozpedzania lub hamowania
-		if (s_increase*2<max_delta_angle) {//jezeli droga pokonana podczas rozpedzania i chamowania jest mniejsza od calej drogi - profil trapezowy
-			delta_t = (max_delta_angle-s_increase*2)/real_speed;//czas spedzony na poruszanie sie z maksymalna predkoscia
-			end = false;
-		}
-		else
-			accel-=1;
-	} while(end);
-	//!potencjalna przyczyna bledu - rzutowanie na int - robot moze pokonywac mniejsza odleglosc od zadanej
-	int iterator = 2*(accel-1)+(int)(delta_t/SERVO_DELAY_RC); // znajdujemy liczbe iteracji potrzebnych na wykonanie ruchu
-	float accel_speed=speed/float(accel);
-	float s=0; float delta_s=0;
-	float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
-	for (int i=0; i<accel-1;i++){//rozpedzanie
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		for (int j=0; j<6;j++){
-			for (int k=0; k<3;k++){
-				leg[j].setAngle(k,leg[j].getAngle(k)+(delta_angle[j*3+k]*s/max_delta_angle));
-			}
-		}
-		/*for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[j]=x[j]*s/max_delta_angle; y_zad[j]=y[j]*s/max_delta_angle; z_zad[j]=z[j]*s/max_delta_angle;
-			alpha_zad[j]=alpha[j]*s/max_delta_angle; beta_zad[j]=beta[j]*s/max_delta_angle; gamma_zad[j]=gamma[j]*s/max_delta_angle;
-		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad,delta_angle))
-			return false;*/
-//		setLegs(delta_angle);
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-		accel_speed+=speed/float(accel);
-		delta_s+=s;
-	}
-	if (iterator-2*(accel-1)==0) iterator++;//aby przesunac o brakujaca reszte z dzielenie (problem z rzutowaniem int)
-	float dividor = (max_delta_angle-2*delta_s)/float(iterator-2*(accel-1));//rozwiazanie problemu rzutowania na int
-	for (int i=0; i<iterator-2*(accel-1);i++){//MAX_SPEED_RC
-		for (int j=0; j<6;j++){
-			for (int k=0; k<3;k++){
-				leg[j].setAngle(k,leg[j].getAngle(k)+delta_angle[j*3+k]*dividor/max_delta_angle);
-			}
-		}
-	/*	for (int i=0; i<6;i++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[i]=x[i]*dividor/max_delta_angle; y_zad[i]=y[i]*dividor/max_delta_angle; z_zad[i]=z[1]*dividor/max_delta_angle;
-			alpha_zad[i]=alpha[i]*dividor/max_delta_angle; beta_zad[i]=beta[i]*dividor/max_delta_angle; gamma_zad[i]=gamma[i]*dividor/max_delta_angle;
-		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
-		setLegs(delta_angle);*/
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-	}
-	for (int i=0; i<accel-1;i++){//hamowanie
-		accel_speed-=speed/float(accel);
-		s=accel_speed*MAX_SERVO_SPEED_RC*SERVO_DELAY_RC;//droga pokanana przez serwo, ktore ma najdluzszy ruch do pokonania
-		for (int j=0; j<6;j++){
-			for (int k=0; k<3;k++){
-				leg[j].setAngle(k,leg[j].getAngle(k)+(delta_angle[j*3+k]*s/max_delta_angle));
-			}
-		}
-	/*	for (int i=0; i<6;i++){// krok ruchu dla kazdego wezla kinematycznego
-			x_zad[i]=x[i]*s/max_delta_angle; y_zad[i]=y[i]*s/max_delta_angle; z_zad[i]=z[1]*s/max_delta_angle;
-			alpha_zad[i]=alpha[i]*s/max_delta_angle; beta_zad[i]=beta[i]*s/max_delta_angle; gamma_zad[i]=gamma[i]*s/max_delta_angle;
-		}
-		if (!robotRelativeKinematic(x_zad, y_zad, z_zad, alpha_zad, beta_zad, gamma_zad, delta_angle))
-			return false;
-		setLegs(delta_angle);*/
-		sendAngles(accel_speed);
-		this->sleepODE(SERVO_DELAY_RC*1000);
-	}
-	this->sleepODE(20);
-	return true;
-}
 
 //przemieszcza robota do zadanych pozycji w ukladzie globalnym
 bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft){

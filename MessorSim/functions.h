@@ -32,6 +32,8 @@ float randFloat(float Min, float Max);
 float abs(float value);
 ///znajduje maksimum w tablicy float
 int findMax(float *max, int size, float * max_value);
+///find max value
+int findMax(const std::vector<float>& table, float& max_value);
 ///znajduje maksimum w tablicy float (wartosc bezwzgledna)
 int findAbsMax(float *table, int size, float * max_value);
 ///znajduje maksimum w tablicy float (wartosc bezwzgledna)
@@ -41,15 +43,15 @@ int findMin(float *table, int size, float * max_value);
 ///znajduje minimum w tablicy float (wartosc bezwzgledna)
 int findAbsMin(float *table, int size, float * max_value);
 //sprawdza czy punkt lezy wewn¹trz trojkata
-bool triangleIncludePoint(float *a,float *b,float *c,float *com2d);
-//sprawdza czy punkt lezy wewn¹trz wielokata
-bool polygonIncludePoint(float ** vertices,float *com2d, int vert_no);
+bool triangleIncludePoint(const float *a,const float *b,const float *c,const float *com2d);
 //obliczenie powierzchni trojkata
-double computeTriangleArea(float *a,float *b,float *c);
+double computeTriangleArea(const float* a, const float* b, const float* c);
+//sprawdza czy punkt lezy wewn¹trz wielokata
+bool polygonIncludePoint(const vector< vector<float> >& vertices,float *com2d, int vert_no);
 //obliczenie powierzchni wielokata
-double computePolygonArea(float ** vertices,int vert_no);
+double computePolygonArea(const vector< vector<float> >& vertices, int vert_no);
 //obliczenie centroidu dla wielokata
-void computePolygonCentroid(float ** vertices, int vert_no, float * Cx, float *Cy);
+void computePolygonCentroid(const vector< vector<float> >& vertices, int vert_no, float * Cx, float *Cy);
 // mapy kolorow
 void hotColorMap(unsigned char *rgb,float value,float min,float max);
 void jetColorMap(unsigned char *rgb,float value,float min,float max);
@@ -69,11 +71,3 @@ void calcNormal(float** v, float* out);
 void startTimeMeasure(void);
 /// zatrzymuje timer do pomiaru czasu wykonania polecenia
 double stopTimeMeasure(void);
-/// return bigger value
-inline double dmax(double value1, double value2){
-    return (value1>value2) ? value1 : value2;
-}
-/// return bigger value
-inline double fmax(float value1, float value2){
-    return (value1>value2) ? value1 : value2;
-}

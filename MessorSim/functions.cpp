@@ -45,6 +45,18 @@ int findMax(float *table, int size, float * max_value){
 	return max_iter;
 }
 
+///find max value
+int findMax(const std::vector<float>& table, float& max_value){
+	int max_iter=0;
+	for(size_t i=1;i<table.size();i++) {
+		if (table[i]>table[max_iter]) {
+			max_iter = i;
+		}
+	}
+	max_value=table[max_iter];
+	return max_iter;
+}
+
 /// inicjalizacja losowosci
 void initializeRand(){
 	//srand ( time(NULL) );
@@ -109,7 +121,7 @@ int findAbsMin(float *table, int size, float * max_value){
 }
 
 //sprawdza czy punkt lezy wewn¹trz trojkata
-bool triangleIncludePoint(float *a,float *b,float *c,float *com2d){
+bool triangleIncludePoint(const float *a, const float *b, const float *c, const float *com2d){
 	float S_triangle = computeTriangleArea(a,b,c);
 	if (S_triangle<=(computeTriangleArea(a,b,com2d)+computeTriangleArea(b,c,com2d)+computeTriangleArea(a,c,com2d)))
 		return true;
@@ -117,16 +129,24 @@ bool triangleIncludePoint(float *a,float *b,float *c,float *com2d){
 		return false;
 }
 
+//obliczenie powierzchni trojkata
+double computeTriangleArea(const float* a, const float* b, const float* c){
+	return abs(0.5*(a[0]*b[1]+b[0]*c[1]+c[0]*a[1]-c[0]*b[1]-a[0]*c[1]-b[0]*a[1]));
+}
+
 //sprawdza czy punkt lezy wewn¹trz wielokata
-bool polygonIncludePoint(float ** vertices,float *com2d, int vert_no){
+bool polygonIncludePoint(const vector< vector<float> >& vertices,float *com2d, int vert_no){
 	if (vert_no!=0){
 		double S_triangle = computePolygonArea(vertices,vert_no);
 		double area=0;
-
 		for (int i=0;i<vert_no-1;i++){
-			area+=computeTriangleArea(vertices[i],vertices[i+1],com2d);
+			float vert1[2]={vertices[i][0], vertices[i][1]};
+			float vert2[2]={vertices[i+1][0], vertices[i+1][1]};
+			area+=computeTriangleArea(vert1,vert2,com2d);
 		}
-		area+=computeTriangleArea(vertices[vert_no-1],vertices[0],com2d);
+		float vert1[2]={vertices[vert_no-1][0], vertices[vert_no-1][1]};
+		float vert2[2]={vertices[0][0], vertices[0][1]};
+		area+=computeTriangleArea(vert1,vert2,com2d);
 		if (S_triangle<=area*1.05)
 			return true;
 		else
@@ -136,23 +156,8 @@ bool polygonIncludePoint(float ** vertices,float *com2d, int vert_no){
 		return false;
 }
 
-//obliczenie powierzchni trojkata
-double computeTriangleArea(float *a,float *b,float *c){
-	return abs(0.5*(a[0]*b[1]+b[0]*c[1]+c[0]*a[1]-c[0]*b[1]-a[0]*c[1]-b[0]*a[1]));
-}
-
-//obliczenie powierzchni wielokata
-double computePolygonArea(float ** vertices, int vert_no){
-	double area=0;
-	for (int i=0;i<vert_no-1;i++){
-		area+=(vertices[i][0]*vertices[i+1][1])-(vertices[i+1][0]*vertices[i][1]);
-	}
-	area+=(vertices[vert_no-1][0]*vertices[0][1])-(vertices[0][0]*vertices[vert_no-1][1]);
-	return abs(area)/2;
-}
-
 //obliczenie centroidu dla wielokata
-void computePolygonCentroid(float ** vertices, int vert_no, float * Cx, float *Cy){
+void computePolygonCentroid(const vector< vector<float> >& vertices, int vert_no, float * Cx, float *Cy){
 	double area=computePolygonArea(vertices, vert_no);
 	*Cx=0; *Cy=0;
 	for (int i=0;i<vert_no-1;i++){
@@ -163,6 +168,16 @@ void computePolygonCentroid(float ** vertices, int vert_no, float * Cx, float *C
 	*Cy+=(vertices[vert_no-1][1]+vertices[0][1])*(vertices[vert_no-1][0]*vertices[0][1]-vertices[0][0]*vertices[vert_no-1][1]);
 	*Cx/=-6*area;
 	*Cy/=-6*area;
+}
+
+//obliczenie powierzchni wielokata
+double computePolygonArea(const vector< vector<float> >& vertices, int vert_no){
+	double area=0;
+	for (int i=0;i<vert_no-1;i++){
+		area+=(vertices[i][0]*vertices[i+1][1])-(vertices[i+1][0]*vertices[i][1]);
+	}
+	area+=(vertices[vert_no-1][0]*vertices[0][1])-(vertices[0][0]*vertices[vert_no-1][1]);
+	return abs(area)/2;
 }
 
 void hotColorMap(unsigned char *rgb,float value,float min,float max)
@@ -370,6 +385,5 @@ void startTimeMeasure(void){
 //startuje timer do pomiaru czasu wykonania polecenia
 double stopTimeMeasure(void){
 	end_t = clock();
-
 	return (double)(end_t-start_t)/CLOCKS_PER_SEC;
 }

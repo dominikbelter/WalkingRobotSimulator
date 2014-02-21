@@ -43,8 +43,6 @@ public:
 	bool robotRelativeKinematic(float x, float y, float z, float alpha, float beta, float gamma,float angle[]);
 	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
 	bool robotRelativeKinematic(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float * angle);
-	/// funkcja obliczajaca kinematyke calego robota- alpha rotX, beta rotY,gamma rotZ - przesuniecia wzgledne dla kazdej konczyny osobno
-	bool robotRelativeKinematicNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, int legs,float * angle);
 	/// przesuwa stope we wspolrzednych globalnych
 	bool setFootPositionGlobal(double globalx, double globaly, double globalz, int legnumber);
 	/// ustawia pozycje stopy w ukladzie konczyny
@@ -101,8 +99,6 @@ public:
 	bool changePlatformRobot(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 	bool changePlatformRobot(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel);
-	/// konczyny, ktore sa w powietrzu poruszaja sie wzgledem pozycji neutralnej
-	bool changePlatformRobotNeutral(float * x, float * y, float * z, float * alpha, float * beta, float * gamma,float foot_up, int legs, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami parzystymi lub nieparzystymi
 	bool changePlatformRobotTripod(float x, float y, float z, float alpha, float beta, float gamma, int even, float speed, int accel);
 	/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami ktore znajduja sie na podlozu

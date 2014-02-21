@@ -1425,8 +1425,6 @@ bool Crrt::createRobotState(float pos_end[], float rot_end[], CPunctum * body, C
 /// get full body state Foothold
 bool Crrt::createRobotStateFoothold(float pos_end[], float rot_end[], CPunctum * body, CPunctum *feet){
 	body->createTRMatrix(rot_end[0], rot_end[1], rot_end[2], pos_end[0], pos_end[1], pos_end[2]);
-	int r[2];
-	int part;
 	float pos[3];
 	createRobotState(pos_end, rot_end, body, feet);
 	//if (!createFootholds(body, feet))

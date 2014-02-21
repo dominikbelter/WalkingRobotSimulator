@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <pthread.h>
+#include <thread>
 #include <gl/glut.h>
 #include <ode/ode.h>
 
@@ -40,7 +40,7 @@ int sizex = 400, sizey = 400;
 //////////////////////////////////////
 
 //w¹tek kontroli robota
-void* controller(void*)
+void controller(void)
 {	
 //	float pos_end[3] = {0.0,0.0,0.13};
 //	float rot_end[3] = {0.0,0,0.0};
@@ -60,7 +60,7 @@ void* controller(void*)
 
 	///------DEMO
 	//motion in neutral position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
-	rpccaller->movePlatform(0.1,0,0,0,0,0,0.45,1);
+	/*rpccaller->movePlatform(0.1,0,0,0,0,0,0.45,1);
 	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.45,1);
 	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.95,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
@@ -76,6 +76,7 @@ void* controller(void*)
 	float zz[6]={0,0,0,0.0,-0.1,0.0};
 	rpccaller->movePlatformComplex(xx,xx,zz,xx,xx,xx,0.15,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
+	*/
 
 	//forward
 	rpccaller->tripodStepPrepare(0.0,0.1,0,0,0,0,0.1);
@@ -115,8 +116,6 @@ void* controller(void*)
 	{//pêtla SimStep - symulacja fizyki po zakoñczeniu symulacji kroczenia robota
 		dynamicWorld->SimStep();
 	}
-
-	return NULL;
 }
 
 //////////////////////////////////////
@@ -153,14 +152,13 @@ int main(void)
 	openGLinit(dynamicWorld, robot_structure, motion_planner, local_map);
 
 	//w¹tek kontroli robota
-	pthread_t robot_controller_thread;
-	pthread_create(&robot_controller_thread, NULL, controller, NULL);
+	std::thread robot_controller_thread(controller);
 
 	//pêtla g³ówna openGL
 	glutMainLoop();
 
+	robot_controller_thread.join();
 	//destruktory
-	pthread_join(robot_controller_thread, NULL);
 	delete motion_planner;
 	delete rpccaller;
 	delete local_map;
