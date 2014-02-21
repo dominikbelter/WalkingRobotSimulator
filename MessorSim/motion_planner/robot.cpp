@@ -990,42 +990,6 @@ bool CRobot::changePlatformRobot(float x, float y, float z, float alpha, float b
 	return true;
 }
 
-/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami parzystymi lub nieparzystymi
-bool CRobot::changePlatformRobotTripod(float x, float y, float z, float alpha, float beta, float gamma, int even, float speed, int accel){
-	float _x[6]={0,0,0,0,0,0};
-	float _y[6]={0,0,0,0,0,0};
-	float _z[6]={0,0,0,0,0,0};
-	float _alpha[6]={0,0,0,0,0,0};
-	float _beta[6]={0,0,0,0,0,0};
-	float _gamma[6]={0,0,0,0,0,0};
-	for (int i=even;i<6;i+=2){
-		_x[i]=x; _y[i]=y; _z[i]=z;
-		_alpha[i]=alpha; _beta[i]=beta; _gamma[i]=gamma;
-	}
-	if (!changePlatformRobot(_x, _y, _z, _alpha, _beta, _gamma, speed, accel))
-		return false;
-	return true;
-}
-
-/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami ktore znajduja sie na podlozu
-bool CRobot::changePlatformRobotSense(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel){
-	float _x[6]={0,0,0,0,0,0};
-	float _y[6]={0,0,0,0,0,0};
-	float _z[6]={0,0,0,0,0,0};
-	float _alpha[6]={0,0,0,0,0,0};
-	float _beta[6]={0,0,0,0,0,0};
-	float _gamma[6]={0,0,0,0,0,0};
-	for (int i=0;i<6;i++){
-		if (rpccaller->Contact(i)==1){
-			_x[i]=x; _y[i]=y; _z[i]=z;
-			_alpha[i]=alpha; _beta[i]=beta; _gamma[i]=gamma;
-		}
-	}
-	if (!changePlatformRobot(_x, _y, _z, _alpha, _beta, _gamma, speed, accel))
-		return false;
-	return true;
-}
-
 /// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 bool CRobot::changePlatformRobot(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel){
 	float delta_t; //czas w jakim zostanie wykonany ruch

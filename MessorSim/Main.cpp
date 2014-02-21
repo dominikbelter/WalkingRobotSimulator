@@ -60,7 +60,7 @@ void controller(void)
 
 	///------DEMO
 	//motion in neutral position of the robot, parameter: x, y, z, roll, pitch, yaw, speed, acceleration=1
-	/*rpccaller->movePlatform(0.1,0,0,0,0,0,0.45,1);
+	rpccaller->movePlatform(0.1,0,0,0,0,0,0.45,1);
 	rpccaller->movePlatform(0.0,0.1,0,0,0,0,0.45,1);
 	rpccaller->movePlatform(0.0,0,0.1,0,0,0,0.95,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
@@ -76,7 +76,7 @@ void controller(void)
 	float zz[6]={0,0,0,0.0,-0.1,0.0};
 	rpccaller->movePlatformComplex(xx,xx,zz,xx,xx,xx,0.15,1);
 	rpccaller->movePlatform(0,0,0,0,0,0,0.15,1);
-	*/
+	
 
 	//forward
 	rpccaller->tripodStepPrepare(0.0,0.1,0,0,0,0,0.1);

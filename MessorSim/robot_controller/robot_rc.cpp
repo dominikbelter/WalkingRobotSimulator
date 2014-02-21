@@ -91,7 +91,6 @@ void CRobot_RC::initializeRealRobot(){
 	float gamma[LEGS_NO]={0,0,0,0,0,0};
 
 	//----------powolne ustawienie do pozycji neutralnej
-	float angles[JOINTS_NO];
 	x[0]=0;x[1]=0;x[2]=0;x[3]=0;x[4]=0;x[5]=0;
 	y[0]=0;y[1]=0;y[2]=0;y[3]=0;y[4]=0;y[5]=0;
 	z[0]=0.05;z[1]=0;z[2]=0.05;z[3]=0;z[4]=0.05;z[5]=0;
@@ -671,6 +670,7 @@ bool CRobot_RC::computeComPosition(CPunctum body, CPunctum * feet){
 	com.setElement((body.getElement(1,4)*mass_body+pos[0])/(mass_leg*6+mass_body),1,4);
 	com.setElement((body.getElement(2,4)*mass_body+pos[1])/(mass_leg*6+mass_body),2,4);
 	com.setElement((body.getElement(3,4)*mass_body+pos[2])/(mass_leg*6+mass_body),3,4);
+	return true;
 }
 
 /// show com
@@ -887,7 +887,6 @@ float CRobot_RC::computeKinematicMarginApprox(CPunctum body, CPunctum * feet, bo
 
 ///computes kinematic margin for single leg
 float CRobot_RC::computeKinematicMarginApprox(CPunctum * body, CPunctum * foot, int leg_no){
-	float marg;
 	CPunctum foot_pos, tmp;
 	float angles[3];
 	int part;
@@ -1006,7 +1005,7 @@ bool CRobot_RC::changeAllfeetRobot(float * x, float * y, float * z, float speed)
 }
 
 /// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-bool CRobot_RC::Placefeet(float dz, int legs, float speed){
+bool CRobot_RC::placeFeet(float dz, int legs, float speed){
 	float x_leg[6]={0,0,0,0,0,0};
 	float y_leg[6]={0,0,0,0,0,0};
 	float z_leg[6]={0,0,0,0,0,0};
@@ -1029,7 +1028,7 @@ bool CRobot_RC::Placefeet(float dz, int legs, float speed){
 }
 
 /// stawia stopy na podlodze - opuszcza do momentu uzyskania kontaktu
-bool CRobot_RC::Placefeet(float dz, float speed){
+bool CRobot_RC::placeFeet(float dz, float speed){
 	float x_leg[6]={0,0,0,0,0,0};
 	float y_leg[6]={0,0,0,0,0,0};
 	float z_leg[6]={0,0,0,0,0,0};
@@ -1072,42 +1071,6 @@ bool CRobot_RC::changePlatformRobot(float x, float y, float z, float alpha, floa
 	return true;
 }
 
-/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami parzystymi lub nieparzystymi
-bool CRobot_RC::changePlatformRobotTripod(float x, float y, float z, float alpha, float beta, float gamma, int even, float speed, int accel){
-	float _x[6]={0,0,0,0,0,0};
-	float _y[6]={0,0,0,0,0,0};
-	float _z[6]={0,0,0,0,0,0};
-	float _alpha[6]={0,0,0,0,0,0};
-	float _beta[6]={0,0,0,0,0,0};
-	float _gamma[6]={0,0,0,0,0,0};
-	for (int i=even;i<6;i+=2){
-		_x[i]=x; _y[i]=y; _z[i]=z;
-		_alpha[i]=alpha; _beta[i]=beta; _gamma[i]=gamma;
-	}
-	if (!changePlatformRobot(_x, _y, _z, _alpha, _beta, _gamma, speed, accel))
-		return false;
-	return true;
-}
-
-/// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota poslugujac sie nogami ktore znajduja sie na podlozu
-bool CRobot_RC::changePlatformRobotSense(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel){
-	float _x[6]={0,0,0,0,0,0};
-	float _y[6]={0,0,0,0,0,0};
-	float _z[6]={0,0,0,0,0,0};
-	float _alpha[6]={0,0,0,0,0,0};
-	float _beta[6]={0,0,0,0,0,0};
-	float _gamma[6]={0,0,0,0,0,0};
-	for (int i=0;i<6;i++){
-		if (dynamicWorld->robotODE->getContact(i)==1){
-			_x[i]=x; _y[i]=y; _z[i]=z;
-			_alpha[i]=alpha; _beta[i]=beta; _gamma[i]=gamma;
-		}
-	}
-	if (!changePlatformRobot(_x, _y, _z, _alpha, _beta, _gamma, speed, accel))
-		return false;
-	return true;
-}
-
 /// przesuwa platforme o zadana odleglosc liniowa i katowa w aktualnym ukladzie robota (kazda noga moze zadawac inny kierunek)
 bool CRobot_RC::changePlatformRobot(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel){
 	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
@@ -1137,11 +1100,11 @@ bool CRobot_RC::changePlatformRobot(float * x, float * y, float * z, float * alp
 
 //przemieszcza robota do zadanych pozycji w ukladzie globalnym
 bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum * feet_prev, CPunctum * feet, float speed, int soft){
-	CPunctum pos[6];
-	double angles[18];
+	CPunctum pos[LEGS_NO];
+	double angles[JOINTS_NO];
 	int part;
 	getFullRobotState(&body_prev, feet_prev);
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<LEGS_NO;i++) {
 	    if (i<3) part=1;
 	    else part=-1;
 		CPunctum delta,delta1, tmp;
@@ -1187,13 +1150,14 @@ bool CRobot_RC::move2GlobalPosition(CPunctum body_prev, CPunctum body, CPunctum 
 		}
 	}
 	changeAngles(angles,speed);
+	return true;
 }
 
 /// przesuwa platforme o zadana odleglosc liniowa i katowa wzgledem konfiguracji neutralnej
 /// uwaga nie używać naprzemiennie wersji jedno i wielowymiarowej - nie będzie dzialalo poprawnie
 /// ze wzgledu na brak znajomosci poprzedniej pozycji platformy (TODO) lub nalezy konczyc ruch w pozycji neutralnej
 bool CRobot_RC::changePlatform(float x, float y, float z, float alpha, float beta, float gamma, float speed, int accel){
-	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(JOINTS_NO,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
@@ -1222,7 +1186,6 @@ bool CRobot_RC::changePlatform(float x, float y, float z, float alpha, float bet
 bool CRobot_RC::stabilizePlatform(float speed, int accel){
 	float imu_rot[3];
 	getRotAngles(imu_rot);
-	//printf("stab %f %f\n", imu_rot[0],imu_rot[1]);
 	if (!changePlatformRobot(0,0,0, -imu_rot[0],-imu_rot[1],0, speed, accel))
 	  return false;
 	return true;
@@ -1232,7 +1195,7 @@ bool CRobot_RC::stabilizePlatform(float speed, int accel){
 /// uwaga nie używać naprzemiennie wersji jedno i wielowymiarowej - nie będzie dzialalo poprawnie
 /// ze wzgledu na brak znajomosci poprzedniej pozycji platformy (TODO) lub nalezy konczyc ruch w pozycji neutralnej
 bool CRobot_RC::changePlatform(float * x, float * y, float * z, float * alpha, float * beta, float * gamma, float speed, int accel){
-	std::vector<float> delta_angle(18,0); //zmiany katow w stawach konczyny
+	std::vector<float> delta_angle(JOINTS_NO,0); //zmiany katow w stawach konczyny
 	float real_speed = speed*MAX_SERVO_SPEED_RC; //rzeczywista, zmniejszona predkosc serwomechanizmu
 	if (!computeRobotKinematicDeltaAngle(x, y, z, alpha, beta, gamma, delta_angle))
 		return false;//obliczenie drogi katowej
@@ -1243,8 +1206,8 @@ bool CRobot_RC::changePlatform(float * x, float * y, float * z, float * alpha, f
 	int iter_no = delta_t/SERVO_DELAY_RC;
 	for (int i=1;i<=iter_no;i++){
 		float div = float(i)/float(iter_no);
-		float x_zad[6],y_zad[6],z_zad[6],alpha_zad[6],beta_zad[6],gamma_zad[6];
-		for (int j=0; j<6;j++){// krok ruchu dla kazdego wezla kinematycznego
+		float x_zad[LEGS_NO],y_zad[LEGS_NO],z_zad[LEGS_NO],alpha_zad[LEGS_NO],beta_zad[LEGS_NO],gamma_zad[LEGS_NO];
+		for (int j=0; j<LEGS_NO;j++){// krok ruchu dla kazdego wezla kinematycznego
 			x_zad[j]=x[j]*div; y_zad[j]=y[j]*div; z_zad[j]=z[j]*div;
 			alpha_zad[j]=alpha[j]*div; beta_zad[j]=beta[j]*div; gamma_zad[j]=gamma[j]*div;
 		}
@@ -1254,10 +1217,6 @@ bool CRobot_RC::changePlatform(float * x, float * y, float * z, float * alpha, f
 		sendAngles(speed);
 		this->sleepODE(SERVO_DELAY_RC*1000);
 	}
-	//for (int i=0;i<6;i++){
-	//	x_ref_prev[i]=x[i]; y_ref_prev[i]=y[i]; z_ref_prev[i]=z[i];
-	//	alpha_ref_prev[i]=alpha[i]; beta_ref_prev[i]=beta[i]; gamma_ref_prev[i]=gamma[i];
-	//}
 	return true;
 }
 
@@ -1282,7 +1241,7 @@ void CRobot_RC::sleepODE(int miliseconds){
 void CRobot_RC::getFullRobotState(CPunctum *body, CPunctum * feet){
 	* body = this->getRobotState();
 	int part;
-	for (int i=0;i<6;i++){
+	for (int i=0;i<LEGS_NO;i++){
 		if (i<3) part=1; else part=-1;
 		feet[i] = (*body)*leg[i].start*leg[i].getPosition(part);
 	}
@@ -1290,12 +1249,11 @@ void CRobot_RC::getFullRobotState(CPunctum *body, CPunctum * feet){
 
 /// check collisions
 bool CRobot_RC::checkCollisions(CPunctum body, CPunctum * feet){
-	robsim::float_type Q_ref[18];
+	robsim::float_type Q_ref[JOINTS_NO];
 	int part;
 	CPunctum pos;
-	for (int i=0;i<6;i++) {
-	    if (i<3) part=1;
-	    else part=-1;
+	for (int i=0;i<LEGS_NO;i++) {
+	    (i<3) ? part=1 : part=-1;
 		pos = body*leg[i].start;
 		pos.invThis();
 		pos=pos*feet[i];

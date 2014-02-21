@@ -100,7 +100,7 @@ bool CGaits_RC::tripodStep(unsigned int delay_up, unsigned int delay_forward, fl
 		if ((i==1)||(i==3)||(i==5)) z_ref[i]=-offset_up; else z_ref[i]=0;
 	}
 	//if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
-	if (!robot_rc->Placefeet(0.005,speed)) return false;
+	if (!robot_rc->placeFeet(0.005,speed)) return false;
 	robot_rc->sleepODE(delay_up/1000);//usleep(delay_up);
 	//podnosimy nieparzyste
 	for (int i=0;i<6;i++){
@@ -126,7 +126,7 @@ bool CGaits_RC::tripodStep(unsigned int delay_up, unsigned int delay_forward, fl
 		if ((i==0)||(i==2)||(i==4)) z_ref[i]=-offset_up; else z_ref[i]=0;
 	}
 	//if (!robot_rc->changeAllfeetRobot(x_ref, y_ref, z_ref, speed)) return false;
-	if (!robot_rc->Placefeet(0.005,speed)) return false;
+	if (!robot_rc->placeFeet(0.005,speed)) return false;
 	robot_rc->sleepODE(delay_forward/1000);//usleep(delay_forward);
 	//podnosimy parzyste
 	for (int i=0;i<6;i++){

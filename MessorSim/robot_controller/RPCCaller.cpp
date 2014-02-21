@@ -477,7 +477,7 @@ ERR RPCCaller::getIMUorientation(float* angles)
 
 ERR RPCCaller::Placefeet(float dz, int legs, float speed)
 {
-	return control->robot_rc->Placefeet(dz,legs,speed);
+	return control->robot_rc->placeFeet(dz,legs,speed);
 }
 
 ERR RPCCaller::Contact(int i)
